@@ -48,6 +48,8 @@ Mỗi tính năng (Feature) mới đều trải qua 5 pha tuyến tính. Không 
 | **Linter Đặc tả** | `/sdd-lint --feature=<slug>` | `SPEC.md` | Spec Quality Report | Phân tích cú pháp EARS, phát hiện từ ngữ mập mờ, kiểm tra ma trận xử lý lỗi (`IF...THEN`) và tính duy nhất của `REQ-XXX`. |
 | **Quản lý RFC** | `/sdd-rfc --title=<title> [--approve=<id>]` | Ý tưởng quy tắc / File RFC | `.sdd/rfcs/RFC-XXX.md` + `CONSTITUTION.md` | Tạo đề xuất RFC sửa Hiến pháp Layer 1/2. Khi Tech Lead approve (`--approve`), tự động đồng bộ vào `CONSTITUTION.md`. |
 | **Đồng bộ Registry** | `/sdd-sync` | Thư mục `.sdd/features/` | `.sdd/README.md` + `.sdd/shared_context.md` | Tự động cập nhật Master Feature Registry và tổng hợp các API/State Contracts dùng chung giữa các feature. |
+| **Quản lý Memory** | `/sdd-claude-edit [--section=<name>]` | Yêu cầu đổi Arch DNA / Tech Stack | `CLAUDE.md` (Updated SemVer) | Cập nhật Bộ nhớ dự án, Tech Stack, Naming Conventions và ranh giới Clean Arch trong `CLAUDE.md` có kiểm soát. |
+| **Quản lý Agent Scope** | `/sdd-agents-edit [--section=<name>]` | Yêu cầu đổi Phân quyền Agent | `AGENTS.md` (Updated SemVer) | Cập nhật Agent Constitution, Persona, Scope Boundaries, Tool Permissions Matrix và Escalation Protocol trong `AGENTS.md`. |
 | **Sửa Code 4 Tầng** | `/sdd-layer-edit --feature=<slug> --action=<add\|modify\|refactor>` | Requirement + Clean Arch | Source Code (4 Layers) | Thực hiện thay đổi luồng nghiệp vụ đi xuyên 4 tầng (`domain` ➔ `usecase` ➔ `interface` ➔ `infra`) bảo đảm ranh giới `ARCH-01` và `@ears` tag. |
 
 ---
@@ -220,6 +222,28 @@ Khi bạn muốn chỉnh sửa thủ công (manual edit) file `SPEC.md` sau khi 
      - **Tầng 2 (Usecase)**: Cập nhật Interactor `ApplyDiscountCodeUseCase`, gắn tag `@ears .sdd/features/feat-order-checkout/SPEC.md#REQ-005`.
      - **Tầng 3 (Interface)**: Cập nhật DTO Schema & Controller `OrderController` trong `src/interface/`.
      - **Tầng 4 (Infra)**: Cập nhật Repository Query trong `src/infra/`.
+
+---
+
+### Kịch bản 10: Quản lý và Cập nhật Bộ nhớ Dự án (CLAUDE.md Governance)
+- **Bối cảnh**: Team chuyển đổi cơ sở dữ liệu từ PostgreSQL sang MongoDB, cần cập nhật Tech Stack và Architecture DNA trong `CLAUDE.md`.
+- **Luồng xử lý**:
+  1. Chạy lệnh:
+     ```bash
+     /sdd-claude-edit --section=tech-stack --reason="Migrate relational DB to Document DB"
+     ```
+  2. Agent đọc `CLAUDE.md`, cập nhật thông tin Tech Stack mới, bump minor version và ghi nhận Changelog.
+
+---
+
+### Kịch bản 11: Quản lý Phân quyền & Giới hạn của AI Agent (AGENTS.md Governance)
+- **Bối cảnh**: Bạn muốn cấp quyền cho Agent được tự động thực thi các lệnh `docker-compose` hoặc bổ sung đường dẫn `scripts/` vào danh sách Permitted Paths.
+- **Luồng xử lý**:
+  1. Chạy lệnh:
+     ```bash
+     /sdd-agents-edit --section=tool-permissions --reason="Allow docker verification commands for agent"
+     ```
+  2. Agent cập nhật Ma trận Phân quyền Tool Permissions Matrix trong `AGENTS.md`, bump patch version và lưu Changelog.
 
 ### Kịch bản 6: Tích hợp SDD+ADD vào Repository CÓ SẴN (Brownfield / Legacy Codebase)
 - **Bối cảnh**: Bạn có một dự án Node.js/Python/Go đã chạy 2 năm, chưa từng dùng SDD+ADD, nay muốn đưa quy trình SDD+ADD vào để quản lý các tính năng mới và refactor các module cũ.

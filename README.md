@@ -8,13 +8,13 @@ Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương
 
 Đọc tài liệu đầy đủ tại **[`docs/sdd-add-guide.md`](docs/sdd-add-guide.md)** — Cẩm nang vận hành chi tiết bao gồm:
 
-- 💡 **[Triết lý Cốt lõi & Khái niệm SDD+ADD](docs/sdd-add-guide.md#1-sdd--add-l%C3%A0-g%C3%AC-%C3%BD-ngh%C4%A9a--tri%E1%BA%BFt-l%C3%BD-c%E1%BB%91t-l%C3%B5i)**: Hiểu về Spec là Compiler Interface và nguyên tắc *"Fix the Spec, NOT the Code"*.
-- 🔄 **[Quy trình 5 Bước & Definition of Done (DoD)](docs/sdd-add-guide.md#2-quy-tr%C3%ACnh-5-b%C6%B0%E1%BB%9Bc-th%E1%BB%B1c-thi-5-step-workflow)**: Chi tiết đầu vào/đầu ra và tiêu chuẩn hoàn thành cho từng pha từ Context đến Code.
-- ✏️ **[Giao thức Sửa Spec Thủ công (Manual Spec Fix Protocol)](docs/sdd-add-guide.md#3-h%C6%B0%E1%BB%9Bng-d%E1%BA%AFn-s%E1%BB%ADa-spec-th%E1%BB%A7-c%C3%B4ng-manual-spec-fix-protocol)**: 4 bước cập nhật Spec, bump version SemVer (`vX.Y.Z`) và đồng bộ lại Code/Test.
-- 🎬 **[6 Kịch bản Thực tế (Real-World Scenarios)](docs/sdd-add-guide.md#4-c%C3%A1c-k%E1%BB%8Bch-b%E1%BA%A3n-th%E1%BB%B1c-t%E1%BA%BF-khi-l%C3%A0m-vi%E1%BB%87c-theo-sdd--add-real-world-scenarios)**: Hướng dẫn xử lý khi làm tính năng mới, fix bug, PO đổi yêu cầu, test fail, sửa Hiến pháp (RFC) hoặc tích hợp vào Repo cũ (Brownfield).
-- 🔍 **[Truy vết Ma trận Yêu cầu & Phân tích Tác động](docs/sdd-add-guide.md#5-truy-v%E1%BA%BFt--ph%C3%A2n-t%C3%ADch-t%C3%A1c-%C4%91%E1%BB%99ng-thay-%C4%91%E1%BB%95i-y%C3%AAu-c%E1%BA%A7u-requirement-traceability--impact-analysis)**: Cách dùng `/sdd-trace` để phát hiện Untraced Requirements, Code mồ côi và Code bị lỗi thời.
-- 🤝 **[Quy trình Hàn thủ & Khôi phục Ngữ cảnh (Handoff & Resume Protocol)](docs/sdd-add-guide.md#8-quy-tr%C3%ACnh-h%C3%A0n-th%E1%BB%A7-v%C3%A0-l%C6%B0u-tr%E1%BA%A1ng-th%C3%A1i-d%E1%BB%9F-dang-handoff--resume-protocol)**: 3 bước tự lưu trạng thái dở dang và resume phiên làm việc tiếp theo với `-c` / `-Continue`.
-- 📐 **[EARS Notation Cheat Sheet](docs/sdd-add-guide.md#6-b%E1%BA%A3ng-ti%C3%AAu-chu%E1%BA%A9n-%C4%91%E1%BB%8Bnh-d%E1%BA%A1ng-ears-notation-cheat-sheet)**: 5 mẫu câu EARS (Ubiquitous, Event-driven, State-driven, Optional, Unwanted) để viết đặc tả chuẩn.
+- 💡 **[Khái niệm SDD + ADD](docs/sdd-add-guide.md#1-sdd--add-l%C3%A0-g%C3%AC)**: Hiểu vai trò của Spec, Human Director và Agent cùng nguyên tắc *"Fix the Spec, not the Code"*.
+- 🔄 **[Vòng đời feature chuẩn](docs/sdd-add-guide.md#4-v%C3%B2ng-%C4%91%E1%BB%9Di-feature-chu%E1%BA%A9n)**: Chi tiết đầu vào, đầu ra và gate hoàn thành từ Context đến PR.
+- ✏️ **[Cập nhật Spec đúng cách](docs/sdd-add-guide.md#5-c%E1%BA%ADp-nh%E1%BA%ADt-spec-%C4%91%C3%BAng-c%C3%A1ch)**: Cách xử lý bug, thay đổi tương thích và breaking change bằng SemVer.
+- 🎬 **[Các kịch bản vận hành](docs/sdd-add-guide.md#6-c%C3%A1c-k%E1%BB%8Bch-b%E1%BA%A3n-v%E1%BA%ADn-h%C3%A0nh)**: Hướng dẫn Greenfield, Brownfield, feature, bugfix, RFC, Git delivery và handoff/resume.
+- 🔍 **[Requirement Traceability và Impact Analysis](docs/sdd-add-guide.md#7-requirement-traceability-v%C3%A0-impact-analysis)**: Cách dùng `/sdd-trace` để phát hiện requirement chưa được triển khai, code mồ côi và implementation lỗi thời.
+- 🤝 **[Handoff và resume protocol](docs/sdd-add-guide.md#10-handoff-v%C3%A0-resume-protocol)**: Lưu trạng thái dở dang và khôi phục phiên làm việc tiếp theo.
+- 📐 **[EARS notation cheat sheet](docs/sdd-add-guide.md#8-ears-notation-cheat-sheet)**: Năm mẫu EARS để viết đặc tả có thể kiểm thử.
 
 ---
 
@@ -29,7 +29,7 @@ cd my-new-project
 # Bước 2: Khởi tạo dữ liệu framework SDD+ADD
 /sdd-init --project-name="my-new-project" --stack="Node.js + TypeScript"
 
-# Bước 3: Triển khai Feature đầu tiên qua 5 bước SDD+ADD
+# Bước 3: Triển khai Feature đầu tiên theo lifecycle SDD+ADD
 /sdd-context --feature=feat-001-user-auth
 /sdd-spec    --feature=feat-001-user-auth
 /sdd-plan    --feature=feat-001-user-auth
@@ -83,7 +83,7 @@ cd /path/to/your-existing-project
 ├── CLAUDE.md               # [Layer 1] Project Memory, Architecture DNA & Clean Arch Rules
 ├── CONSTITUTION.md         # [Layer 1] Hard Quality Gates (3 Layer Rules: Hard, Arch, Eng) & RFC Process
 ├── .claude/
-│   └── skills/             # 20 Custom Slash Commands cho SDD+ADD Workflow và Git Operator Gates
+│   └── skills/             # 21 Custom Slash Commands cho SDD+ADD Workflow và Git Operator Gates
 │       ├── sdd-init/SKILL.md         # /sdd-init (Greenfield Project Initializer)
 │       ├── sdd-adopt/SKILL.md        # /sdd-adopt (Brownfield Legacy Adoption & Reverse Spec)
 │       ├── sdd-context/SKILL.md      # /sdd-context --feature=<slug> (Pha 0: Context Discovery + DoD)
@@ -111,7 +111,7 @@ cd /path/to/your-existing-project
 │   ├── rfcs/               # Thư mục chứa các đề xuất RFC sửa đổi Hiến pháp
 │   └── features/           # Nơi chứa bộ 4 file SDD cho từng feature riêng biệt
 ├── docs/
-│   └── sdd-add-guide.md    # Hướng dẫn chi tiết quy trình 5 bước SDD+ADD, DoD Checklist & Kịch bản thực tế
+│   └── sdd-add-guide.md    # Handbook vòng đời SDD+ADD, DoD Checklist & Kịch bản vận hành
 ├── scripts/
 │   ├── adopt.sh            # Native Bash Script cho Linux / macOS / Git Bash
 │   ├── adopt.ps1           # Native PowerShell Script cho Windows
@@ -135,6 +135,15 @@ cd /path/to/your-existing-project
 | `/add-execute` | `.claude/skills/add-execute/SKILL.md` | **Pha 4 & 5**: AI Agent thực thi code, Self-check `CONSTITUTION.md` & Test |
 | `/sdd-update` | `.claude/skills/sdd-update/SKILL.md` | Cập nhật đặc tả, nâng version SemVer (Major/Minor/Patch) & ghi Changelog |
 | `/sdd-trace` | `.claude/skills/sdd-trace/SKILL.md` | Truy vết ma trận yêu cầu (RTM 5 tầng) & Phân tích tác động khi đổi Spec |
+| `/sdd-handoff` | `.claude/skills/sdd-handoff/SKILL.md` | Lưu trạng thái feature và tạo handoff cho session tiếp theo |
+| `/sdd-resume` | `.claude/skills/sdd-resume/SKILL.md` | Quét task dở dang và khôi phục context |
+| `/sdd-audit` | `.claude/skills/sdd-audit/SKILL.md` | Kiểm tra tuân thủ 3 tầng quality gates |
+| `/sdd-lint` | `.claude/skills/sdd-lint/SKILL.md` | Kiểm định EARS, SemVer và unwanted behavior |
+| `/sdd-rfc` | `.claude/skills/sdd-rfc/SKILL.md` | Quản lý RFC thay đổi Constitution hoặc kiến trúc lớn |
+| `/sdd-sync` | `.claude/skills/sdd-sync/SKILL.md` | Đồng bộ feature registry và shared contracts |
+| `/sdd-layer-edit` | `.claude/skills/sdd-layer-edit/SKILL.md` | Chỉnh sửa xuyên bốn tầng Clean Architecture |
+| `/sdd-claude-edit` | `.claude/skills/sdd-claude-edit/SKILL.md` | Cập nhật CLAUDE.md theo governance workflow |
+| `/sdd-agents-edit` | `.claude/skills/sdd-agents-edit/SKILL.md` | Cập nhật AGENTS.md theo governance workflow |
 | `/git-validate` | `.claude/skills/git-validate/SKILL.md` | Gate bắt buộc kiểm tra Git, secrets, Constitution, SDD trace và quality trước commit/PR |
 | `/git-commit` | `.claude/skills/git-commit/SKILL.md` | Stage và tạo commit chỉ sau khi `/git-validate --scope=commit` đạt READY |
 | `/git-pr` | `.claude/skills/git-pr/SKILL.md` | Kiểm tra remote-first và tạo Pull Request chỉ sau khi gate PR đạt READY |

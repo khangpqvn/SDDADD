@@ -1,454 +1,618 @@
-# HƯỚNG DẪN CHI TIẾT PHƯƠNG PHÁP LUẬN VÀ VẬN HÀNH SDD + ADD
+# HƯỚNG DẪN SDD + ADD VÀ VẬN HÀNH TEMPLATE
 
-# Version: 3.0.0 (Comprehensive Handbook & Operational Scenarios)
-# Target Audience: Developers, Tech Leads, QA, AI Assistants (Claude Code, Roo Code, Cline, Cursor)
+# Version: 4.0.0
+# Target: Developers, Tech Leads, QA, AI Assistants
 
----
-
-## 1. SDD + ADD LÀ GÌ? (Ý NGHĨA & TRIẾT LÝ CỐT LÕI)
-
-### 1.1 Khái niệm
-- **SDD (Spec-Driven Development — Phát triển dựa trên Đặc tả Executable)**: Phương pháp lập trình mà trong đó **Đặc tả (Specification)** được xem như **Mã nguồn thực thi (Executable Code)**. Mọi logic nghiệp vụ, điều kiện biên, cách xử lý lỗi phải được định nghĩa chính xác và không mơ hồ trong file `.sdd/features/{slug}/SPEC.md` trước khi viết bất kỳ dòng code nào.
-- **ADD (Agent-Driven Development — Phát triển do AI Agent dẫn dắt)**: Phương pháp sử dụng các AI Agent làm lực lượng thực thi chính (Executor) dưới sự chỉ đạo và giám sát của Con người (Human Director). Agent đọc đặc tả, lập kế hoạch kiến trúc, phân rã công việc và sinh code + test tự động.
-
-### 1.2 Triết lý Vàng (Golden Rules)
-1. **"Fix the Spec, NOT the Code" (Sai ở đâu, sửa ở Spec đó)**:
-   Khi test thất bại, có bug hoặc logic chưa đúng ➔ **Tuyệt đối KHÔNG sửa code trực tiếp**. Phải cập nhật lại file `SPEC.md` để bổ sung trường hợp sót ➔ Sau đó yêu cầu AI Agent re-generate code từ Spec mới. Code chỉ là sản phẩm trung gian (Artifact), Spec mới là Nguồn sự thật lâu dài (Single Source of Truth).
-2. **Spec là Compiler Interface**:
-   Con người đóng vai trò Kiến trúc sư/Nhạc trưởng (viết What — Hệ thống cần làm gì). AI Agent đóng vai trò Compiler (sinh How — Hệ thống làm như thế nào). Nếu AI đoán mò (Hallucinate), đó là do Spec viết chưa đủ chi tiết hoặc còn mập mờ.
-3. **EARS Traceability (Truy vết 100%)**:
-   Tất cả hàm/phương thức thực thi logic nghiệp vụ trong code (`src/usecase/`) bắt buộc phải gắn JSDoc tag `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
+Tài liệu này là runbook vận hành cho Starter Template SDD + ADD. Template cung cấp governance files, đặc tả theo feature, slash commands và Git Operator gates. Quy tắc bất biến nằm ở [`CONSTITUTION.md`](../CONSTITUTION.md); phạm vi và quyền của Agent nằm ở [`AGENTS.md`](../AGENTS.md).
 
 ---
 
-## 2. QUY TRÌNH 5 BƯỚC THỰC THI (5-STEP WORKFLOW)
+## 1. SDD + ADD là gì?
 
-Mỗi tính năng (Feature) mới đều trải qua 5 pha tuyến tính. Không chuyển pha khi pha hiện tại chưa đạt **Definition of Done (DoD)**.
+### 1.1 SDD — Spec-Driven Development
 
-```text
-[Pha 0: CONTEXT] ➔ [Pha 1: SPEC] ➔ [Pha 2: PLAN] ➔ [Pha 3: TASKS] ➔ [Pha 4 & 5: EXECUTE & VERIFY]
+SDD coi đặc tả là nguồn sự thật cho hành vi nghiệp vụ. Trước khi viết code, team mô tả:
+
+- bài toán và thuật ngữ trong `CONTEXT.md`;
+- yêu cầu có thể kiểm chứng trong `SPEC.md`;
+- kiến trúc và rủi ro trong `PLAN.md`;
+- công việc nguyên tử và tiêu chí hoàn thành trong `TASKS.md`.
+
+Code và test là artifacts được sinh/triển khai từ đặc tả. Khi behavior chưa rõ hoặc test cho thấy thiếu trường hợp, cập nhật Spec trước rồi mới đồng bộ code.
+
+### 1.2 ADD — Agent-Driven Development
+
+ADD dùng AI Agent như executor dưới sự chỉ đạo của Human Director:
+
+- Human Director quyết định business behavior, trade-off, approval và ngoại lệ.
+- Agent đọc Context/Spec/Plan/Tasks, thực thi trong phạm vi được phép và báo evidence.
+- Agent không tự sửa `CONSTITUTION.md`, không tự bypass quality gate và không tự push/deploy.
+
+### 1.3 Ba nguyên tắc bắt buộc
+
+1. **Fix the Spec, not the Code**: test fail do thiếu hoặc mơ hồ về nghiệp vụ thì sửa `.sdd/features/{slug}/SPEC.md` trước.
+2. **Traceability 100%**: business method trong `src/usecase/` phải có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
+3. **Fail closed trước Git delivery**: `/git-commit` và `/git-pr` chỉ thực hiện sau khi `/git-validate` trả `READY`.
+
+---
+
+## 2. Thành phần của template
+
+### 2.1 Governance files
+
+| File | Vai trò | Quy tắc sử dụng |
+| :--- | :--- | :--- |
+| `CONSTITUTION.md` | Hard security, architecture và engineering rules | Không sửa trực tiếp; thay đổi Layer 1/2 phải qua RFC approved |
+| `AGENTS.md` | Persona, permitted paths, tool permissions và escalation | Agent phải đọc trước khi thực thi |
+| `CLAUDE.md` | Architecture DNA, naming và anti-patterns | Cập nhật khi kiến trúc hoặc tech stack thay đổi |
+
+### 2.2 SDD feature files
+
+Mỗi feature nằm tại `.sdd/features/{feature-slug}/`:
+
+| File | Nội dung | DoD chính |
+| :--- | :--- | :--- |
+| `CONTEXT.md` | Problem, pain points, glossary, stakeholders, constraints | Không còn open question quan trọng chưa được ghi nhận |
+| `SPEC.md` | Functional requirements theo EARS, SemVer, trạng thái approval | Requirement rõ, duy nhất, có error/edge cases |
+| `PLAN.md` | Clean Architecture, component boundary, data flow, risk | Có mapping từ requirement tới component |
+| `TASKS.md` | Atomic tasks, dependencies, files, verification commands | Mỗi task independent hoặc có dependency rõ và verifiable |
+
+### 2.3 Skills theo vòng đời
+
+Các skill local nằm trong `.claude/skills/`. Nhóm chính:
+
+- Khởi tạo: `/sdd-init`, `/sdd-adopt`.
+- Đặc tả: `/sdd-context`, `/sdd-spec`, `/sdd-plan`, `/sdd-tasks`.
+- Thực thi: `/add-execute`, `/sdd-layer-edit`.
+- Đồng bộ và kiểm định: `/sdd-update`, `/sdd-trace`, `/sdd-lint`, `/sdd-audit`, `/sdd-sync`.
+- Governance và session: `/sdd-claude-edit`, `/sdd-agents-edit`, `/sdd-handoff`, `/sdd-resume`.
+- Git delivery: `/git-validate`, `/git-commit`, `/git-pr`.
+
+Skill file là owner của command contract. Tài liệu này chỉ mô tả thứ tự vận hành và quyết định khi nào dùng command.
+
+---
+
+## 3. Bắt đầu với template
+
+### 3.1 Greenfield — tạo dự án mới
+
+Dùng khi repository chưa có cấu trúc SDD + ADD:
+
+```bash
+# Clone template hoặc tạo repository từ template
+git clone <template-url> my-project
+cd my-project
+
+# Khởi tạo/điều chỉnh bộ khung
+/sdd-init --project-name="my-project" --stack="Node.js + TypeScript + PostgreSQL"
 ```
 
-### Chi tiết các Pha & Lệnh Slash Commands:
+Sau khi khởi tạo:
 
-| Pha / Công dụng | Lệnh Slash Command | Đầu vào (Input) | Đầu ra (Output) | Ý nghĩa & Cách sử dụng chi tiết |
+1. Đọc `CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`.
+2. Xác nhận stack, clean architecture và test command phù hợp repository.
+3. Kiểm tra `.sdd/README.md`, `.sdd/shared_context.md` và `.claude/skills/`.
+4. Chạy `/sdd-context --feature=<slug>` để bắt đầu feature đầu tiên.
+
+Không coi việc tạo thư mục là feature đã hoàn thành. Feature chỉ bắt đầu khi có Context và Spec được review.
+
+### 3.2 Brownfield — tích hợp vào repository có sẵn
+
+Dùng script native khi cần copy framework vào repository đang tồn tại. Script không ghi đè file đích mặc định.
+
+**Linux, macOS hoặc Git Bash:**
+
+```bash
+./scripts/adopt.sh /path/to/existing-repository
+./scripts/adopt.sh ../existing-repository
+```
+
+**Windows PowerShell:**
+
+```powershell
+.\scripts\adopt.ps1 -TargetPath C:\Projects\existing-repository
+.\scripts\adopt.ps1 ..\existing-repository
+```
+
+Chỉ dùng `--force` khi đã xác nhận file đích có thể bị ghi đè:
+
+```bash
+./scripts/adopt.sh /path/to/existing-repository --force
+```
+
+```powershell
+.\scripts\adopt.ps1 -TargetPath C:\Projects\existing-repository -Force
+```
+
+Sau migration, mở repository đích và chạy:
+
+```text
+/sdd-adopt
+```
+
+`/sdd-adopt` phải được dùng để điều chỉnh governance theo tech stack thực tế, không giả định repository legacy đã tuân thủ Clean Architecture.
+
+### 3.3 Reverse Spec cho module legacy
+
+Dùng khi cần refactor module cũ nhưng behavior hiện tại chưa có Spec:
+
+```text
+/sdd-adopt --reverse-feature=feat-legacy-auth --path=src/modules/auth
+```
+
+Review reverse Spec với owner trước khi sửa code. Reverse Spec mô tả behavior đang tồn tại; nó không tự động chứng minh behavior đó đúng về business.
+
+### 3.4 Khởi động session
+
+**Windows PowerShell:**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1
+```
+
+**Bash:**
+
+```bash
+./scripts/start-claude.sh
+```
+
+Tiếp tục session gần nhất:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
+```
+
+```bash
+./scripts/start-claude.sh -c
+```
+
+Các script khởi động dùng chế độ `--dangerously-skip-permissions`. Chỉ chạy trong repository và môi trường đã được kiểm soát; không đặt secrets trong prompt hoặc file log.
+
+---
+
+## 4. Vòng đời feature chuẩn
+
+Mỗi feature đi qua các pha sau. Không chuyển pha khi DoD của pha hiện tại chưa đạt.
+
+```text
+CONTEXT -> SPEC -> PLAN -> TASKS -> EXECUTE -> VERIFY -> SYNC -> COMMIT -> PR
+```
+
+| Pha | Command | Input | Output | Gate chuyển pha |
 | :--- | :--- | :--- | :--- | :--- |
-| **Khởi tạo Repo mới** | `/sdd-init` | Tên dự án, Tech stack | Cấu trúc `.sdd/`, `CONSTITUTION.md`, `CLAUDE.md`, `AGENTS.md` | Dùng cho Greenfield Project để dựng khung quản trị 3 layer và thư mục đặc tả từ đầu. |
-| **Tích hợp Repo cũ** | `/sdd-adopt [--reverse-feature=<slug>]` | Codebase hiện có | `CONSTITUTION.md`, `SPEC.md` đảo ngược | Dùng cho Brownfield Project. Scout codebase cũ để sinh Hiến pháp hoặc đảo ngược Spec từ module cũ để refactor. |
-| **Pha 0: Context** | `/sdd-context --feature=<slug>` | Yêu cầu nghiệp vụ sơ khai từ User/PM | `.sdd/features/{slug}/CONTEXT.md` | Khai phá nỗi đau người dùng, Domain Glossary, ràng buộc cứng. Chưa bàn giải pháp kỹ thuật. |
-| **Pha 1: Spec** | `/sdd-spec --feature=<slug>` | `CONTEXT.md` | `.sdd/features/{slug}/SPEC.md` | Viết đặc tả chuẩn EARS Notation (5 mẫu câu), đánh số `REQ-001`, Semantic Versioning (`v1.0.0`) & trạng thái LOCKED. |
-| **Pha 2: Plan** | `/sdd-plan --feature=<slug>` | `SPEC.md` | `.sdd/features/{slug}/PLAN.md` | Thiết kế Clean Arch (`domain`, `usecase`, `interface`, `infra`), phân tích rủi ro kỹ thuật, vẽ Data Flow. |
-| **Pha 3: Tasks** | `/sdd-tasks --feature=<slug>` | `PLAN.md` + `SPEC.md` | `.sdd/features/{slug}/TASKS.md` | Phân rã thành Atomic Tasks (`T001`, `T002`), mỗi task độc lập, có thể verify và gắn `@ears` tag. |
-| **Pha 4 & 5: Execute** | `/add-execute --feature=<slug>` | `TASKS.md` + `SPEC.md` | Source Code + Test Suite | AI Agent thực thi từng task, viết test, tự kiểm tra quy chuẩn `CONSTITUTION.md` và chạy test báo GREEN. |
-| **Cập nhật Spec** | `/sdd-update --feature=<slug> --bump=<major\|minor\|patch>` | `SPEC.md` hiện tại | `SPEC.md` (Version mới) + Changelog | Tự động nâng phiên bản SemVer, cập nhật yêu cầu EARS, ghi Changelog và đề xuất lệnh đồng bộ Code/Test. |
-| **Truy vết & Diff** | `/sdd-trace --feature=<slug> [--req=REQ-XXX] [--diff]` | Codebase + Spec | Traceability Report | Truy vết 5 tầng (Spec ➔ Plan ➔ Task ➔ Code ➔ Test), phân tích tác động thay đổi và phát hiện đứt gãy vết. |
-| **Lưu phiên dở dang** | `/sdd-handoff [--feature=<slug>]` | Session hiện tại | `TASKS.md` (Handoff State) + Handoff Report | Chạy trước khi tắt session. Đóng băng tiến độ (`[/]`), tổng hợp file dở dang và tạo lệnh resume. |
-| **Resume phiên mới** | `/sdd-resume [--feature=<slug>]` | `TASKS.md` + `SPEC.md` | Khôi phục Context + Lệnh Execute | Chạy ngay sau khi bật session mới. Quét task `[/]`, nạp lại ngữ cảnh dở dang và tiếp tục thực thi. |
-| **Audit Chất lượng** | `/sdd-audit [--feature=<slug>]` | Codebase + `CONSTITUTION.md` | Compliance Audit Report | Kiểm định 3 tầng Quality Gates: Hard Rules (`SEC-01`, `SEC-02`, `DATA-01`), Arch Boundary (`ARCH-01`) và EARS Tag (`ENG-01`). |
-| **Linter Đặc tả** | `/sdd-lint --feature=<slug>` | `SPEC.md` | Spec Quality Report | Phân tích cú pháp EARS, phát hiện từ ngữ mập mờ, kiểm tra ma trận xử lý lỗi (`IF...THEN`) và tính duy nhất của `REQ-XXX`. |
-| **Quản lý RFC** | `/sdd-rfc --title=<title> [--approve=<id>]` | Ý tưởng quy tắc / File RFC | `.sdd/rfcs/RFC-XXX.md` + `CONSTITUTION.md` | Tạo đề xuất RFC sửa Hiến pháp Layer 1/2. Khi Tech Lead approve (`--approve`), tự động đồng bộ vào `CONSTITUTION.md`. |
-| **Đồng bộ Registry** | `/sdd-sync` | Thư mục `.sdd/features/` | `.sdd/README.md` + `.sdd/shared_context.md` | Tự động cập nhật Master Feature Registry và tổng hợp các API/State Contracts dùng chung giữa các feature. |
-| **Quản lý Memory** | `/sdd-claude-edit [--section=<name>]` | Yêu cầu đổi Arch DNA / Tech Stack | `CLAUDE.md` (Updated SemVer) | Cập nhật Bộ nhớ dự án, Tech Stack, Naming Conventions và ranh giới Clean Arch trong `CLAUDE.md` có kiểm soát. |
-| **Quản lý Agent Scope** | `/sdd-agents-edit [--section=<name>]` | Yêu cầu đổi Phân quyền Agent | `AGENTS.md` (Updated SemVer) | Cập nhật Agent Constitution, Persona, Scope Boundaries, Tool Permissions Matrix và Escalation Protocol trong `AGENTS.md`. |
-| **Sửa Code 4 Tầng** | `/sdd-layer-edit --feature=<slug> --action=<add\|modify\|refactor>` | Requirement + Clean Arch | Source Code (4 Layers) | Thực hiện thay đổi luồng nghiệp vụ đi xuyên 4 tầng (`domain` ➔ `usecase` ➔ `interface` ➔ `infra`) bảo đảm ranh giới `ARCH-01` và `@ears` tag. |
+| 0. Context | `/sdd-context --feature=<slug>` | Problem statement | `CONTEXT.md` | Problem, glossary, owner, constraints rõ |
+| 1. Spec | `/sdd-spec --feature=<slug>` | `CONTEXT.md` | `SPEC.md` | EARS, REQ IDs, SemVer, approval state |
+| 2. Plan | `/sdd-plan --feature=<slug>` | `SPEC.md` | `PLAN.md` | Boundary, flow, risks và mapping rõ |
+| 3. Tasks | `/sdd-tasks --feature=<slug>` | `PLAN.md`, `SPEC.md` | `TASKS.md` | Atomic, independent/dependency, verifiable |
+| 4. Execute | `/add-execute --feature=<slug>` | `TASKS.md`, `SPEC.md` | Code + tests | `@ears`, architecture và self-check đạt |
+| 5. Verify | `/sdd-lint`, `/sdd-audit`, `/sdd-trace` | Spec + code + tests | Quality reports | Không còn blocker |
+| 6. Sync | `/sdd-sync` | `.sdd/features/` | Registry + contracts | Registry không drift |
+| 7. Commit | `/git-commit` | Intended changes | Git commit | `/git-validate --scope=commit` = `READY` |
+| 8. PR | `/git-pr` | Pushed source branch | Pull Request | Remote validation `--strict` = `READY` |
 
----
-
-## 3. HƯỚNG DẪN SỬA SPEC THỦ CÔNG (MANUAL SPEC FIX PROTOCOL)
-
-Khi bạn muốn chỉnh sửa thủ công (manual edit) file `SPEC.md` sau khi đã chạy các skill hoặc đã sinh code:
-
-### Quy trình 4 bước sửa Spec thủ công chuẩn SDD:
-
-1. **Bước 1: Mở file Spec cần sửa**
-   - Đội ngũ mở file `.sdd/features/{slug}/SPEC.md`.
-
-2. **Bước 2: Cập nhật nội dung & Đánh số REQ mới**
-   - Sửa đổi quy tắc EARS cũ hoặc bổ sung Functional Requirement mới (ví dụ: `REQ-008`).
-   - Giữ nguyên cấu trúc EARS (`WHEN ... SHALL ...`).
-
-3. **Bước 3: Tăng phiên bản Spec (Semantic Versioning Bump)**
-   - Cập nhật header ở đầu file `SPEC.md`:
-     - **Thêm/Sửa điều kiện nhỏ / Fix bug**: Bump `PATCH` (e.g. `v1.0.0` ➔ `v1.0.1`).
-     - **Thêm tính năng mới không phá vỡ hợp đồng cũ**: Bump `MINOR` (e.g. `v1.0.0` ➔ `v1.1.0`).
-     - **Thay đổi lớn phá vỡ hợp đồng API/DB**: Bump `MAJOR` (e.g. `v1.0.0` ➔ `v2.0.0`).
-   - Ghi chú lý do vào mục `## Changelog` ở cuối file `SPEC.md`.
-
-4. **Bước 4: Re-synchronize Plan, Tasks & Code**
-   - Chạy lại các lệnh tương ứng để đồng bộ hệ thống:
-     - Nếu chỉ sửa bug/logic nhỏ trong Spec: Chạy trực tiếp `/add-execute --feature=<slug>` để Agent đọc Spec mới, cập nhật code và bổ sung test cases.
-     - Nếu bổ sung nhiều Yêu cầu mới (Minor/Major): Chạy lại `/sdd-tasks --feature=<slug>` để cập nhật danh sách `TASKS.md`, sau đó chạy `/add-execute --feature=<slug>`.
-
----
-
-## 4. CÁC KỊCH BẢN THỰC TẾ KHI LÀM VIỆC THEO SDD + ADD (REAL-WORLD SCENARIOS)
-
-### Kịch bản 1: Phát triển tính năng mới từ đầu (New Feature)
-- **Bối cảnh**: Bạn nhận được yêu cầu "Xây dựng tính năng Đăng ký tài khoản người dùng bằng Email/OTP".
-- **Luồng xử lý**:
-  1. Chạy `/sdd-context --feature=feat-user-register` ➔ Trả lời các câu hỏi về domain, OTP expiry, rate limit.
-  2. Chạy `/sdd-spec --feature=feat-user-register` ➔ Tạo `SPEC.md` chứa `REQ-001` đến `REQ-010` chuẩn EARS.
-  3. Review `SPEC.md` với PO/Team ➔ Thấy ổn thì khoá Spec (`APPROVED & LOCKED v1.0.0`).
-  4. Chạy `/sdd-plan --feature=feat-user-register` ➔ Thiết kế Clean Architecture cho UseCase `RegisterUser`.
-  5. Chạy `/sdd-tasks --feature=feat-user-register` ➔ Sinh danh sách công việc `T001` đến `T006`.
-  6. Chạy `/add-execute --feature=feat-user-register` ➔ Agent sinh toàn bộ code và unit test.
-
----
-
-### Kịch bản 2: Phát hiện Bug trong quá trình chạy Test hoặc Production
-- **Bối cảnh**: Khi test phát hiện bug "Người dùng có thể bấm gửi lại OTP liên tục 100 lần/phút gây tràn RAM Redis".
-- **Cách làm KHÔNG ĐÚNG ❌**: Nhảy vào `src/usecase/send-otp.ts` sửa trực tiếp `if (rateLimit) return;`.
-- **Cách làm ĐÚNG SDD ✅**:
-  1. Mở file `.sdd/features/feat-user-register/SPEC.md`.
-  2. Bổ sung yêu cầu mới theo chuẩn EARS:
-     ```markdown
-     ### REQ-011: Rate Limit Gửi OTP (Unwanted Behavior)
-     IF người dùng gửi yêu cầu gửi lại OTP quá 3 lần trong vòng 60 giây,
-     THEN hệ thống SHALL từ chối xử lý, trả về HTTP status 429 Too Many Requests kèm error_code `ERR_OTP_RATE_LIMIT`.
-     ```
-  3. Bump version Spec từ `v1.0.0` ➔ `v1.0.1` và thêm changelog "Fix rate limit vulnerability".
-  4. Chạy `/add-execute --feature=feat-user-register`. Agent sẽ đọc Spec mới, cập nhật code và thêm test case cho rate limit.
-
----
-
-### Kịch bản 3: Sửa Spec thủ công do Khách hàng/PO đổi Yêu cầu (Requirement Change)
-- **Bối cảnh**: PO yêu cầu đổi thời gian hết hạn OTP từ 5 phút xuống 2 phút.
-- **Luồng xử lý**:
-  1. Developer mở thủ công `.sdd/features/feat-user-register/SPEC.md`.
-  2. Sửa dòng EARS tương ứng từ `5 minutes` thành `2 minutes`.
-  3. Bump version `SPEC.md` từ `v1.0.1` ➔ `v1.1.0`.
-  4. Chạy `/add-execute --feature=feat-user-register`. Agent kiểm tra sự sai lệch giữa Spec mới và Code cũ, cập nhật lại hằng số/config và tự động điều chỉnh assertion trong Unit Test.
-
----
-
-### Kịch bản 4: Test Fail hoặc Agent bị lặp lỗi (Spec Mismatch & Self-Correction)
-- **Bối cảnh**: Trong pha `/add-execute`, Agent sinh code nhưng test liên tục thất bại quá 3 lần.
-- **Luồng xử lý theo `AGENTS.md` Protocol**:
-  1. Agent dừng việc sinh code bừa bãi (Không thử vá ngẫu nhiên).
-  2. Agent thực hiện Self-Diagnostic: Phân tích lỗi xem do Code bug hay do Spec viết mập mờ/thiếu trường hợp biên.
-  3. Nếu Spec mập mờ: Agent báo cáo điểm mập mờ cho Human Director.
-  4. Human Director sửa Spec thủ công (hoặc duyệt phương án sửa Spec do Agent đề xuất).
-  5. Chạy lại `/add-execute` để hoàn tất task.
-
----
-
-### Kịch bản 5: Thay đổi Quy chuẩn Kiến trúc hoặc Bảo mật Toàn hệ thống (RFC Process & Approval Flow)
-- **Bối cảnh**: Team quyết định từ nay tất cả các bảng dữ liệu cốt lõi bắt buộc dùng Soft-Delete (`deleted_at TIMESTAMP`), vi phạm `DATA-01` sẽ không cho commit code.
-- **Quy trình Đề xuất & Phê duyệt RFC Chi tiết (RFC Flow)**:
-  1. **Tạo Đề xuất RFC mới**:
-     Chạy lệnh:
-     ```bash
-     /sdd-rfc --title=soft-delete-policy
-     ```
-     Agent sẽ tạo file đề xuất tại `.sdd/rfcs/RFC-001-soft-delete-policy.md` ở trạng thái `PROPOSED`.
-  2. **Trình bày Nội dung RFC**:
-     Developer/Tech Lead điền thông tin:
-     - **Motivation**: Tránh mất dữ liệu vĩnh viễn khi xóa nhầm trong production.
-     - **Proposed Rule**: Định nghĩa quy tắc `DATA-01` cho Layer 1 trong `CONSTITUTION.md`.
-     - **Risk Assessment**: Đánh giá ảnh hưởng đến các câu lệnh SQL hiện tại.
-     - **Migration Plan**: Kế hoạch thêm cột `deleted_at` vào các bảng DB.
-  3. **Review & Thảo luận Team**:
-     Cả team review file RFC trong Git. Nếu cần chỉnh sửa, cập nhật trực tiếp vào file `.sdd/rfcs/RFC-001-soft-delete-policy.md`.
-  4. **Phê duyệt & Đồng bộ Hiến pháp (Approval Execution)**:
-     Sau khi Tech Lead / Human Director đồng ý phê duyệt, chạy lệnh:
-     ```bash
-     /sdd-rfc --approve=001
-     ```
-     Lệnh này sẽ:
-     - Đổi trạng thái RFC trong file `.sdd/rfcs/RFC-001-soft-delete-policy.md` thành `APPROVED`.
-     - Tự động đồng bộ quy tắc `DATA-01` mới vào file `CONSTITUTION.md`.
-     - Bump minor version của `CONSTITUTION.md` (e.g. `v1.0.0` ➔ `v1.1.0`).
-  5. **Thực thi Quy tắc**: Mọi Agent trong các pha `/add-execute` hoặc `/sdd-audit` tương lai sẽ tự động kiểm tra và tuân thủ quy tắc `DATA-01` vừa được phê duyệt.
-
----
-
-### Kịch bản 7: Lưu & Tiếp tục Phiên làm việc dở dang (Handoff & Resume Scenario)
-- **Bối cảnh**: Bạn đang phát triển feature `feat-order-checkout`, đã xong UseCase nhưng chưa viết xong Controller thì hết giờ làm việc.
-- **Luồng xử lý**:
-  1. **Trước khi tắt phiên (End Session)**:
-     Chạy lệnh:
-     ```bash
-     /sdd-handoff --feature=feat-order-checkout
-     ```
-     Agent sẽ cập nhật trạng thái các task trong `TASKS.md`, đóng bằng danh sách các file đang viết dở và in ra lệnh resume.
-  2. **Khi mở lại phiên mới (New Session)**:
-     Chạy script khởi động kèm flag `-Continue`:
-     ```powershell
-     powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
-     ```
-  3. **Khôi phục ngữ cảnh (Resume Context)**:
-     Chạy ngay lệnh:
-     ```bash
-     /sdd-resume --feature=feat-order-checkout
-     ```
-     Agent đọc lại điểm dừng, báo cáo chính xác task đang làm dở và đề xuất chạy `/add-execute --feature=feat-order-checkout` để viết nấc code tiếp theo.
-
----
-
-### Kịch bản 8: Kiểm định Chất lượng & Audit trước khi Push / Create PR
-- **Bối cảnh**: Bạn vừa hoàn tất tính năng và chuẩn bị tạo Pull Request.
-- **Luồng xử lý**:
-  1. **Chạy Linter kiểm tra Spec**:
-     ```bash
-     /sdd-lint --feature=feat-order-checkout
-     ```
-     Đảm bảo `SPEC.md` không chứa câu từ mập mờ và có đủ kịch bản xử lý lỗi.
-  2. **Chạy Audit 3 Tầng Chất lượng**:
-     ```bash
-     /sdd-audit --feature=feat-order-checkout
-     ```
-     Agent tự động quét:
-     - Hard Secrets lộ dưới dạng plaintext (`SEC-01`).
-     - Route thiếu Auth Middleware (`SEC-02`).
-     - Lỗi Clean Architecture Controller gọi trực tiếp DB (`ARCH-01`).
-     - Tỷ lệ phủ JSDoc tag `@ears` trong code (`ENG-01`).
-  3. **Đồng bộ Master Registry**:
-     ```bash
-     /sdd-sync
-     ```
-     Đồng bộ trạng thái feature vào `.sdd/README.md` và cập nhật API Contracts vào `.sdd/shared_context.md`.
-
----
-
-### Git Operator Gate: Validate trước Commit và Pull Request
-
-Mọi thay đổi phải được kiểm tra bởi Git Operator trước khi tạo commit hoặc PR. Gate dùng staged diff cho commit và remote diff cho PR; không dùng local-only diff để kết luận PR.
+### 4.1 Pha 0 — Context
 
 ```text
-/git-commit --message="feat(scope): description"
-# git-commit stages intended files and invokes git-validate --scope=commit
-
-/git-pr --base=main --head=feature/my-change
-# git-pr invokes git-validate --scope=pr --strict before gh pr create
+/sdd-context --feature=feat-user-register
 ```
 
-Có thể chạy `/git-validate` riêng để kiểm tra trước khi gọi operator; operator luôn chạy lại gate ngay trước thao tác commit hoặc tạo PR.
+Cung cấp problem, user pain, domain glossary, stakeholder và hard constraints. Không yêu cầu agent chọn framework hoặc thiết kế database ở pha này.
 
-Gate sẽ block khi phát hiện secret/file nhạy cảm, Git operation đang dở, dirty worktree trong PR scope, Constitution thay đổi không có RFC approved, SDD lint/audit/trace lỗi, thiếu test cho source behavior, test/lint/build thất bại, diff rỗng hoặc source branch chưa push. Bước không áp dụng phải ghi `N/A` kèm lý do.
-
-Khi gate fail, sửa đúng blocker rồi chạy lại validator. Không dùng `--no-verify`, không force-push để vượt gate, không reset/amend/discard tự động. `/git-pr --push` chỉ được dùng khi người dùng yêu cầu rõ; sau push phải chạy lại remote validation.
-
-### Các luồng vận hành đề xuất
-
-#### Luồng A — Feature mới có code và test
+### 4.2 Pha 1 — Spec
 
 ```text
-/sdd-context --feature=<slug>
-  -> /sdd-spec --feature=<slug>
-  -> /sdd-plan --feature=<slug>
-  -> /sdd-tasks --feature=<slug>
-  -> /add-execute --feature=<slug>
-  -> /sdd-lint --feature=<slug>
-  -> /sdd-audit --feature=<slug>
-  -> /sdd-trace --feature=<slug> --diff
-  -> /sdd-sync
-  -> /git-commit --feature=<slug> --message="feat(scope): description"
-  -> /git-pr --base=main --head=<branch> --feature=<slug>
+/sdd-spec --feature=feat-user-register
 ```
 
-Dùng khi thay đổi `src/`, `tests/` hoặc `.sdd/features/`. Không bỏ qua `SPEC.md`, traceability hoặc test. Nếu test fail do thiếu nghiệp vụ, sửa Spec trước theo nguyên tắc “Fix the Spec, NOT the Code”.
+Review `SPEC.md` với Product Owner/Tech Lead. Chỉ coi Spec là implementation-ready khi:
 
-#### Luồng B — Documentation, governance hoặc skill-only change
+- status là `APPROVED & LOCKED`;
+- version có dạng `vX.Y.Z`;
+- mỗi requirement có `REQ-XXX` duy nhất;
+- happy path có unwanted/error behavior;
+- acceptance behavior có thể chuyển thành test.
+
+### 4.3 Pha 2 — Plan
+
+```text
+/sdd-plan --feature=feat-user-register
+```
+
+Plan phải chỉ rõ hướng dependency:
+
+```text
+domain <- usecase <- interface <- infra
+```
+
+Controller không gọi DB trực tiếp. Domain không import third-party library ngoài standard utilities theo `CLAUDE.md` và `CONSTITUTION.md`.
+
+### 4.4 Pha 3 — Tasks
+
+```text
+/sdd-tasks --feature=feat-user-register
+```
+
+Mỗi task cần có ID, file boundary, requirement reference, dependency nếu có và command verify. Không đánh dấu `[x]` nếu test chưa pass.
+
+### 4.5 Pha 4/5 — Execute và Verify
+
+```text
+/add-execute --feature=feat-user-register
+```
+
+Agent đọc `AGENTS.md`, `CONSTITUTION.md`, `TASKS.md`, `SPEC.md`, sau đó thực thi từng task. Sau code generation, chạy:
+
+```text
+/sdd-lint --feature=feat-user-register
+/sdd-audit --feature=feat-user-register
+/sdd-trace --feature=feat-user-register
+```
+
+Nếu yêu cầu vừa thay đổi, dùng `--diff` để tìm broken trace:
+
+```text
+/sdd-trace --feature=feat-user-register --diff
+```
+
+### 4.6 Đồng bộ registry và contracts
+
+```text
+/sdd-sync
+```
+
+Dùng sau khi feature hoặc shared contract thay đổi. Xác nhận `.sdd/README.md` và `.sdd/shared_context.md` phản ánh đúng feature hiện có; không thêm dữ liệu placeholder để làm đẹp registry.
+
+---
+
+## 5. Cập nhật Spec đúng cách
+
+Khi behavior thay đổi, không patch code trước khi quyết định business đã được ghi vào Spec.
+
+### 5.1 Bug hoặc điều kiện biên nhỏ
+
+```text
+/sdd-update --feature=feat-user-register --bump=patch --reason="Add OTP rate-limit behavior"
+```
+
+Thêm requirement/error case và changelog vào `SPEC.md`, sau đó:
+
+```text
+/add-execute --feature=feat-user-register
+/sdd-lint --feature=feat-user-register
+/sdd-trace --feature=feat-user-register --diff
+```
+
+### 5.2 Tính năng tương thích mới
+
+Dùng `--bump=minor` khi thêm behavior không phá vỡ contract hiện tại:
+
+```text
+/sdd-update --feature=feat-user-register --bump=minor --reason="Reduce OTP expiration window"
+```
+
+Kiểm tra lại `PLAN.md`, `TASKS.md`, code và test trước khi commit.
+
+### 5.3 Thay đổi phá vỡ contract
+
+Dùng `--bump=major` khi thay đổi API/DB hoặc behavior không tương thích ngược:
+
+```text
+/sdd-update --feature=feat-user-register --bump=major --reason="Change registration contract"
+```
+
+Phải ghi risk và migration plan; breaking change cần Tech Lead/Human Director review trước implementation.
+
+---
+
+## 6. Các kịch bản vận hành
+
+### Kịch bản 1 — Feature mới từ đầu
+
+**Bối cảnh:** xây dựng đăng ký tài khoản bằng email/OTP.
+
+```text
+/sdd-context --feature=feat-user-register
+/sdd-spec --feature=feat-user-register
+# Human review và xác nhận APPROVED & LOCKED
+/sdd-plan --feature=feat-user-register
+/sdd-tasks --feature=feat-user-register
+/add-execute --feature=feat-user-register
+/sdd-lint --feature=feat-user-register
+/sdd-audit --feature=feat-user-register
+/sdd-trace --feature=feat-user-register
+/sdd-sync
+```
+
+Kết quả mong đợi: có đủ `CONTEXT.md`, `SPEC.md`, `PLAN.md`, `TASKS.md`, source, tests và traceability trước Git delivery.
+
+### Kịch bản 2 — Bug phát hiện từ test hoặc production
+
+**Bối cảnh:** OTP có thể bị gửi lại không giới hạn.
+
+Không sửa trực tiếp `src/usecase/send-otp.ts` nếu Spec chưa mô tả rate limit. Thực hiện:
+
+```text
+/sdd-update --feature=feat-user-register --bump=patch --reason="Add OTP rate-limit behavior"
+```
+
+Bổ sung requirement, ví dụ:
+
+```markdown
+### REQ-011: Rate Limit Gửi OTP
+IF người dùng gửi lại OTP quá 3 lần trong 60 giây,
+THEN hệ thống SHALL từ chối với HTTP 429 và error_code `ERR_OTP_RATE_LIMIT`.
+```
+
+Sau đó:
+
+```text
+/add-execute --feature=feat-user-register
+/sdd-trace --feature=feat-user-register --diff
+/sdd-audit --feature=feat-user-register
+```
+
+### Kịch bản 3 — Product Owner thay đổi yêu cầu
+
+**Bối cảnh:** thời hạn OTP đổi từ 5 phút xuống 2 phút.
+
+```text
+/sdd-update --feature=feat-user-register --bump=minor --reason="Reduce OTP expiration window"
+```
+
+Review changelog, update plan/tasks nếu affected, regenerate code/test và chạy trace diff. Không chỉ sửa hằng số trong code rồi bỏ qua Spec.
+
+### Kịch bản 4 — Test fail hoặc Agent lặp lỗi
+
+Agent phải dừng sau khi đã phân tích đủ nguyên nhân, không vá ngẫu nhiên.
+
+1. Đọc failure và xác định code bug hay Spec gap.
+2. Nếu Spec mơ hồ, báo Human Director.
+3. Cập nhật `SPEC.md`, bump version nếu cần.
+4. Đồng bộ `PLAN.md`, `TASKS.md`, code và tests.
+5. Chạy lại validation từ pha bị ảnh hưởng.
+
+### Kịch bản 5 — RFC thay đổi Constitution
+
+**Bối cảnh:** team muốn thêm hoặc sửa hard rule.
+
+```text
+/sdd-rfc --title=soft-delete-policy
+```
+
+Tech Lead điền motivation, proposed change, risk và migration plan trong `.sdd/rfcs/RFC-XXX-*.md`. Chỉ sau approval mới chạy:
+
+```text
+/sdd-rfc --approve=<rfc-number>
+```
+
+Không sửa trực tiếp `CONSTITUTION.md`. Git Operator sẽ block thay đổi Constitution không có RFC approved.
+
+### Kịch bản 6 — Brownfield adoption
+
+**Bối cảnh:** repository Node.js/Python/Go đang chạy nhưng chưa có SDD.
+
+```bash
+# Từ thư mục template
+./scripts/adopt.sh /path/to/legacy-repo
+```
+
+Hoặc Windows:
+
+```powershell
+.\scripts\adopt.ps1 -TargetPath C:\Projects\legacy-repo
+```
+
+Trong repo đích:
+
+```text
+/sdd-adopt
+```
+
+Nếu cần refactor module cũ:
+
+```text
+/sdd-adopt --reverse-feature=feat-legacy-module --path=src/modules/legacy
+```
+
+Sau reverse Spec, chạy `/sdd-lint` và review với owner trước khi dùng `/sdd-layer-edit` hoặc `/add-execute`.
+
+### Kịch bản 7 — Thay đổi xuyên bốn tầng
+
+**Bối cảnh:** thêm `discount_code` vào checkout.
+
+```text
+/sdd-layer-edit --feature=feat-order-checkout --action=modify
+```
+
+Kiểm tra kết quả theo boundary:
+
+1. `src/domain/`: value object/entity.
+2. `src/usecase/`: business workflow và `@ears` tag.
+3. `src/interface/`: DTO/controller boundary.
+4. `src/infra/`: repository/external integration.
+
+Sau đó chạy audit architecture và test integration. Không để controller truy cập DB trực tiếp.
+
+### Kịch bản 8 — Validation trước commit
+
+Dùng khi thay đổi đã sẵn sàng nhưng chưa commit:
+
+```text
+/git-validate --scope=commit
+/git-commit --message="feat(auth): add OTP rate limit"
+```
+
+`/git-commit` phải stage đúng file intended và chạy lại validator ngay trước `git commit`. Gate block secret, forbidden files, empty staged diff, unresolved Git operation, Constitution change không có RFC hoặc quality failure.
+
+### Kịch bản 9 — Tạo PR remote-first
+
+Source branch phải được push và remote diff phải là nguồn kết luận:
+
+```text
+/git-pr --base=main --head=feature/user-register --push
+```
+
+Chỉ dùng `--push` khi người dùng yêu cầu rõ. `/git-pr` phải:
+
+1. fetch remote;
+2. xác nhận `origin/main` và `origin/feature/user-register` tồn tại;
+3. kiểm tra local HEAD khớp remote HEAD;
+4. kiểm tra `origin/main...origin/feature/user-register`;
+5. chạy `/git-validate --scope=pr --strict`;
+6. chỉ sau `READY` mới gọi `gh pr create`.
+
+Không dùng `git diff main...HEAD` để kết luận PR. Không merge, force-push hoặc bypass required checks.
+
+### Kịch bản 10 — Documentation, skill hoặc governance-only change
+
+Khi không có source behavior:
 
 ```text
 /sdd-audit
-  -> /git-commit --message="feat(skill): description"
-  -> /git-pr --base=main --head=<branch>
+/git-commit --message="feat(skill): improve validation gate"
+/git-pr --base=main --head=feature/git-operator
 ```
 
-Dùng khi chỉ thay đổi `.claude/skills/`, `README.md`, `docs/`, `CLAUDE.md`, `AGENTS.md` hoặc RFC. `git-validate` tự xác định các check SDD không áp dụng và phải ghi `N/A` kèm lý do. Thay đổi `CONSTITUTION.md` chỉ hợp lệ khi có RFC approved.
+Validator ghi `N/A` cho trace/test không áp dụng nếu repository không có source/test tương ứng, nhưng vẫn kiểm tra secret, path policy, Git state và docs consistency. Không báo `PASS` giả cho command chưa chạy.
 
-#### Luồng C — Validation bị chặn
+### Kịch bản 11 — Handoff và resume
+
+Khi còn task dở:
 
 ```text
-/git-validate --scope=commit|pr --strict
-  -> đọc blocker và evidence
-  -> sửa đúng source/spec/test/config
-  -> chạy lại /sdd-lint, /sdd-audit hoặc /sdd-trace nếu liên quan
-  -> chạy lại /git-validate
+/sdd-handoff --feature=feat-order-checkout
 ```
 
-Không commit hoặc tạo PR khi còn `FAIL`. Không biến `WARNING` thành `PASS`, không dùng `--no-verify`, và không dùng force-push để vượt gate. Với PR, source branch phải được push và validation phải dùng `origin/<base>...origin/<head>`.
+Handoff phải ghi current task, file đã đổi, test evidence, blocker và next command. Session mới:
 
-#### Luồng D — Kết thúc phiên và tiếp tục
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
+```
+
+Sau đó:
 
 ```text
-/sdd-handoff [--feature=<slug>]
-  -> lưu file đang dở, test evidence và blocker
-  -> mở phiên mới bằng scripts/start-claude.ps1 -Continue
-  -> /sdd-resume --feature=<slug>
-  -> chạy lại validator trước commit/PR
+/sdd-resume --feature=feat-order-checkout
 ```
 
-Dùng khi còn task chưa hoàn thành hoặc chưa đủ evidence để commit/PR. Với repository chưa có feature active, handoff ghi nhận trạng thái ở cấp repository thay vì tạo feature giả.
+Nếu repository chưa có feature active hoặc chưa có `TASKS.md`, không tạo feature giả. Ghi handoff ở report cấp repository trong `plans/reports/`.
 
 ---
 
-### Kịch bản 9: Thực hiện Chỉnh sửa Mã nguồn Xuyên 4 Tầng Kiến trúc (Cross-Layer Edit)
-- **Bối cảnh**: Bạn cần bổ sung thêm trường `discount_code` vào luồng thanh toán đơn hàng.
-- **Luồng xử lý**:
-  1. Chạy lệnh:
-     ```bash
-     /sdd-layer-edit --feature=feat-order-checkout --action=modify --target=ApplyDiscountCode
-     ```
-  2. Agent thực thi lần lượt qua 4 tầng mà không vi phạm ranh giới kiến trúc:
-     - **Tầng 1 (Domain)**: Thêm Value Object `DiscountCode` vào `src/domain/`.
-     - **Tầng 2 (Usecase)**: Cập nhật Interactor `ApplyDiscountCodeUseCase`, gắn tag `@ears .sdd/features/feat-order-checkout/SPEC.md#REQ-005`.
-     - **Tầng 3 (Interface)**: Cập nhật DTO Schema & Controller `OrderController` trong `src/interface/`.
-     - **Tầng 4 (Infra)**: Cập nhật Repository Query trong `src/infra/`.
+## 7. Requirement Traceability và Impact Analysis
 
----
-
-### Kịch bản 10: Quản lý và Cập nhật Bộ nhớ Dự án (CLAUDE.md Governance)
-- **Bối cảnh**: Team chuyển đổi cơ sở dữ liệu từ PostgreSQL sang MongoDB, cần cập nhật Tech Stack và Architecture DNA trong `CLAUDE.md`.
-- **Luồng xử lý**:
-  1. Chạy lệnh:
-     ```bash
-     /sdd-claude-edit --section=tech-stack --reason="Migrate relational DB to Document DB"
-     ```
-  2. Agent đọc `CLAUDE.md`, cập nhật thông tin Tech Stack mới, bump minor version và ghi nhận Changelog.
-
----
-
-### Kịch bản 11: Quản lý Phân quyền & Giới hạn của AI Agent (AGENTS.md Governance)
-- **Bối cảnh**: Bạn muốn cấp quyền cho Agent được tự động thực thi các lệnh `docker-compose` hoặc bổ sung đường dẫn `scripts/` vào danh sách Permitted Paths.
-- **Luồng xử lý**:
-  1. Chạy lệnh:
-     ```bash
-     /sdd-agents-edit --section=tool-permissions --reason="Allow docker verification commands for agent"
-     ```
-  2. Agent cập nhật Ma trận Phân quyền Tool Permissions Matrix trong `AGENTS.md`, bump patch version và lưu Changelog.
-
-### Kịch bản 6: Tích hợp SDD+ADD vào Repository CÓ SẴN (Brownfield / Legacy Codebase)
-- **Bối cảnh**: Bạn có một dự án Node.js/Python/Go đã chạy 2 năm, chưa từng dùng SDD+ADD, nay muốn đưa quy trình SDD+ADD vào để quản lý các tính năng mới và refactor các module cũ.
-- **Luồng xử lý**:
-  1. **Khởi tạo bộ khung SDD trên Repo cũ**:
-     Chạy lệnh:
-     ```bash
-     /sdd-adopt
-     ```
-     Agent sẽ tự động scout codebase hiện tại, phát hiện Tech Stack, Naming Conventions, Build/Test scripts và tự động sinh 3 file Hiến pháp (`CLAUDE.md`, `AGENTS.md`, `CONSTITUTION.md`) phù hợp với codebase cũ mà **không chạm/không sửa bất kỳ dòng code hiện tại nào**.
-  2. **Phát triển tính năng MỚI trên Repo cũ**:
-     Sử dụng bình thường 5 bước slash commands cho feature mới:
-     ```bash
-     /sdd-context --feature=feat-new-payment
-     /sdd-spec    --feature=feat-new-payment
-     /sdd-plan    --feature=feat-new-payment
-     /sdd-tasks   --feature=feat-new-payment
-     /add-execute --feature=feat-new-payment
-     ```
-  3. **Đảo ngược Đặc tả (Reverse Spec) cho Module CŨ để Refactor (Tùy chọn)**:
-     Khi cần refactor hoặc viết lại một module cũ (ví dụ `src/modules/auth`), chạy lệnh:
-     ```bash
-     /sdd-adopt --reverse-feature=feat-legacy-auth --path=src/modules/auth
-     ```
-     Agent sẽ đọc source code và tests cũ, trích xuất lại các quy tắc nghiệp vụ hiện có thành file đặc tả `.sdd/features/feat-legacy-auth/SPEC.md` theo chuẩn EARS (`v1.0.0 LOCKED`). Từ đây, mọi việc sửa đổi/refactor module cũ này sẽ tuân thủ nguyên tắc **"Fix the Spec, NOT the Code"**.
-
----
-
-## 5. TRUY VẾT & PHÂN TÍCH TÁC ĐỘNG THAY ĐỔI YÊU CẦU (REQUIREMENT TRACEABILITY & IMPACT ANALYSIS)
-
-Khi một hệ thống phát triển lâu dài, việc thay đổi yêu cầu nghiệp vụ (Requirement Change) trong `SPEC.md` có thể dẫn đến rủi ro đứt gãy vết hoặc bỏ sót code/test. Phương pháp luận SDD+ADD cung cấp slash command `/sdd-trace` để quản lý vết 5 tầng:
+Traceability map:
 
 ```text
-SPEC.md (REQ-XXX) ➔ PLAN.md ➔ TASKS.md ➔ Source Code (src/ @ears) ➔ Tests (tests/ @ears)
+SPEC.md (REQ-XXX)
+  -> PLAN.md
+  -> TASKS.md
+  -> src/ (@ears)
+  -> tests/ (@ears)
 ```
 
-### 5.1 Sử dụng Slash Command `/sdd-trace`
-- **Truy vết 1 Requirement cụ thể**:
-  ```bash
-  /sdd-trace --feature=feat-user-register --req=REQ-001
-  ```
-- **Phân tích tác động khi vừa nâng version Spec (Impact Analysis)**:
-  ```bash
-  /sdd-trace --feature=feat-user-register --diff
-  ```
-- **Kiểm tra ma trận phủ (Coverage Matrix) cho toàn feature**:
-  ```bash
-  /sdd-trace --feature=feat-user-register
-  ```
+### Truy vết một requirement
 
-### 5.2 Xử lý các dạng Đứt gãy Vết (Broken Trace Patterns)
-1. **Untraced Requirement (Yêu cầu thiếu Code/Test)**:
-   - **Hiện tượng**: `REQ-005` được định nghĩa trong `SPEC.md` nhưng không tìm thấy JSDoc tag `@ears ...#REQ-005` nào trong `src/` hoặc `tests/`.
-   - **Khắc phục**: Chạy `/add-execute --feature=<slug>` để Agent tự bổ sung UseCase và Test còn thiếu.
-2. **Orphan Code (Code mồ côi)**:
-   - **Hiện tượng**: Một phương thức trong `src/usecase/` có chứa logic nghiệp vụ nhưng không gắn tag `@ears` trích dẫn về Spec.
-   - **Khắc phục**: Bổ sung Tag JSDoc `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` để đảm bảo 100% code có lý do tồn tại minh bạch.
-3. **Outdated Implementation (Code cũ chưa theo Spec mới)**:
-   - **Hiện tượng**: `SPEC.md` vừa được sửa từ `v1.0.0` ➔ `v1.1.0` (thay đổi `REQ-003`). `/sdd-trace --diff` phát hiện code trong `src/usecase/` vẫn đang chạy theo logic cũ.
-   - **Khắc phục**: Chạy `/add-execute --feature=<slug>` để Agent đồng bộ lại code và test theo `REQ-003` phiên bản mới.
+```text
+/sdd-trace --feature=feat-user-register --req=REQ-001
+```
+
+### Kiểm tra toàn feature
+
+```text
+/sdd-trace --feature=feat-user-register
+```
+
+### Phân tích sau Spec change
+
+```text
+/sdd-trace --feature=feat-user-register --diff
+```
+
+Các trạng thái cần xử lý trước PR:
+
+- **Untraced requirement**: Spec có REQ nhưng chưa có code/test.
+- **Orphan code**: business method không có `@ears` hoặc trỏ tới REQ không tồn tại.
+- **Outdated implementation**: code/test chưa theo version Spec mới.
+- **Missing test**: requirement có code nhưng không có test verify.
 
 ---
 
-## 6. BẢNG TIÊU CHUẨN ĐỊNH DẠNG EARS NOTATION (CHEAT SHEET)
+## 8. EARS notation cheat sheet
 
-Khi viết hoặc sửa `SPEC.md`, luôn dùng 5 mẫu EARS (Easy Approach to Requirements Syntax) sau:
-
-| Loại EARS Pattern | Cấu trúc cú pháp | Ví dụ thực tế |
+| Loại | Mẫu | Ví dụ |
 | :--- | :--- | :--- |
-| **Ubiquitous** (Luôn đúng) | The `<system>` SHALL `<action>` | The system SHALL encrypt all stored user passwords using bcrypt with cost factor 12. |
-| **Event-driven** (Khi có sự kiện) | WHEN `<trigger>`, the `<system>` SHALL `<action>` | WHEN the user clicks "Submit Order", the system SHALL create a pending transaction in DB. |
-| **State-driven** (Khi ở trạng thái) | WHILE `<in state>`, the `<system>` SHALL `<action>` | WHILE the payment gateway is maintenance mode, the system SHALL display notice banner. |
-| **Optional** (Tính năng tùy chọn) | WHERE `<feature is included>`, the `<system>` SHALL `<action>` | WHERE biometric login is enabled, the system SHALL prompt for Fingerprint/FaceID. |
-| **Unwanted** (Xử lý lỗi/Ngoại lệ) | IF `<error/invalid condition>`, THEN the `<system>` SHALL `<action>` | IF the password attempt fails >= 5 times, THEN the system SHALL lock account for 30 minutes. |
+| Ubiquitous | `The <system> SHALL <action>` | `The system SHALL encrypt stored passwords.` |
+| Event-driven | `WHEN <trigger>, the <system> SHALL <action>` | `WHEN user submits order, the system SHALL create a pending transaction.` |
+| State-driven | `WHILE <state>, the <system> SHALL <action>` | `WHILE gateway is unavailable, the system SHALL show a maintenance notice.` |
+| Optional | `WHERE <feature>, the <system> SHALL <action>` | `WHERE biometric login is enabled, the system SHALL request biometric verification.` |
+| Unwanted | `IF <invalid condition>, THEN the <system> SHALL <action>` | `IF OTP attempts exceed the limit, THEN the system SHALL return 429.` |
+
+Requirement cần tránh từ mơ hồ như “nhanh chóng”, “linh hoạt”, “đẹp”, “nếu cần thiết”. Thay bằng ngưỡng, trạng thái, input và output có thể test.
 
 ---
 
-## 7. CHECKLIST TỰ KIỂM TRA CHO DEVELOPER (SELF-AUDIT CHECKLIST)
+## 9. Quality gates trước khi báo hoàn thành
 
-Trước khi gửi Pull Request hoặc báo cáo hoàn thành công việc, hãy tự kiểm tra:
+### 9.1 Self-check
 
-- [ ] File `SPEC.md` đã có trạng thái `APPROVED & LOCKED` và có phiên bản SemVer (`vX.Y.Z`) chưa?
-- [ ] Mọi chức năng nghiệp vụ trong code đã gắn tag `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` chưa?
-- [ ] Có dòng code nào sửa trực tiếp logic mà không qua bước cập nhật `SPEC.md` không? (Nếu có ➔ Quay lại sửa Spec trước).
-- [ ] Tất cả các test cases (`npm test`) có báo status **GREEN** 100% không?
-- [ ] Code có vi phạm quy định bảo mật `SEC-01` (Zero Hardcoded Secrets) trong `CONSTITUTION.md` không?
+- [ ] `SPEC.md` ở trạng thái `APPROVED & LOCKED` và có SemVer.
+- [ ] Business methods có `@ears` reference hợp lệ.
+- [ ] Controller không truy cập DB trực tiếp.
+- [ ] Hardcoded secret và PII trong log đã bị loại bỏ/mask.
+- [ ] Error response tuân thủ contract trong `CONSTITUTION.md`.
+- [ ] Test happy path và error/edge cases đều pass.
+- [ ] `/sdd-lint`, `/sdd-audit`, `/sdd-trace` đã chạy khi applicable.
+- [ ] `/sdd-sync` đã chạy khi feature/contract/registry thay đổi.
+- [ ] `/git-validate` trả `READY` trước commit hoặc PR.
+
+### 9.2 Git Operator rules
+
+| Scope | Nguồn diff | Required gate |
+| :--- | :--- | :--- |
+| Commit | `git diff --cached` | `/git-validate --scope=commit` |
+| PR | `origin/<base>...origin/<head>` | `/git-validate --scope=pr --strict` |
+
+Kết quả hợp lệ của validator là `PASS`, `FAIL` hoặc `N/A` có lý do. `READY` không được phát hành nếu còn `FAIL`, diff rỗng hoặc PR còn warning chưa giải trình.
 
 ---
 
-## 8. QUY TRÌNH HÀN THỦ VÀ LƯU TRẠNG THÁI DỞ DANG (HANDOFF & RESUME PROTOCOL)
+## 10. Handoff và resume protocol
 
-Khi đang làm dở công việc và cần kết thúc phiên (hoặc chuyển giao giữa các phiên làm việc), tuân thủ quy trình 3 bước sau để Claude tự ghi nhớ và tiếp tục chính xác ở phiên sau:
+### 10.1 Kết thúc phiên
 
-### 8.1 Bước 1: Lưu trạng thái dở dang (End of Session / Handoff)
+Với feature active:
 
-Trước khi đóng Claude Code, thực hiện cập nhật tiến độ công việc vào file `.sdd/features/{slug}/TASKS.md`:
-
-1. Đánh dấu trạng thái các Task (`[x]` cho hoàn thành, `[/]` cho đang làm dở, `[ ]` cho chưa làm).
-2. Chạy lệnh Slash Command để cập nhật/đồng bộ danh sách task:
-   ```bash
-   /sdd-tasks --feature=<slug>
-   ```
-3. (Tùy chọn) Yêu cầu Claude lưu tóm tắt điểm dừng:
-   > *"Lưu trạng thái công việc dở dang: Đang làm dở Task T003 feature <slug>, đã xong file A, phiên sau cần viết tiếp file B."*
-
-### 8.2 Bước 2: Khởi động phiên mới với quyền & khôi phục ngữ cảnh (Resume Session)
-
-Khi mở lại Claude Code cho phiên mới:
-
-- **PowerShell:**
-  ```powershell
-  powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
-  ```
-- **Bash:**
-  ```bash
-  ./scripts/start-claude.sh -c
-  ```
-
-*(Flag `-c` / `-Continue` tự động tải lại phiên làm việc gần nhất tại thư mục dự án).*
-
-### 8.3 Bước 3: Nạp ngữ cảnh và tiếp tục thực thi (Start of Session)
-
-Ngay khi vào phiên mới, chạy lệnh nạp ngữ cảnh feature:
-
-```bash
-/sdd-context --feature=<slug>
+```text
+/sdd-handoff --feature=<slug>
 ```
 
-Claude sẽ tự động đọc `.sdd/features/{slug}/TASKS.md` và `SPEC.md`, phát hiện các task đang đánh dấu `[/]` hoặc `[ ]`, báo cáo điểm dừng và tiếp tục thực thi qua lệnh:
+Kiểm tra `TASKS.md`:
 
-```bash
-/add-execute --feature=<slug>
+- `[x]`: task hoàn thành và test pass;
+- `[/]`: task đang làm dở;
+- `[ ]`: task chưa bắt đầu.
+
+Với repository-level work không có feature, tạo report trong `plans/reports/` chứa current status, changed files, evidence, blockers và resume commands. Không tạo `CONTEXT.md`, `SPEC.md` hoặc `TASKS.md` placeholder.
+
+### 10.2 Khởi động lại
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
 ```
 
+```bash
+./scripts/start-claude.sh -c
+```
+
+Sau đó chạy `/sdd-resume --feature=<slug>` khi feature có `TASKS.md`. Đọc lại `CONTEXT.md`, `SPEC.md`, `PLAN.md` và `TASKS.md` trước khi tiếp tục execute.
+
+### 10.3 Điều kiện kết thúc
+
+Session chỉ được báo hoàn thành khi:
+
+1. mọi task intended đã có trạng thái rõ;
+2. evidence test/quality được ghi;
+3. blocker và open question không bị che giấu;
+4. thay đổi đã qua Git validation nếu chuẩn bị commit/PR;
+5. next step có command cụ thể.

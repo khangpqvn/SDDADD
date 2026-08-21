@@ -4,6 +4,19 @@ Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương
 
 ---
 
+## 📖 TÀI LIỆU HƯỚNG DẪN CHI TIẾT (DOCUMENTATION)
+
+Đọc tài liệu đầy đủ tại **[`docs/sdd-add-guide.md`](docs/sdd-add-guide.md)** — Cẩm nang vận hành chi tiết bao gồm:
+
+- 💡 **[Triết lý Cốt lõi & Khái niệm SDD+ADD](docs/sdd-add-guide.md#1-sdd--add-l%C3%A0-g%C3%AC-%C3%BD-ngh%C4%A9a--tri%E1%BA%BFt-l%C3%BD-c%E1%BB%91t-l%C3%B5i)**: Hiểu về Spec là Compiler Interface và nguyên tắc *"Fix the Spec, NOT the Code"*.
+- 🔄 **[Quy trình 5 Bước & Definition of Done (DoD)](docs/sdd-add-guide.md#2-quy-tr%C3%ACnh-5-b%C6%B0%E1%BB%9Bc-th%E1%BB%B1c-thi-5-step-workflow)**: Chi tiết đầu vào/đầu ra và tiêu chuẩn hoàn thành cho từng pha từ Context đến Code.
+- ✏️ **[Giao thức Sửa Spec Thủ công (Manual Spec Fix Protocol)](docs/sdd-add-guide.md#3-h%C6%B0%E1%BB%9Bng-d%E1%BA%AFn-s%E1%BB%ADa-spec-th%E1%BB%A7-c%C3%B4ng-manual-spec-fix-protocol)**: 4 bước cập nhật Spec, bump version SemVer (`vX.Y.Z`) và đồng bộ lại Code/Test.
+- 🎬 **[6 Kịch bản Thực tế (Real-World Scenarios)](docs/sdd-add-guide.md#4-c%C3%A1c-k%E1%BB%8Bch-b%E1%BA%A3n-th%E1%BB%B1c-t%E1%BA%BF-khi-l%C3%A0m-vi%E1%BB%87c-theo-sdd--add-real-world-scenarios)**: Hướng dẫn xử lý khi làm tính năng mới, fix bug, PO đổi yêu cầu, test fail, sửa Hiến pháp (RFC) hoặc tích hợp vào Repo cũ (Brownfield).
+- 🔍 **[Truy vết Ma trận Yêu cầu & Phân tích Tác động](docs/sdd-add-guide.md#5-truy-v%E1%BA%BFt--ph%C3%A2n-t%C3%ADch-t%C3%A1c-%C4%91%E1%BB%99ng-thay-%C4%91%E1%BB%95i-y%C3%AAu-c%E1%BA%A7u-requirement-traceability--impact-analysis)**: Cách dùng `/sdd-trace` để phát hiện Untraced Requirements, Code mồ côi và Code bị lỗi thời.
+- 📐 **[EARS Notation Cheat Sheet](docs/sdd-add-guide.md#6-b%E1%BA%A3ng-ti%C3%AAu-chu%E1%BA%A9n-%C4%91%E1%BB%8Bnh-d%E1%BA%A1ng-ears-notation-cheat-sheet)**: 5 mẫu câu EARS (Ubiquitous, Event-driven, State-driven, Optional, Unwanted) để viết đặc tả chuẩn.
+
+---
+
 ## 🚀 HƯỚNG DẪN BẮT ĐẦU
 
 ### Trường hợp 1: Khởi tạo Dự án MỚI từ Template (Greenfield)

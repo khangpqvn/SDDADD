@@ -36,13 +36,16 @@ Tạo các thư mục bắt buộc:
 - **`.sdd/README.md`**: Master Feature Registry quản lý trạng thái tất cả các features.
 - **`.sdd/shared_context.md`**: Đồng bộ State và API Contracts giữa các feature.
 
-### 4. Khởi tạo Bộ 5 Custom SDD+ADD Skills (`.claude/skills/`)
-Đảm bảo dự án có đầy đủ 5 slash commands hỗ trợ quy trình:
+### 4. Khởi tạo Bộ Slash Commands SDD+ADD Skills (`.claude/skills/`)
+Đảm bảo dự án có đầy đủ 8 slash commands hỗ trợ quy trình:
+- `/sdd-init` — Initializer cho Greenfield project
+- `/sdd-adopt` — Adoption & Reverse Spec cho Brownfield project
 - `/sdd-context` — Pha 0 Context Discovery
-- `/sdd-spec` — Pha 1 Executable Spec (EARS + BDD)
+- `/sdd-spec` — Pha 1 Executable Spec (EARS + BDD + SemVer)
 - `/sdd-plan` — Pha 2 Architecture Planning
 - `/sdd-tasks` — Pha 3 Atomic Task Decomposition
 - `/add-execute` — Pha 4 & 5 Agentic Execution & Self-Check Validation
+- `/sdd-trace` — Truy vết ma trận yêu cầu (RTM) & Phân tích tác động thay đổi Spec (Impact Analysis)
 
 ### 5. Khởi tạo Document Hướng dẫn Vận hành (`docs/sdd-add-guide.md`)
 - Xuất tài liệu hướng dẫn quy trình 5 bước phát triển tính năng cho các thành viên trong team.

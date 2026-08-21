@@ -29,7 +29,7 @@ Sử dụng skill này khi muốn áp dụng phương pháp luận **SDD + ADD**
 ### 3. Tự động Khởi tạo Hạ tầng `.sdd/` & Skills
 - Tạo cấu trúc thư mục `.sdd/`, `.sdd/features/`, `.sdd/rfcs/`.
 - Tạo `.sdd/README.md` (Master Feature Registry) và `.sdd/shared_context.md`.
-- Copy/Cập nhật đầy đủ bộ 6 Slash Commands vào `.claude/skills/` (`sdd-init`, `sdd-context`, `sdd-spec`, `sdd-plan`, `sdd-tasks`, `add-execute`, `sdd-adopt`).
+- Copy/Cập nhật đầy đủ bộ 8 Slash Commands vào `.claude/skills/` (`sdd-init`, `sdd-adopt`, `sdd-context`, `sdd-spec`, `sdd-plan`, `sdd-tasks`, `add-execute`, `sdd-trace`).
 
 ### 4. Đảo ngược Đặc tả cho Module có sẵn (Reverse Spec — Tùy chọn)
 Nếu truyền `--reverse-feature=<slug>` và `--path=<module-path>`:

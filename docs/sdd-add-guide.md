@@ -155,7 +155,42 @@ Khi bạn muốn chỉnh sửa thủ công (manual edit) file `SPEC.md` sau khi 
 
 ---
 
-## 5. BẢNG TIÊU CHUẨN ĐỊNH DẠNG EARS NOTATION (CHEAT SHEET)
+## 5. TRUY VẾT & PHÂN TÍCH TÁC ĐỘNG THAY ĐỔI YÊU CẦU (REQUIREMENT TRACEABILITY & IMPACT ANALYSIS)
+
+Khi một hệ thống phát triển lâu dài, việc thay đổi yêu cầu nghiệp vụ (Requirement Change) trong `SPEC.md` có thể dẫn đến rủi ro đứt gãy vết hoặc bỏ sót code/test. Phương pháp luận SDD+ADD cung cấp slash command `/sdd-trace` để quản lý vết 5 tầng:
+
+```text
+SPEC.md (REQ-XXX) ➔ PLAN.md ➔ TASKS.md ➔ Source Code (src/ @ears) ➔ Tests (tests/ @ears)
+```
+
+### 5.1 Sử dụng Slash Command `/sdd-trace`
+- **Truy vết 1 Requirement cụ thể**:
+  ```bash
+  /sdd-trace --feature=feat-user-register --req=REQ-001
+  ```
+- **Phân tích tác động khi vừa nâng version Spec (Impact Analysis)**:
+  ```bash
+  /sdd-trace --feature=feat-user-register --diff
+  ```
+- **Kiểm tra ma trận phủ (Coverage Matrix) cho toàn feature**:
+  ```bash
+  /sdd-trace --feature=feat-user-register
+  ```
+
+### 5.2 Xử lý các dạng Đứt gãy Vết (Broken Trace Patterns)
+1. **Untraced Requirement (Yêu cầu thiếu Code/Test)**:
+   - **Hiện tượng**: `REQ-005` được định nghĩa trong `SPEC.md` nhưng không tìm thấy JSDoc tag `@ears ...#REQ-005` nào trong `src/` hoặc `tests/`.
+   - **Khắc phục**: Chạy `/add-execute --feature=<slug>` để Agent tự bổ sung UseCase và Test còn thiếu.
+2. **Orphan Code (Code mồ côi)**:
+   - **Hiện tượng**: Một phương thức trong `src/usecase/` có chứa logic nghiệp vụ nhưng không gắn tag `@ears` trích dẫn về Spec.
+   - **Khắc phục**: Bổ sung Tag JSDoc `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` để đảm bảo 100% code có lý do tồn tại minh bạch.
+3. **Outdated Implementation (Code cũ chưa theo Spec mới)**:
+   - **Hiện tượng**: `SPEC.md` vừa được sửa từ `v1.0.0` ➔ `v1.1.0` (thay đổi `REQ-003`). `/sdd-trace --diff` phát hiện code trong `src/usecase/` vẫn đang chạy theo logic cũ.
+   - **Khắc phục**: Chạy `/add-execute --feature=<slug>` để Agent đồng bộ lại code và test theo `REQ-003` phiên bản mới.
+
+---
+
+## 6. BẢNG TIÊU CHUẨN ĐỊNH DẠNG EARS NOTATION (CHEAT SHEET)
 
 Khi viết hoặc sửa `SPEC.md`, luôn dùng 5 mẫu EARS (Easy Approach to Requirements Syntax) sau:
 
@@ -169,7 +204,7 @@ Khi viết hoặc sửa `SPEC.md`, luôn dùng 5 mẫu EARS (Easy Approach to Re
 
 ---
 
-## 6. CHECKLIST TỰ KIỂM TRA CHO DEVELOPER (SELF-AUDIT CHECKLIST)
+## 7. CHECKLIST TỰ KIỂM TRA CHO DEVELOPER (SELF-AUDIT CHECKLIST)
 
 Trước khi gửi Pull Request hoặc báo cáo hoàn thành công việc, hãy tự kiểm tra:
 

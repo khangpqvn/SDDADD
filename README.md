@@ -1,6 +1,6 @@
 # SDD + ADD Starter Template
 
-Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương pháp luận **SDD (Spec-Driven Development)** và **ADD (Agent-Driven Development)** với AI Coding Assistants (Claude Code, Roo Code, Cline, Cursor). Tích hợp sẵn hệ thống **Checkpoints DoD**, **Semantic Versioning Docs**, **Spec Hierarchy** và **Brownfield Legacy Adoption**.
+Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương pháp luận **SDD (Spec-Driven Development)** và **ADD (Agent-Driven Development)** với AI Coding Assistants (Claude Code, Roo Code, Cline, Cursor). Tích hợp sẵn hệ thống **Checkpoints DoD**, **Semantic Versioning Docs**, **Spec Hierarchy** và **Cross-Platform Migration Script cho Repo có sẵn**.
 
 ---
 
@@ -26,14 +26,36 @@ cd my-new-project
 ---
 
 ### Trường hợp 2: Tích hợp SDD+ADD vào Repository CÓ SẴN (Brownfield / Legacy Codebase)
-Nếu bạn đã có một dự án đang chạy và muốn áp dụng quy chuẩn SDD+ADD mà **không phá vỡ code cũ**:
+Nếu bạn đã có một dự án đang chạy ở bất kỳ đường dẫn nào trên máy tính và muốn tích hợp SDD+ADD mà **không làm ảnh hưởng hay phá vỡ code cũ**:
 
+#### Cách 1: Tự động Migrate từ Template bằng Script Cross-Platform (Linux, macOS, Windows)
+Truyền đường dẫn repo target hiện tại của bạn vào script:
+
+- **Linux / macOS / Git Bash (Windows)**:
+  ```bash
+  node scripts/adopt.js /path/to/your-existing-project
+  ```
+- **Windows (Command Prompt / PowerShell)**:
+  ```powershell
+  node scripts/adopt.js C:\Projects\your-existing-project
+  ```
+- **Relative Path (Đường dẫn tương đối)**:
+  ```bash
+  node scripts/adopt.js ../your-existing-project
+  ```
+
+*Script sẽ tự động copy bộ skills, governance files (`CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`) và hạ tầng `.sdd/` vào project mục tiêu mà không ghi đè bất kỳ nguồn mã hiện tại nào.*
+
+#### Cách 2: Kích hoạt & Đảo ngược Spec trong Project Mục tiêu
+Sau khi đã chạy script migrate:
 ```bash
-# Bước 1: Tải bộ .claude/skills/ và Layer 1 Governance vào repo hiện tại của bạn
-# Bước 2: Chạy lệnh tự động phân tích và tạo khung SDD thích ứng với codebase hiện tại:
+# 1. Mở repo mục tiêu của bạn trong Claude Code / AI IDE
+cd /path/to/your-existing-project
+
+# 2. Chạy lệnh tự động scout và tinh chỉnh Layer 1 Governance phù hợp với Tech Stack của repo cũ:
 /sdd-adopt
 
-# Bước 3 (Tùy chọn): Đảo ngược đặc tả (Reverse Spec) cho một module cũ sẵn có để refactor:
+# 3. (Tùy chọn) Đảo ngược đặc tả (Reverse Spec) cho một module cũ để refactor:
 /sdd-adopt --reverse-feature=feat-legacy-auth --path=src/modules/auth
 ```
 
@@ -62,6 +84,8 @@ Nếu bạn đã có một dự án đang chạy và muốn áp dụng quy chu�
 │   └── features/           # Nơi chứa bộ 4 file SDD cho từng feature riêng biệt
 ├── docs/
 │   └── sdd-add-guide.md    # Hướng dẫn chi tiết quy trình 5 bước SDD+ADD, DoD Checklist & Kịch bản thực tế
+├── scripts/
+│   └── adopt.js            # Cross-platform Migration & Adoption script cho Repo có sẵn
 └── src/                    # Source code thực thi (Được sinh từ SPEC.md)
 ```
 

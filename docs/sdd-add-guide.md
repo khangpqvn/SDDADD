@@ -31,15 +31,24 @@ Mỗi tính năng (Feature) mới đều trải qua 5 pha tuyến tính. Không 
 
 ### Chi tiết các Pha & Lệnh Slash Commands:
 
-| Pha | Lệnh Slash Command | Đầu vào (Input) | Đầu ra (Output) | Ý nghĩa & Cách làm |
+| Pha / Công dụng | Lệnh Slash Command | Đầu vào (Input) | Đầu ra (Output) | Ý nghĩa & Cách sử dụng chi tiết |
 | :--- | :--- | :--- | :--- | :--- |
-| **Pha 0: Context** | `/sdd-context --feature=<slug>` | Yêu cầu nghiệp vụ sơ khai từ User/PM | `.sdd/features/{slug}/CONTEXT.md` | Khai phá nỗi đau người dùng, từ điển Domain (Glossary), các ràng buộc cứng. Chưa bàn giải pháp kỹ thuật. |
-| **Pha 1: Spec** | `/sdd-spec --feature=<slug>` | `CONTEXT.md` | `.sdd/features/{slug}/SPEC.md` | Viết đặc tả chuẩn EARS Notation, đủ 8 thành phần, đánh số `REQ-001`, khai báo Semantic Versioning (`v1.0.0`) & trạng thái LOCKED. |
-| **Pha 2: Plan** | `/sdd-plan --feature=<slug>` | `SPEC.md` | `.sdd/features/{slug}/PLAN.md` | Thiết kế kiến trúc Clean Arch (`domain`, `usecase`, `interface`, `infra`), phân tích rủi ro kỹ thuật, vẽ Data Flow. |
-| **Pha 3: Tasks** | `/sdd-tasks --feature=<slug>` | `PLAN.md` + `SPEC.md` | `.sdd/features/{slug}/TASKS.md` | Phân rã công việc thành các Atomic Tasks (`T001`, `T002`), mỗi task độc lập, có thể verify và gắn `@ears` tag. |
+| **Khởi tạo Repo mới** | `/sdd-init` | Tên dự án, Tech stack | Cấu trúc `.sdd/`, `CONSTITUTION.md`, `CLAUDE.md`, `AGENTS.md` | Dùng cho Greenfield Project để dựng khung quản trị 3 layer và thư mục đặc tả từ đầu. |
+| **Tích hợp Repo cũ** | `/sdd-adopt [--reverse-feature=<slug>]` | Codebase hiện có | `CONSTITUTION.md`, `SPEC.md` đảo ngược | Dùng cho Brownfield Project. Scout codebase cũ để sinh Hiến pháp hoặc đảo ngược Spec từ module cũ để refactor. |
+| **Pha 0: Context** | `/sdd-context --feature=<slug>` | Yêu cầu nghiệp vụ sơ khai từ User/PM | `.sdd/features/{slug}/CONTEXT.md` | Khai phá nỗi đau người dùng, Domain Glossary, ràng buộc cứng. Chưa bàn giải pháp kỹ thuật. |
+| **Pha 1: Spec** | `/sdd-spec --feature=<slug>` | `CONTEXT.md` | `.sdd/features/{slug}/SPEC.md` | Viết đặc tả chuẩn EARS Notation (5 mẫu câu), đánh số `REQ-001`, Semantic Versioning (`v1.0.0`) & trạng thái LOCKED. |
+| **Pha 2: Plan** | `/sdd-plan --feature=<slug>` | `SPEC.md` | `.sdd/features/{slug}/PLAN.md` | Thiết kế Clean Arch (`domain`, `usecase`, `interface`, `infra`), phân tích rủi ro kỹ thuật, vẽ Data Flow. |
+| **Pha 3: Tasks** | `/sdd-tasks --feature=<slug>` | `PLAN.md` + `SPEC.md` | `.sdd/features/{slug}/TASKS.md` | Phân rã thành Atomic Tasks (`T001`, `T002`), mỗi task độc lập, có thể verify và gắn `@ears` tag. |
 | **Pha 4 & 5: Execute** | `/add-execute --feature=<slug>` | `TASKS.md` + `SPEC.md` | Source Code + Test Suite | AI Agent thực thi từng task, viết test, tự kiểm tra quy chuẩn `CONSTITUTION.md` và chạy test báo GREEN. |
-| **Cập nhật Spec** | `/sdd-update --feature=<slug> --bump=<major\|minor\|patch> --reason="..."` | `SPEC.md` hiện tại | `SPEC.md` (Version mới) + Changelog | Tự động nâng phiên bản SemVer, cập nhật yêu cầu EARS, ghi Changelog và đề xuất lệnh đồng bộ Code/Test. |
+| **Cập nhật Spec** | `/sdd-update --feature=<slug> --bump=<major\|minor\|patch>` | `SPEC.md` hiện tại | `SPEC.md` (Version mới) + Changelog | Tự động nâng phiên bản SemVer, cập nhật yêu cầu EARS, ghi Changelog và đề xuất lệnh đồng bộ Code/Test. |
 | **Truy vết & Diff** | `/sdd-trace --feature=<slug> [--req=REQ-XXX] [--diff]` | Codebase + Spec | Traceability Report | Truy vết 5 tầng (Spec ➔ Plan ➔ Task ➔ Code ➔ Test), phân tích tác động thay đổi và phát hiện đứt gãy vết. |
+| **Lưu phiên dở dang** | `/sdd-handoff [--feature=<slug>]` | Session hiện tại | `TASKS.md` (Handoff State) + Handoff Report | Chạy trước khi tắt session. Đóng băng tiến độ (`[/]`), tổng hợp file dở dang và tạo lệnh resume. |
+| **Resume phiên mới** | `/sdd-resume [--feature=<slug>]` | `TASKS.md` + `SPEC.md` | Khôi phục Context + Lệnh Execute | Chạy ngay sau khi bật session mới. Quét task `[/]`, nạp lại ngữ cảnh dở dang và tiếp tục thực thi. |
+| **Audit Chất lượng** | `/sdd-audit [--feature=<slug>]` | Codebase + `CONSTITUTION.md` | Compliance Audit Report | Kiểm định 3 tầng Quality Gates: Hard Rules (`SEC-01`, `SEC-02`, `DATA-01`), Arch Boundary (`ARCH-01`) và EARS Tag (`ENG-01`). |
+| **Linter Đặc tả** | `/sdd-lint --feature=<slug>` | `SPEC.md` | Spec Quality Report | Phân tích cú pháp EARS, phát hiện từ ngữ mập mờ, kiểm tra ma trận xử lý lỗi (`IF...THEN`) và tính duy nhất của `REQ-XXX`. |
+| **Quản lý RFC** | `/sdd-rfc --title=<title> [--approve=<id>]` | Ý tưởng quy tắc / File RFC | `.sdd/rfcs/RFC-XXX.md` + `CONSTITUTION.md` | Tạo đề xuất RFC sửa Hiến pháp Layer 1/2. Khi Tech Lead approve (`--approve`), tự động đồng bộ vào `CONSTITUTION.md`. |
+| **Đồng bộ Registry** | `/sdd-sync` | Thư mục `.sdd/features/` | `.sdd/README.md` + `.sdd/shared_context.md` | Tự động cập nhật Master Feature Registry và tổng hợp các API/State Contracts dùng chung giữa các feature. |
+| **Sửa Code 4 Tầng** | `/sdd-layer-edit --feature=<slug> --action=<add\|modify\|refactor>` | Requirement + Clean Arch | Source Code (4 Layers) | Thực hiện thay đổi luồng nghiệp vụ đi xuyên 4 tầng (`domain` ➔ `usecase` ➔ `interface` ➔ `infra`) bảo đảm ranh giới `ARCH-01` và `@ears` tag. |
 
 ---
 
@@ -121,14 +130,96 @@ Khi bạn muốn chỉnh sửa thủ công (manual edit) file `SPEC.md` sau khi 
 
 ---
 
-### Kịch bản 5: Thay đổi Quy chuẩn Kiến trúc hoặc Bảo mật Toàn hệ thống (RFC Process)
-- **Bối cảnh**: Team quyết định từ nay tất cả các bảng dữ liệu cốt lõi bắt buộc dùng Soft-Delete (`deleted_at TIMESTAMP`), vi phạm sẽ không cho commit code.
+### Kịch bản 5: Thay đổi Quy chuẩn Kiến trúc hoặc Bảo mật Toàn hệ thống (RFC Process & Approval Flow)
+- **Bối cảnh**: Team quyết định từ nay tất cả các bảng dữ liệu cốt lõi bắt buộc dùng Soft-Delete (`deleted_at TIMESTAMP`), vi phạm `DATA-01` sẽ không cho commit code.
+- **Quy trình Đề xuất & Phê duyệt RFC Chi tiết (RFC Flow)**:
+  1. **Tạo Đề xuất RFC mới**:
+     Chạy lệnh:
+     ```bash
+     /sdd-rfc --title=soft-delete-policy
+     ```
+     Agent sẽ tạo file đề xuất tại `.sdd/rfcs/RFC-001-soft-delete-policy.md` ở trạng thái `PROPOSED`.
+  2. **Trình bày Nội dung RFC**:
+     Developer/Tech Lead điền thông tin:
+     - **Motivation**: Tránh mất dữ liệu vĩnh viễn khi xóa nhầm trong production.
+     - **Proposed Rule**: Định nghĩa quy tắc `DATA-01` cho Layer 1 trong `CONSTITUTION.md`.
+     - **Risk Assessment**: Đánh giá ảnh hưởng đến các câu lệnh SQL hiện tại.
+     - **Migration Plan**: Kế hoạch thêm cột `deleted_at` vào các bảng DB.
+  3. **Review & Thảo luận Team**:
+     Cả team review file RFC trong Git. Nếu cần chỉnh sửa, cập nhật trực tiếp vào file `.sdd/rfcs/RFC-001-soft-delete-policy.md`.
+  4. **Phê duyệt & Đồng bộ Hiến pháp (Approval Execution)**:
+     Sau khi Tech Lead / Human Director đồng ý phê duyệt, chạy lệnh:
+     ```bash
+     /sdd-rfc --approve=001
+     ```
+     Lệnh này sẽ:
+     - Đổi trạng thái RFC trong file `.sdd/rfcs/RFC-001-soft-delete-policy.md` thành `APPROVED`.
+     - Tự động đồng bộ quy tắc `DATA-01` mới vào file `CONSTITUTION.md`.
+     - Bump minor version của `CONSTITUTION.md` (e.g. `v1.0.0` ➔ `v1.1.0`).
+  5. **Thực thi Quy tắc**: Mọi Agent trong các pha `/add-execute` hoặc `/sdd-audit` tương lai sẽ tự động kiểm tra và tuân thủ quy tắc `DATA-01` vừa được phê duyệt.
+
+---
+
+### Kịch bản 7: Lưu & Tiếp tục Phiên làm việc dở dang (Handoff & Resume Scenario)
+- **Bối cảnh**: Bạn đang phát triển feature `feat-order-checkout`, đã xong UseCase nhưng chưa viết xong Controller thì hết giờ làm việc.
 - **Luồng xử lý**:
-  1. `CONSTITUTION.md` là file Hiến pháp Layer 1 bị **LOCKED** (Agent không được tự sửa).
-  2. Tạo file đề xuất RFC tại `.sdd/rfcs/RFC-001-soft-delete-policy.md`.
-  3. Trình bày Lý do (Motivation), Đề xuất quy tắc (`DATA-01`) và Rủi ro.
-  4. Sau khi Tech Lead phê duyệt RFC ➔ Cập nhật quy tắc `DATA-01` vào `CONSTITUTION.md`.
-  5. Mọi Agent trong các pha `/add-execute` tương lai sẽ tự động tuân thủ và kiểm tra quy định `DATA-01` này.
+  1. **Trước khi tắt phiên (End Session)**:
+     Chạy lệnh:
+     ```bash
+     /sdd-handoff --feature=feat-order-checkout
+     ```
+     Agent sẽ cập nhật trạng thái các task trong `TASKS.md`, đóng bằng danh sách các file đang viết dở và in ra lệnh resume.
+  2. **Khi mở lại phiên mới (New Session)**:
+     Chạy script khởi động kèm flag `-Continue`:
+     ```powershell
+     powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
+     ```
+  3. **Khôi phục ngữ cảnh (Resume Context)**:
+     Chạy ngay lệnh:
+     ```bash
+     /sdd-resume --feature=feat-order-checkout
+     ```
+     Agent đọc lại điểm dừng, báo cáo chính xác task đang làm dở và đề xuất chạy `/add-execute --feature=feat-order-checkout` để viết nấc code tiếp theo.
+
+---
+
+### Kịch bản 8: Kiểm định Chất lượng & Audit trước khi Push / Create PR
+- **Bối cảnh**: Bạn vừa hoàn tất tính năng và chuẩn bị tạo Pull Request.
+- **Luồng xử lý**:
+  1. **Chạy Linter kiểm tra Spec**:
+     ```bash
+     /sdd-lint --feature=feat-order-checkout
+     ```
+     Đảm bảo `SPEC.md` không chứa câu từ mập mờ và có đủ kịch bản xử lý lỗi.
+  2. **Chạy Audit 3 Tầng Chất lượng**:
+     ```bash
+     /sdd-audit --feature=feat-order-checkout
+     ```
+     Agent tự động quét:
+     - Hard Secrets lộ dưới dạng plaintext (`SEC-01`).
+     - Route thiếu Auth Middleware (`SEC-02`).
+     - Lỗi Clean Architecture Controller gọi trực tiếp DB (`ARCH-01`).
+     - Tỷ lệ phủ JSDoc tag `@ears` trong code (`ENG-01`).
+  3. **Đồng bộ Master Registry**:
+     ```bash
+     /sdd-sync
+     ```
+     Đồng bộ trạng thái feature vào `.sdd/README.md` và cập nhật API Contracts vào `.sdd/shared_context.md`.
+
+---
+
+### Kịch bản 9: Thực hiện Chỉnh sửa Mã nguồn Xuyên 4 Tầng Kiến trúc (Cross-Layer Edit)
+- **Bối cảnh**: Bạn cần bổ sung thêm trường `discount_code` vào luồng thanh toán đơn hàng.
+- **Luồng xử lý**:
+  1. Chạy lệnh:
+     ```bash
+     /sdd-layer-edit --feature=feat-order-checkout --action=modify --target=ApplyDiscountCode
+     ```
+  2. Agent thực thi lần lượt qua 4 tầng mà không vi phạm ranh giới kiến trúc:
+     - **Tầng 1 (Domain)**: Thêm Value Object `DiscountCode` vào `src/domain/`.
+     - **Tầng 2 (Usecase)**: Cập nhật Interactor `ApplyDiscountCodeUseCase`, gắn tag `@ears .sdd/features/feat-order-checkout/SPEC.md#REQ-005`.
+     - **Tầng 3 (Interface)**: Cập nhật DTO Schema & Controller `OrderController` trong `src/interface/`.
+     - **Tầng 4 (Infra)**: Cập nhật Repository Query trong `src/infra/`.
 
 ### Kịch bản 6: Tích hợp SDD+ADD vào Repository CÓ SẴN (Brownfield / Legacy Codebase)
 - **Bối cảnh**: Bạn có một dự án Node.js/Python/Go đã chạy 2 năm, chưa từng dùng SDD+ADD, nay muốn đưa quy trình SDD+ADD vào để quản lý các tính năng mới và refactor các module cũ.

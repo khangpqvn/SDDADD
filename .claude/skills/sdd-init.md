@@ -1,6 +1,7 @@
 ---
 name: sdd-init
 description: Khởi tạo toàn bộ khung dự án mẫu chuẩn SDD + ADD từ đầu (Layer 1 Governance, .sdd Structure, Shared Context & Guide)
+user-invocable: true
 ---
 
 # Skill: SDD Initializer (`/sdd-init`)

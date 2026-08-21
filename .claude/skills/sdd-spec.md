@@ -1,6 +1,7 @@
 ---
 name: sdd-spec
 description: Pha 1 SDD - Viết Executable Specification (.sdd/features/{feature-slug}/SPEC.md) dùng EARS Notation, SemVer và DoD Checklist
+user-invocable: true
 ---
 
 # Skill: SDD Phase 1 — Specification (`/sdd-spec`)

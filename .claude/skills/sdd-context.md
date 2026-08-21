@@ -1,6 +1,7 @@
 ---
 name: sdd-context
 description: Pha 0 SDD - Khai phá Ngữ cảnh (Context Discovery) và tạo file .sdd/features/{feature-slug}/CONTEXT.md kèm DoD Checklist
+user-invocable: true
 ---
 
 # Skill: SDD Phase 0 — Context Discovery (`/sdd-context`)

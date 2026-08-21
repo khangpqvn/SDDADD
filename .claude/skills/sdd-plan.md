@@ -1,6 +1,7 @@
 ---
 name: sdd-plan
 description: Pha 2 SDD - Lập Kế hoạch Kiến trúc (.sdd/features/{feature-slug}/PLAN.md), Data Flow và Đánh giá Rủi ro kèm DoD Checklist
+user-invocable: true
 ---
 
 # Skill: SDD Phase 2 — Architecture Planning (`/sdd-plan`)

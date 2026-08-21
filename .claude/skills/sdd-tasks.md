@@ -1,6 +1,7 @@
 ---
 name: sdd-tasks
 description: Pha 3 SDD - Phân rã Kế hoạch (.sdd/features/{feature-slug}/PLAN.md) thành Atomic Tasks (.sdd/features/{feature-slug}/TASKS.md) kèm DoD Checklist
+user-invocable: true
 ---
 
 # Skill: SDD Phase 3 — Task Decomposition (`/sdd-tasks`)

@@ -1,6 +1,7 @@
 ---
 name: sdd-update
 description: Cập nhật đặc tả Feature (.sdd/features/{slug}/SPEC.md), nâng cấp phiên bản SemVer (Major/Minor/Patch), ghi Changelog và điều hướng đồng bộ Code/Test
+user-invocable: true
 ---
 
 # Skill: SDD Feature Update & Version Bump (`/sdd-update`)

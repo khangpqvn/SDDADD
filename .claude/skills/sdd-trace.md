@@ -1,6 +1,7 @@
 ---
 name: sdd-trace
 description: Truy vết và phân tích tác động thay đổi yêu cầu nghiệp vụ (Requirement Traceability & Impact Analysis) từ SPEC -> PLAN -> TASKS -> CODE -> TEST
+user-invocable: true
 ---
 
 # Skill: SDD Requirement Traceability & Impact Analysis (`/sdd-trace`)

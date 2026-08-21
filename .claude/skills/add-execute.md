@@ -1,6 +1,7 @@
 ---
 name: add-execute
 description: Pha 4 & 5 ADD - Thực thi Code cho Task (.sdd/features/{feature-slug}/TASKS.md) kèm Self-Check CONSTITUTION.md, DoD Validation & nguyên tắc Fix the Spec
+user-invocable: true
 ---
 
 # Skill: ADD Phase 4 & 5 — Agentic Execution & Validation (`/add-execute`)

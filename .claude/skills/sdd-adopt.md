@@ -1,6 +1,7 @@
 ---
 name: sdd-adopt
 description: Tự động phân tích dự án có sẵn (Brownfield/Existing Repo) và tích hợp khung SDD+ADD mà không làm ảnh hưởng tới code hiện tại
+user-invocable: true
 ---
 
 # Skill: SDD Legacy Project Adoption (`/sdd-adopt`)

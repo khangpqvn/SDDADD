@@ -32,13 +32,15 @@ src/
 ├── CLAUDE.md               # Project Memory & Architecture DNA (File hiện tại)
 ├── CONSTITUTION.md         # Hard Governance Rules (3-layer quality gates)
 ├── .claude/
-│   └── skills/             # 6 Custom Slash Commands cho SDD+ADD Workflow
+│   └── skills/             # Thư mục Custom Slash Commands (9 SDD+ADD Skills)
 ├── .sdd/                   # Thư mục quản lý Đặc tả Kỹ thuật
 │   ├── README.md           # Master Feature Registry
 │   ├── shared_context.md   # Shared State & API Contracts giữa các feature
+│   ├── rfcs/               # Đề xuất thay đổi Hiến pháp hệ thống
 │   └── features/           # Nơi chứa bộ 4 file SDD cho từng feature
 ├── docs/
 │   └── sdd-add-guide.md    # Hướng dẫn quy trình 5 bước phát triển
+├── scripts/                # Shell scripts hỗ trợ migration native (adopt.sh, adopt.ps1)
 ├── src/                    # Source code thực thi
 └── tests/                  # Executable Verification Suite
 ```

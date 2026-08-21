@@ -215,3 +215,51 @@ Trước khi gửi Pull Request hoặc báo cáo hoàn thành công việc, hãy
 - [ ] Có dòng code nào sửa trực tiếp logic mà không qua bước cập nhật `SPEC.md` không? (Nếu có ➔ Quay lại sửa Spec trước).
 - [ ] Tất cả các test cases (`npm test`) có báo status **GREEN** 100% không?
 - [ ] Code có vi phạm quy định bảo mật `SEC-01` (Zero Hardcoded Secrets) trong `CONSTITUTION.md` không?
+
+---
+
+## 8. QUY TRÌNH HÀN THỦ VÀ LƯU TRẠNG THÁI DỞ DANG (HANDOFF & RESUME PROTOCOL)
+
+Khi đang làm dở công việc và cần kết thúc phiên (hoặc chuyển giao giữa các phiên làm việc), tuân thủ quy trình 3 bước sau để Claude tự ghi nhớ và tiếp tục chính xác ở phiên sau:
+
+### 8.1 Bước 1: Lưu trạng thái dở dang (End of Session / Handoff)
+
+Trước khi đóng Claude Code, thực hiện cập nhật tiến độ công việc vào file `.sdd/features/{slug}/TASKS.md`:
+
+1. Đánh dấu trạng thái các Task (`[x]` cho hoàn thành, `[/]` cho đang làm dở, `[ ]` cho chưa làm).
+2. Chạy lệnh Slash Command để cập nhật/đồng bộ danh sách task:
+   ```bash
+   /sdd-tasks --feature=<slug>
+   ```
+3. (Tùy chọn) Yêu cầu Claude lưu tóm tắt điểm dừng:
+   > *"Lưu trạng thái công việc dở dang: Đang làm dở Task T003 feature <slug>, đã xong file A, phiên sau cần viết tiếp file B."*
+
+### 8.2 Bước 2: Khởi động phiên mới với quyền & khôi phục ngữ cảnh (Resume Session)
+
+Khi mở lại Claude Code cho phiên mới:
+
+- **PowerShell:**
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
+  ```
+- **Bash:**
+  ```bash
+  ./scripts/start-claude.sh -c
+  ```
+
+*(Flag `-c` / `-Continue` tự động tải lại phiên làm việc gần nhất tại thư mục dự án).*
+
+### 8.3 Bước 3: Nạp ngữ cảnh và tiếp tục thực thi (Start of Session)
+
+Ngay khi vào phiên mới, chạy lệnh nạp ngữ cảnh feature:
+
+```bash
+/sdd-context --feature=<slug>
+```
+
+Claude sẽ tự động đọc `.sdd/features/{slug}/TASKS.md` và `SPEC.md`, phát hiện các task đang đánh dấu `[/]` hoặc `[ ]`, báo cáo điểm dừng và tiếp tục thực thi qua lệnh:
+
+```bash
+/add-execute --feature=<slug>
+```
+

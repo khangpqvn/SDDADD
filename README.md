@@ -13,6 +13,7 @@ Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương
 - ✏️ **[Giao thức Sửa Spec Thủ công (Manual Spec Fix Protocol)](docs/sdd-add-guide.md#3-h%C6%B0%E1%BB%9Bng-d%E1%BA%AFn-s%E1%BB%ADa-spec-th%E1%BB%A7-c%C3%B4ng-manual-spec-fix-protocol)**: 4 bước cập nhật Spec, bump version SemVer (`vX.Y.Z`) và đồng bộ lại Code/Test.
 - 🎬 **[6 Kịch bản Thực tế (Real-World Scenarios)](docs/sdd-add-guide.md#4-c%C3%A1c-k%E1%BB%8Bch-b%E1%BA%A3n-th%E1%BB%B1c-t%E1%BA%BF-khi-l%C3%A0m-vi%E1%BB%87c-theo-sdd--add-real-world-scenarios)**: Hướng dẫn xử lý khi làm tính năng mới, fix bug, PO đổi yêu cầu, test fail, sửa Hiến pháp (RFC) hoặc tích hợp vào Repo cũ (Brownfield).
 - 🔍 **[Truy vết Ma trận Yêu cầu & Phân tích Tác động](docs/sdd-add-guide.md#5-truy-v%E1%BA%BFt--ph%C3%A2n-t%C3%ADch-t%C3%A1c-%C4%91%E1%BB%99ng-thay-%C4%91%E1%BB%95i-y%C3%AAu-c%E1%BA%A7u-requirement-traceability--impact-analysis)**: Cách dùng `/sdd-trace` để phát hiện Untraced Requirements, Code mồ côi và Code bị lỗi thời.
+- 🤝 **[Quy trình Hàn thủ & Khôi phục Ngữ cảnh (Handoff & Resume Protocol)](docs/sdd-add-guide.md#8-quy-tr%C3%ACnh-h%C3%A0n-th%E1%BB%A7-v%C3%A0-l%C6%B0u-tr%E1%BA%A1ng-th%C3%A1i-d%E1%BB%9F-dang-handoff--resume-protocol)**: 3 bước tự lưu trạng thái dở dang và resume phiên làm việc tiếp theo với `-c` / `-Continue`.
 - 📐 **[EARS Notation Cheat Sheet](docs/sdd-add-guide.md#6-b%E1%BA%A3ng-ti%C3%AAu-chu%E1%BA%A9n-%C4%91%E1%BB%8Bnh-d%E1%BA%A1ng-ears-notation-cheat-sheet)**: 5 mẫu câu EARS (Ubiquitous, Event-driven, State-driven, Optional, Unwanted) để viết đặc tả chuẩn.
 
 ---
@@ -101,7 +102,9 @@ cd /path/to/your-existing-project
 │   └── sdd-add-guide.md    # Hướng dẫn chi tiết quy trình 5 bước SDD+ADD, DoD Checklist & Kịch bản thực tế
 ├── scripts/
 │   ├── adopt.sh            # Native Bash Script cho Linux / macOS / Git Bash
-│   └── adopt.ps1           # Native PowerShell Script cho Windows
+│   ├── adopt.ps1           # Native PowerShell Script cho Windows
+│   ├── start-claude.sh     # Script khởi động Claude Code ở chế độ bypass permission (Bash)
+│   └── start-claude.ps1    # Script khởi động Claude Code ở chế độ bypass permission (PowerShell)
 └── src/                    # Source code thực thi (Được sinh từ SPEC.md)
 ```
 

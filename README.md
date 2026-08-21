@@ -9,12 +9,13 @@ Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương
 Đọc tài liệu đầy đủ tại **[`docs/sdd-add-guide.md`](docs/sdd-add-guide.md)** — Cẩm nang vận hành chi tiết bao gồm:
 
 - 💡 **[Khái niệm SDD + ADD](docs/sdd-add-guide.md#1-sdd--add-l%C3%A0-g%C3%AC)**: Hiểu vai trò của Spec, Human Director và Agent cùng nguyên tắc *"Fix the Spec, not the Code"*.
-- 🔄 **[Vòng đời feature chuẩn](docs/sdd-add-guide.md#4-v%C3%B2ng-%C4%91%E1%BB%9Di-feature-chu%E1%BA%A9n)**: Chi tiết đầu vào, đầu ra và gate hoàn thành từ Context đến PR.
-- ✏️ **[Cập nhật Spec đúng cách](docs/sdd-add-guide.md#5-c%E1%BA%ADp-nh%E1%BA%ADt-spec-%C4%91%C3%BAng-c%C3%A1ch)**: Cách xử lý bug, thay đổi tương thích và breaking change bằng SemVer.
-- 🎬 **[Các kịch bản vận hành](docs/sdd-add-guide.md#6-c%C3%A1c-k%E1%BB%8Bch-b%E1%BA%A3n-v%E1%BA%ADn-h%C3%A0nh)**: Hướng dẫn Greenfield, Brownfield, feature, bugfix, RFC, Git delivery và handoff/resume.
-- 🔍 **[Requirement Traceability và Impact Analysis](docs/sdd-add-guide.md#7-requirement-traceability-v%C3%A0-impact-analysis)**: Cách dùng `/sdd-trace` để phát hiện requirement chưa được triển khai, code mồ côi và implementation lỗi thời.
-- 🤝 **[Handoff và resume protocol](docs/sdd-add-guide.md#10-handoff-v%C3%A0-resume-protocol)**: Lưu trạng thái dở dang và khôi phục phiên làm việc tiếp theo.
-- 📐 **[EARS notation cheat sheet](docs/sdd-add-guide.md#8-ears-notation-cheat-sheet)**: Năm mẫu EARS để viết đặc tả có thể kiểm thử.
+- 🔄 **[Vòng đời feature chuẩn](docs/sdd-add-guide.md#5-v%C3%B2ng-%C4%91%E1%BB%9Di-feature-chu%E1%BA%A9n)**: Chi tiết đầu vào, đầu ra và gate hoàn thành từ Context đến PR.
+- ✏️ **[Cập nhật Spec đúng cách](docs/sdd-add-guide.md#7-c%E1%BA%ADp-nh%E1%BA%ADt-spec-%C4%91%C3%BAng-c%C3%A1ch)**: Cách xử lý bug, thay đổi tương thích và breaking change bằng SemVer.
+- 🎬 **[Các kịch bản vận hành](docs/sdd-add-guide.md#8-c%C3%A1c-k%E1%BB%8Bch-b%E1%BA%A3n-v%E1%BA%ADn-h%C3%A0nh-th%C6%B0%E1%BB%9Dng-g%E1%BA%B7p)**: Hướng dẫn Greenfield, Brownfield, feature, bugfix, RFC, Git delivery và handoff/resume.
+- 🔍 **[Requirement Traceability và Impact Analysis](docs/sdd-add-guide.md#9-requirement-traceability-v%C3%A0-impact-analysis)**: Cách dùng `/sdd-trace` để phát hiện requirement chưa được triển khai, code mồ côi và implementation lỗi thời.
+- 👥 **[Review Human và cách approve/revise/reject](docs/sdd-add-guide.md#4-ai-recommendation-v%C3%A0-human-final-review-thao-t%C3%A1c-c%E1%BA%A7m-tay-ch%E1%BB%89-vi%E1%BB%87c)**: Đọc bằng chứng, lật cờ bền vững, xử lý trạng thái và điều kiện chuyển pha.
+- 🤝 **[Handoff và resume protocol](docs/sdd-add-guide.md#87-handoff-v%C3%A0-resume)**: Lưu trạng thái dở dang và khôi phục phiên làm việc tiếp theo.
+- 📐 **[EARS notation cheat sheet](docs/sdd-add-guide.md#10-ears-notation-cheat-sheet)**: Năm mẫu EARS để viết đặc tả có thể kiểm thử.
 
 ---
 

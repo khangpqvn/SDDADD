@@ -1,9 +1,15 @@
-# HƯỚNG DẪN SDD + ADD VÀ VẬN HÀNH TEMPLATE
+# HƯỚNG DẪN VẬN HÀNH SDD + ADD
 
-# Version: 4.0.0
-# Target: Developers, Tech Leads, QA, AI Assistants
+# Version: 5.0.0
+# Đối tượng: Product Owner, Human Director, Tech Lead, Developer, QA và AI Agent
 
-Tài liệu này là runbook vận hành cho Starter Template SDD + ADD. Template cung cấp governance files, đặc tả theo feature, slash commands và Git Operator gates. Quy tắc bất biến nằm ở [`CONSTITUTION.md`](../CONSTITUTION.md); phạm vi và quyền của Agent nằm ở [`AGENTS.md`](../AGENTS.md).
+Đây là cẩm nang thao tác cho Starter Template SDD + ADD. Tài liệu trả lời ba câu hỏi:
+
+1. Con người phải chuẩn bị và quyết định điều gì ở từng pha?
+2. Agent được làm gì, phải dừng ở đâu và phải đưa bằng chứng nào?
+3. Review, approve, revise, reject và các trạng thái được ghi vào đâu?
+
+Quy tắc bất biến nằm ở [`CONSTITUTION.md`](../CONSTITUTION.md). Quyền hạn và phạm vi của Agent nằm ở [`AGENTS.md`](../AGENTS.md). Contract của từng slash command nằm trong `.claude/skills/`; tài liệu này hướng dẫn **khi nào dùng** và **con người phải làm gì**, không thay thế các contract đó.
 
 ---
 
@@ -11,28 +17,34 @@ Tài liệu này là runbook vận hành cho Starter Template SDD + ADD. Templat
 
 ### 1.1 SDD — Spec-Driven Development
 
-SDD coi đặc tả là nguồn sự thật cho hành vi nghiệp vụ. Trước khi viết code, team mô tả:
+SDD coi đặc tả là nguồn sự thật cho hành vi nghiệp vụ. Mỗi feature được làm rõ theo bốn artifact:
 
-- bài toán và thuật ngữ trong `CONTEXT.md`;
-- yêu cầu có thể kiểm chứng trong `SPEC.md`;
-- kiến trúc và rủi ro trong `PLAN.md`;
-- công việc nguyên tử và tiêu chí hoàn thành trong `TASKS.md`.
+| Artifact | Câu hỏi phải trả lời | Người chịu trách nhiệm chính |
+| :--- | :--- | :--- |
+| `CONTEXT.md` | Vì sao cần làm? Ai bị ảnh hưởng? Ràng buộc là gì? | Product Owner / Human Director |
+| `SPEC.md` | Hệ thống phải làm gì, kể cả lỗi và trường hợp biên? | Product Owner + Tech Lead |
+| `PLAN.md` | Sẽ xây dựng theo ranh giới kiến trúc nào? Rủi ro ra sao? | Tech Lead / Architect |
+| `TASKS.md` | Ai hoặc Agent làm những bước nhỏ nào, kiểm chứng bằng gì? | Tech Lead + Developer |
 
-Code và test là artifacts được sinh/triển khai từ đặc tả. Khi behavior chưa rõ hoặc test cho thấy thiếu trường hợp, cập nhật Spec trước rồi mới đồng bộ code.
+Code và test phải truy vết được về requirement. Nếu behavior chưa rõ hoặc test cho thấy Spec thiếu điều kiện, cập nhật Spec trước rồi mới đồng bộ code.
 
 ### 1.2 ADD — Agent-Driven Development
 
-ADD dùng AI Agent như executor dưới sự chỉ đạo của Human Director:
+ADD dùng AI Agent làm executor dưới sự chỉ đạo của con người:
 
-- Human Director quyết định business behavior, trade-off, approval và ngoại lệ.
-- Agent đọc Context/Spec/Plan/Tasks, thực thi trong phạm vi được phép và báo evidence.
-- Agent không tự sửa `CONSTITUTION.md`, không tự bypass quality gate và không tự push/deploy.
+- **Human Director** quyết định business behavior, trade-off, phạm vi, ngoại lệ và phê duyệt cuối.
+- **Product Owner** xác nhận nhu cầu, tiêu chí nghiệm thu và ưu tiên nghiệp vụ.
+- **Tech Lead / Architect** duyệt kiến trúc, rủi ro, thay đổi contract và governance.
+- **Developer / QA** kiểm tra code, test, khả năng vận hành và bằng chứng thực tế.
+- **Agent** đọc artifact, phân tích, đề xuất, thực thi trong phạm vi được phép và báo evidence.
+
+Agent không được tự phê duyệt recommendation, tự suy ra approval từ câu nói trong hội thoại, tự sửa `CONSTITUTION.md`, bypass quality gate, push hoặc deploy.
 
 ### 1.3 Ba nguyên tắc bắt buộc
 
-1. **Fix the Spec, not the Code**: test fail do thiếu hoặc mơ hồ về nghiệp vụ thì sửa `.sdd/features/{slug}/SPEC.md` trước.
-2. **Traceability 100%**: business method trong `src/usecase/` phải có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
-3. **Fail closed trước Git delivery**: `/git-commit` và `/git-pr` chỉ thực hiện sau khi `/git-validate` trả `READY`.
+1. **Fix the Spec, not the Code**: Nếu failure do thiếu hoặc mơ hồ về nghiệp vụ, sửa `.sdd/features/{slug}/SPEC.md` trước.
+2. **Traceability 100%**: Business method trong `src/usecase/` phải có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
+3. **Fail closed trước Git delivery**: `/git-commit` và `/git-pr` chỉ được tiếp tục khi `/git-validate` trả `READY`.
 
 ---
 
@@ -40,241 +52,343 @@ ADD dùng AI Agent như executor dưới sự chỉ đạo của Human Director:
 
 ### 2.1 Governance files
 
-| File | Vai trò | Quy tắc sử dụng |
+| File | Vai trò | Cách con người sử dụng |
 | :--- | :--- | :--- |
-| `CONSTITUTION.md` | Hard security, architecture và engineering rules | Không sửa trực tiếp; thay đổi Layer 1/2 phải qua RFC approved |
-| `AGENTS.md` | Persona, permitted paths, tool permissions và escalation | Agent phải đọc trước khi thực thi |
-| `CLAUDE.md` | Architecture DNA, naming và anti-patterns | Cập nhật khi kiến trúc hoặc tech stack thay đổi |
+| `CONSTITUTION.md` | Hard security, architecture và engineering rules | Đọc trước khi làm; không sửa trực tiếp. Muốn đổi Layer 1/2 phải dùng RFC. |
+| `AGENTS.md` | Persona, permitted paths, tool permissions và escalation | Xác định Agent được đọc/sửa gì và khi nào phải dừng. |
+| `CLAUDE.md` | Architecture DNA, naming và anti-patterns | Cập nhật khi kiến trúc hoặc tech stack thực sự thay đổi. |
 
 ### 2.2 SDD feature files
 
 Mỗi feature nằm tại `.sdd/features/{feature-slug}/`:
 
-| File | Nội dung | DoD chính |
+| File | Nội dung | Điều kiện để chuyển pha |
 | :--- | :--- | :--- |
-| `CONTEXT.md` | Problem, pain points, glossary, stakeholders, constraints | Không còn open question quan trọng chưa được ghi nhận |
-| `SPEC.md` | Functional requirements theo EARS, SemVer, trạng thái review | Requirement rõ, duy nhất, có error/edge cases |
-| `PLAN.md` | Clean Architecture, component boundary, data flow, risk | Có mapping từ requirement tới component |
-| `TASKS.md` | Atomic tasks, dependencies, files, verification commands | Mỗi task independent hoặc có dependency rõ và verifiable |
+| `CONTEXT.md` | Problem, pain points, glossary, stakeholders, constraints | Open question quan trọng đã được trả lời hoặc ghi nhận thành giả định được chấp nhận. |
+| `SPEC.md` | Functional requirements theo EARS, SemVer, BDD, error và out-of-scope | Human review `APPROVED`; khi implementation-ready phải là `APPROVED & LOCKED`. |
+| `PLAN.md` | Clean Architecture, component boundary, data flow, risk | Các quyết định kỹ thuật và rủi ro đã được Tech Lead/Human Director duyệt. |
+| `TASKS.md` | Atomic tasks, dependency, file boundary, verification | Task đủ nhỏ, độc lập hoặc có `blockedBy`, có lệnh kiểm chứng. |
 
-### 2.3 Skills theo vòng đời
+### 2.3 Các nhóm command
 
-Các skill local nằm trong `.claude/skills/`. Nhóm chính:
-
-- Khởi tạo: `/sdd-init`, `/sdd-adopt`.
-- Đặc tả: `/sdd-context`, `/sdd-spec`, `/sdd-plan`, `/sdd-tasks`.
-- Thực thi: `/add-execute`, `/sdd-layer-edit`.
-- Đồng bộ và kiểm định: `/sdd-update`, `/sdd-trace`, `/sdd-lint`, `/sdd-audit`, `/sdd-sync`.
-- Governance và session: `/sdd-claude-edit`, `/sdd-agents-edit`, `/sdd-handoff`, `/sdd-resume`.
-- Git delivery: `/git-validate`, `/git-commit`, `/git-pr`.
-
-Skill file là owner của command contract. Tài liệu này chỉ mô tả thứ tự vận hành và quyết định khi nào dùng command.
+- **Khởi tạo:** `/sdd-init`, `/sdd-adopt`.
+- **Đặc tả:** `/sdd-context`, `/sdd-spec`, `/sdd-plan`, `/sdd-tasks`.
+- **Thực thi:** `/add-execute`, `/sdd-layer-edit`.
+- **Kiểm định và đồng bộ:** `/sdd-update`, `/sdd-trace`, `/sdd-lint`, `/sdd-audit`, `/sdd-sync`.
+- **Governance và session:** `/sdd-claude-edit`, `/sdd-agents-edit`, `/sdd-handoff`, `/sdd-resume`.
+- **Git delivery:** `/git-validate`, `/git-commit`, `/git-pr`.
 
 ---
 
-## 3. Bắt đầu với template
+## 3. Mô hình trạng thái: đọc đúng từng loại cờ
 
-### 3.1 Greenfield — tạo dự án mới
+Không gộp các trạng thái dưới đây. Mỗi loại trả lời một câu hỏi khác nhau.
 
-Dùng khi repository chưa có cấu trúc SDD + ADD:
+### 3.1 Trạng thái Human Final Review
 
-```bash
-# Clone template hoặc tạo repository từ template
-git clone <template-url> my-project
-cd my-project
+Đây là cờ quyết định của con người trong block `## Human Final Review`:
 
-# Khởi tạo/điều chỉnh bộ khung
-/sdd-init --project-name="my-project" --stack="Node.js + TypeScript + PostgreSQL"
-```
+| Status | Ý nghĩa | Agent được làm gì? |
+| :--- | :--- | :--- |
+| `PENDING` | Chưa có quyết định bền vững của người có thẩm quyền | Phải dừng ở gate; chỉ được báo cần review. |
+| `APPROVED` | Người có thẩm quyền chấp thuận đúng phạm vi đã ghi | Được chuyển pha nếu mọi điều kiện khác đạt. |
+| `REVISE` | Cần sửa artifact/recommendation theo feedback | Không được execute hoặc chuyển pha; tạo recommendation mới sau khi sửa. |
+| `REJECTED` | Không chấp thuận hướng đề xuất | Dừng hướng hiện tại; chỉ tiếp tục khi có hướng/recommendation mới được duyệt. |
 
-Sau khi khởi tạo:
+`APPROVED` chỉ hợp lệ khi có đủ `Decision`, `Reviewer` và `Reviewed at`. Hội thoại, tin nhắn không ghi vào artifact hoặc câu “ok” không phải durable approval.
 
-1. Đọc `CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`.
-2. Xác nhận stack, clean architecture và test command phù hợp repository.
-3. Kiểm tra `.sdd/README.md`, `.sdd/shared_context.md` và `.claude/skills/`.
-4. Chạy `/sdd-context --feature=<slug>` để bắt đầu feature đầu tiên.
+### 3.2 Trạng thái artifact
 
-Không coi việc tạo thư mục là feature đã hoàn thành. Feature chỉ bắt đầu khi có Context và Spec được review.
+- `CONTEXT.md`, `PLAN.md`, `TASKS.md`: thường bắt đầu ở `DRAFT` hoặc `IN_PROGRESS`; chỉ dùng sau khi review `APPROVED`.
+- `SPEC.md`: bắt đầu `DRAFT`; chỉ Human Director/Tech Lead được đổi thành `APPROVED & LOCKED` sau khi duyệt recommendation.
+- Sửa artifact sau approval làm mất hiệu lực review cũ. Agent phải đưa review về `PENDING` và ghi rõ phần đã thay đổi.
 
-### 3.2 Brownfield — tích hợp vào repository có sẵn
+`APPROVED & LOCKED` không có nghĩa là không bao giờ được sửa. Nó có nghĩa là phiên bản Spec hiện tại được phép làm cơ sở cho Plan/Tasks/Execute. Muốn sửa, dùng `/sdd-update`, bump SemVer phù hợp, review lại và lock phiên bản mới.
 
-Dùng script native khi cần copy framework vào repository đang tồn tại. Script không ghi đè file đích mặc định.
+### 3.3 Cờ task trong `TASKS.md`
 
-**Linux, macOS hoặc Git Bash:**
+| Cờ | Ý nghĩa | Bằng chứng bắt buộc |
+| :--- | :--- | :--- |
+| `[ ]` | Chưa bắt đầu | Không được coi là hoàn thành. |
+| `[/]` | Đang làm dở | Ghi file đã đổi, failure/blocker và bước tiếp theo trong `Current Handoff State`. |
+| `[x]` | Đã hoàn thành | Test hoặc lệnh verify tương ứng đã pass. |
 
-```bash
-./scripts/adopt.sh /path/to/existing-repository
-./scripts/adopt.sh ../existing-repository
-```
+Agent không được đổi `[ ]`/`[/]` thành `[x]` nếu chưa có evidence. `TASKS.md` hoàn thành không thay thế Human Final Review.
 
-**Windows PowerShell:**
+### 3.4 Kết quả validator và audit
 
-```powershell
-.\scripts\adopt.ps1 -TargetPath C:\Projects\existing-repository
-.\scripts\adopt.ps1 ..\existing-repository
-```
-
-Chỉ dùng `--force` khi đã xác nhận file đích có thể bị ghi đè:
-
-```bash
-./scripts/adopt.sh /path/to/existing-repository --force
-```
-
-```powershell
-.\scripts\adopt.ps1 -TargetPath C:\Projects\existing-repository -Force
-```
-
-Sau migration, mở repository đích và chạy:
-
-```text
-/sdd-adopt
-```
-
-`/sdd-adopt` phải được dùng để điều chỉnh governance theo tech stack thực tế, không giả định repository legacy đã tuân thủ Clean Architecture.
-
-### 3.3 Reverse Spec cho module legacy
-
-Dùng khi cần refactor module cũ nhưng behavior hiện tại chưa có Spec:
-
-```text
-/sdd-adopt --reverse-feature=feat-legacy-auth --path=src/modules/auth
-```
-
-Review reverse Spec với owner trước khi sửa code. Reverse Spec mô tả behavior đang tồn tại; nó không tự động chứng minh behavior đó đúng về business.
-
-### 3.4 Khởi động session
-
-**Windows PowerShell:**
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1
-```
-
-**Bash:**
-
-```bash
-./scripts/start-claude.sh
-```
-
-Tiếp tục session gần nhất:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
-```
-
-```bash
-./scripts/start-claude.sh -c
-```
-
-Các script khởi động dùng chế độ `--dangerously-skip-permissions`. Chỉ chạy trong repository và môi trường đã được kiểm soát; không đặt secrets trong prompt hoặc file log.
+- `PASS`: check đã chạy và đạt.
+- `FAIL`: có lỗi; phải xử lý trước khi tiếp tục.
+- `WARNING`: có vấn đề cần giải trình hoặc xử lý; với PR strict, warning chưa được chấp thuận sẽ block.
+- `N/A (reason)`: không áp dụng, phải ghi lý do cụ thể; không được dùng để che việc chưa chạy.
+- `READY`: chỉ do `/git-validate` phát hành khi không còn `FAIL`, diff đúng scope, mọi `N/A` có lý do và PR không còn warning unresolved.
 
 ---
 
-## 4. Vòng đời feature chuẩn
+## 4. AI Recommendation và Human Final Review: thao tác cầm tay chỉ việc
 
-Mỗi feature đi qua các pha sau. Không chuyển pha khi DoD của pha hiện tại chưa đạt. Mỗi pha phải tạo AI recommendation và chờ Human Director/Tech Lead review theo [AI Recommendation & Human Final Review Protocol](../.claude/skills/_shared/ai-review-protocol.md). Recommendation được lưu bền vững trong artifact hoặc `.sdd/reviews/`; trạng thái `PENDING HUMAN REVIEW`, `REVISE` và `REJECTED` đều chặn bước downstream.
+### 4.1 Agent phải tạo block recommendation
 
-```text
-CONTEXT -> HUMAN REVIEW -> SPEC -> HUMAN REVIEW -> PLAN -> HUMAN REVIEW -> TASKS -> HUMAN REVIEW -> EXECUTE -> HUMAN REVIEW -> VERIFY -> HUMAN DISPOSITION -> SYNC -> HUMAN REVIEW -> COMMIT -> PR
+Sau mỗi skill tạo, sửa, validate hoặc resume artifact, Agent phải ghi block theo format canonical trong [`.claude/skills/_shared/ai-review-protocol.md`](../.claude/skills/_shared/ai-review-protocol.md):
+
+```markdown
+## AI Agent Recommendation
+- Status: PENDING HUMAN REVIEW
+- Scope: <artifact, feature, or report>
+- Recommendation: <đề xuất và bước tiếp theo>
+- Evidence: <file, check, test hoặc quan sát>
+- Risks and assumptions: <rủi ro và giả định>
+- Alternatives considered: <phương án đã cân nhắc>
+- Required human decision: <ranh giới cần phê duyệt>
+
+## Human Final Review
+- Status: PENDING
+- Decision:
+- Reviewer:
+- Reviewed at:
+- Follow-up:
 ```
 
-| Pha | Command | Input | Output | Gate chuyển pha |
+Artifact của feature ghi trực tiếp trong artifact; report không thuộc feature ghi ở `.sdd/reviews/`. Không tạo feature giả chỉ để chứa review.
+
+### 4.2 Con người review như thế nào?
+
+Thực hiện theo thứ tự sau, không chỉ đọc dòng `Recommendation`:
+
+1. **Xác định phạm vi:** đọc `Scope` và `Required human decision`; xác nhận Agent đang xin duyệt đúng việc.
+2. **Kiểm tra bằng chứng:** mở các file, diff, test output hoặc report được nêu trong `Evidence`; không duyệt chỉ dựa trên lời tóm tắt.
+3. **Kiểm tra rủi ro:** xem `Risks and assumptions`; câu hỏi nghiệp vụ chưa được trả lời phải trở thành open question hoặc quyết định rõ ràng.
+4. **Kiểm tra phương án:** xem `Alternatives considered`; yêu cầu Agent bổ sung nếu trade-off quan trọng bị bỏ qua.
+5. **Kiểm tra phạm vi:** đối chiếu `Out of Scope`, file boundary, security rule và các requirement bị ảnh hưởng.
+6. **Chọn một quyết định:** `APPROVED`, `REVISE` hoặc `REJECTED`. Không để `PENDING` rồi yêu cầu Agent tự đoán.
+7. **Ghi quyết định vào artifact:** điền đủ decision, danh tính reviewer, timestamp và follow-up.
+8. **Kiểm tra trạng thái sau review:** nếu `REVISE`/`REJECTED`, Agent phải dừng; nếu `APPROVED`, chỉ chuyển pha khi DoD và prerequisite đều đạt.
+
+### 4.3 Cách “lật cờ” approve đúng cách
+
+Con người trực tiếp mở artifact mà skill đã ghi recommendation, tìm `## Human Final Review`, rồi cập nhật block. Ví dụ:
+
+```markdown
+## Human Final Review
+- Status: APPROVED
+- Decision: APPROVED CONTEXT cho feature feat-user-register. Problem, stakeholders,
+  constraints và open questions đủ để lập SPEC; chưa phê duyệt giải pháp kỹ thuật.
+- Reviewer: Nguyen Van A, Product Owner
+- Reviewed at: 2026-08-21T23:30:00+07:00
+- Follow-up: `/sdd-spec --feature=feat-user-register`
+```
+
+Đối với `SPEC.md`, sau khi `APPROVED` và đủ DoD, Human Director/Tech Lead đổi header artifact thành `Status: APPROVED & LOCKED`. Không đổi cờ chỉ vì Agent đã hoàn thành file.
+
+Ví dụ yêu cầu sửa:
+
+```markdown
+## Human Final Review
+- Status: REVISE
+- Decision: Bổ sung behavior khi OTP hết hạn và giới hạn số lần gửi lại; cập nhật BDD,
+  error table và bump patch version.
+- Reviewer: Nguyen Van A, Tech Lead
+- Reviewed at: 2026-08-21T23:35:00+07:00
+- Follow-up: `/sdd-update --feature=feat-user-register --bump=patch --reason="Clarify OTP expiry and resend limit"`
+```
+
+Ví dụ từ chối:
+
+```markdown
+## Human Final Review
+- Status: REJECTED
+- Decision: Không chọn phương án lưu OTP trong database; chuyển sang phương án đã
+  thống nhất dùng provider ngoài và tạo recommendation mới.
+- Reviewer: Nguyen Van A, Human Director
+- Reviewed at: 2026-08-21T23:40:00+07:00
+- Follow-up: Tạo lại PLAN với phương án provider ngoài.
+```
+
+Không xóa recommendation cũ, không sửa timestamp của quyết định cũ để “hợp thức hóa” thay đổi mới. Khi artifact thay đổi sau approval, giữ evidence thay đổi và tạo recommendation/review mới.
+
+### 4.4 Ai có quyền approve?
+
+- **Business behavior, Context, execution và resume:** Human Director hoặc người được ủy quyền.
+- **Requirement, acceptance và Spec lock:** Product Owner/Human Director phối hợp Tech Lead.
+- **Architecture, governance và RFC:** Tech Lead hoặc Architecture Board theo `CONSTITUTION.md`.
+- **Code/test evidence:** Developer/QA có thể góp ý và xác nhận evidence; không tự thay thế reviewer được chỉ định.
+
+Agent chỉ ghi nội dung do reviewer cung cấp. Agent không tự điền tên người, thời gian hoặc quyết định của con người.
+
+---
+
+## 5. Vòng đời feature chuẩn
+
+```text
+CONTEXT -> HUMAN REVIEW -> SPEC -> HUMAN REVIEW -> PLAN -> HUMAN REVIEW
+-> TASKS -> HUMAN REVIEW -> EXECUTE -> HUMAN REVIEW -> VERIFY
+-> HUMAN DISPOSITION -> SYNC -> HUMAN REVIEW -> COMMIT -> PR
+```
+
+| Pha | Command | Agent tạo ra | Con người phải làm | Điều kiện chuyển pha |
 | :--- | :--- | :--- | :--- | :--- |
-| 0. Context | `/sdd-context --feature=<slug>` | Problem statement | `CONTEXT.md` + recommendation | Human Director `APPROVED` |
-| 1. Spec | `/sdd-spec --feature=<slug>` | `CONTEXT.md` | `SPEC.md` + recommendation | Human Director `APPROVED` (`APPROVED & LOCKED`) |
-| 2. Plan | `/sdd-plan --feature=<slug>` | `SPEC.md` | `PLAN.md` + recommendation | Human Director `APPROVED` |
-| 3. Tasks | `/sdd-tasks --feature=<slug>` | `PLAN.md`, `SPEC.md` | `TASKS.md` + recommendation | Human Director `APPROVED` |
-| 4. Execute | `/add-execute --feature=<slug>` | `TASKS.md`, `SPEC.md` | Code + tests + recommendation | Human Director `APPROVED` |
-| 5. Verify | `/sdd-lint`, `/sdd-audit`, `/sdd-trace` | Spec + code + tests | Quality report + recommendation | Human disposition; blockers resolved |
-| 6. Sync | `/sdd-sync` | `.sdd/features/` | Registry + contracts + recommendation | Human Director `APPROVED` |
-| 7. Commit | `/git-commit` | Intended changes | Git commit | `/git-validate --scope=commit` = `READY` + reviews valid |
-| 8. PR | `/git-pr` | Pushed source branch | Pull Request | Remote validation `--strict` = `READY` + reviews valid |
+| 0. Context | `/sdd-context --feature=<slug>` | `CONTEXT.md` + recommendation | Xác nhận problem, glossary, stakeholder, constraint và open question | Review `APPROVED` |
+| 1. Spec | `/sdd-spec --feature=<slug>` | `SPEC.md` + recommendation | Kiểm tra EARS, BDD, error, NFR, out-of-scope, SemVer; lock Spec | `APPROVED` + `APPROVED & LOCKED` |
+| 2. Plan | `/sdd-plan --feature=<slug>` | `PLAN.md` + recommendation | Duyệt boundary, data flow, dependency, risk và câu hỏi kỹ thuật | Review `APPROVED` |
+| 3. Tasks | `/sdd-tasks --feature=<slug>` | `TASKS.md` + recommendation | Kiểm tra task atomic, file boundary, dependency, verify command | Review `APPROVED` |
+| 4. Execute | `/add-execute --feature=<slug>` | Code + tests + evidence | Review diff, self-check, test output, scope creep và Spec gap | Review execution `APPROVED` |
+| 5. Verify | `/sdd-lint`, `/sdd-audit`, `/sdd-trace` | Lint/audit/trace reports | Xử lý blocker hoặc ghi disposition có lý do | Không còn blocker; warning được chấp thuận nếu applicable |
+| 6. Sync | `/sdd-sync` | Registry + shared contracts | Kiểm tra feature/version/contract không drift | Review sync `APPROVED` |
+| 7. Commit | `/git-validate`, `/git-commit` | Git commit | Xác nhận intended files và commit message | Validation `READY` |
+| 8. PR | `/git-pr` | Pull Request | Xác nhận nội dung outward-facing nếu chưa ủy quyền trước | Remote validation `READY`; checks được báo đúng trạng thái |
 
-### 4.1 Pha 0 — Context
+### 5.1 Pha 0 — Context
 
 ```text
 /sdd-context --feature=feat-user-register
 ```
 
-Cung cấp problem, user pain, domain glossary, stakeholder và hard constraints. Không yêu cầu agent chọn framework hoặc thiết kế database ở pha này.
+Con người cung cấp problem, user pain, desired behavior, glossary, stakeholder và ràng buộc. Không yêu cầu Agent chọn framework hoặc thiết kế database ở pha này.
 
-### 4.2 Pha 1 — Spec
+Review `CONTEXT.md`:
+
+- Nếu thuật ngữ còn hiểu khác nhau, sửa glossary trước khi approve.
+- Nếu open question ảnh hưởng business behavior, trả lời hoặc ghi giả định kèm người chịu trách nhiệm.
+- Nếu tài liệu đã bắt đầu mô tả giải pháp kỹ thuật, yêu cầu tách phần đó sang Plan.
+- Chỉ ghi `APPROVED` khi đủ thông tin để viết requirement, không phải khi mọi chi tiết implementation đã xong.
+
+### 5.2 Pha 1 — Spec
 
 ```text
 /sdd-spec --feature=feat-user-register
 ```
 
-Review `SPEC.md` với Product Owner/Tech Lead. Chỉ coi Spec là implementation-ready khi:
+Con người kiểm tra:
 
-- status là `APPROVED & LOCKED`;
-- version có dạng `vX.Y.Z`;
-- mỗi requirement có `REQ-XXX` duy nhất;
-- happy path có unwanted/error behavior;
-- acceptance behavior có thể chuyển thành test.
+- Mỗi requirement có `REQ-XXX` duy nhất và dùng EARS.
+- Có happy path, invalid input, unauthorized, timeout, duplicate và edge case phù hợp.
+- BDD có thể chuyển thành test; error table có error code/status/mitigation.
+- NFR có ngưỡng đo được; `Out of Scope` chặn Agent thêm tính năng ngoài yêu cầu.
+- SemVer và changelog phản ánh đúng mức độ thay đổi.
 
-### 4.3 Pha 2 — Plan
+Chạy lint trước khi lock nếu cần:
+
+```text
+/sdd-lint --feature=feat-user-register
+```
+
+Sau khi recommendation được duyệt, điền `Human Final Review.Status: APPROVED`, rồi đổi `SPEC.md` sang `Status: APPROVED & LOCKED`. Nếu sửa Spec sau đó, phải `/sdd-update`, review lại và lock lại.
+
+### 5.3 Pha 2 — Plan
 
 ```text
 /sdd-plan --feature=feat-user-register
 ```
 
-Plan phải chỉ rõ hướng dependency:
+Con người đối chiếu:
 
-```text
-domain <- usecase <- interface <- infra
-```
+- Dependency đi đúng hướng `infra -> interface -> usecase -> domain`.
+- Controller không truy cập DB trực tiếp.
+- Mỗi requirement có component xử lý và file boundary rõ.
+- Data flow có request, validation, usecase, persistence/external service và response.
+- Rủi ro security, race condition, performance, migration và rollback có mitigation.
+- `Questions for Human` đã được trả lời hoặc được chấp thuận thành assumption.
 
-Controller không gọi DB trực tiếp. Domain không import third-party library ngoài standard utilities theo `CLAUDE.md` và `CONSTITUTION.md`.
-
-### 4.4 Pha 3 — Tasks
+### 5.4 Pha 3 — Tasks
 
 ```text
 /sdd-tasks --feature=feat-user-register
 ```
 
-Mỗi task cần có ID, file boundary, requirement reference, dependency nếu có và command verify. Không đánh dấu `[x]` nếu test chưa pass.
+Con người kiểm tra từng task:
 
-### 4.5 Pha 4/5 — Execute và Verify
+- Có ID, file boundary, requirement reference và lệnh verify.
+- Atomic: không chứa nhiều mục tiêu không liên quan.
+- Independent hoặc có dependency rõ bằng `blockedBy`.
+- Không đánh dấu `[x]` trước khi test pass.
+- Không có task ngầm vượt `Out of Scope` hoặc sửa file ngoài quyền hạn.
+
+### 5.5 Pha 4/5 — Execute và Verify
 
 ```text
 /add-execute --feature=feat-user-register
-```
-
-Agent đọc `AGENTS.md`, `CONSTITUTION.md`, `TASKS.md`, `SPEC.md`, sau đó thực thi từng task. Sau code generation, chạy:
-
-```text
 /sdd-lint --feature=feat-user-register
 /sdd-audit --feature=feat-user-register
 /sdd-trace --feature=feat-user-register
 ```
 
-Nếu yêu cầu vừa thay đổi, dùng `--diff` để tìm broken trace:
+Agent phải đọc `AGENTS.md`, `CONSTITUTION.md`, `SPEC.md`, `PLAN.md` và `TASKS.md`; liệt kê file sẽ sửa; chạy self-check và test. Con người review diff theo thứ tự:
 
-```text
-/sdd-trace --feature=feat-user-register --diff
-```
+1. Có sửa đúng task và file boundary không?
+2. Có thay đổi behavior nào không nằm trong Spec không?
+3. Có secret, PII, auth, hard-delete hoặc vi phạm Clean Architecture không?
+4. Business methods và tests có `@ears` trace không?
+5. Test output có thật sự pass; failure nào bị che hoặc đổi thành warning không?
+6. Requirement nào chưa có code/test hoặc code nào mồ côi?
 
-### 4.6 Đồng bộ registry và contracts
+Nếu test fail:
+
+1. Đọc failure và phân loại **code bug** hay **Spec gap**.
+2. Nếu là Spec gap, không cho Agent vá code ngẫu nhiên; yêu cầu cập nhật Spec và bump SemVer.
+3. Review Spec mới, cập nhật Plan/Tasks nếu bị ảnh hưởng.
+4. Execute lại từ pha bị ảnh hưởng.
+5. Chạy lại lint, audit, trace và ghi evidence mới.
+
+### 5.6 Đồng bộ registry và shared contracts
 
 ```text
 /sdd-sync
 ```
 
-Dùng sau khi feature hoặc shared contract thay đổi. Xác nhận `.sdd/README.md` và `.sdd/shared_context.md` phản ánh đúng feature hiện có; không thêm dữ liệu placeholder để làm đẹp registry.
+Dùng sau khi feature, API contract, DTO, event schema hoặc state dùng chung thay đổi. Con người đối chiếu `.sdd/README.md` và `.sdd/shared_context.md` với các feature thật; không chấp nhận placeholder hoặc contract đã cũ. Review recommendation trong `.sdd/reviews/sync.md` trước Git delivery.
 
 ---
 
-## 5. Cập nhật Spec đúng cách
+## 6. Review theo từng loại thay đổi
 
-Khi behavior thay đổi, không patch code trước khi quyết định business đã được ghi vào Spec.
+### 6.1 Review Context
 
-### 5.1 Bug hoặc điều kiện biên nhỏ
+Duyệt **vấn đề**, chưa duyệt giải pháp. Câu hỏi cần trả lời:
+
+- Ai gặp vấn đề và bằng chứng là gì?
+- Behavior mong muốn khác hiện trạng ở điểm nào?
+- Thuật ngữ/trạng thái nào có thể gây hiểu sai?
+- Ai là người quyết định cuối?
+- Ràng buộc nào là hard constraint?
+- Còn câu hỏi nào nếu sai sẽ làm thay đổi phạm vi?
+
+### 6.2 Review Spec
+
+Duyệt **hợp đồng behavior**. Không approve nếu requirement chỉ nói “nhanh”, “linh hoạt”, “thân thiện” mà không có ngưỡng/điều kiện đo được. Kiểm tra cả behavior không mong muốn, permission, retry, timeout, duplicate, consistency và dữ liệu nhạy cảm.
+
+### 6.3 Review Plan
+
+Duyệt **cách thực hiện**, không âm thầm thay đổi business behavior. Nếu Plan cần behavior mới, quay lại Spec; không lén thêm vào Plan để tránh review.
+
+### 6.4 Review Tasks
+
+Duyệt **đơn vị giao việc**. Mỗi task phải có đầu ra kiểm chứng được. Nếu một task quá lớn, yêu cầu tách trước khi approve; nếu dependency vòng, sửa Plan/Tasks trước khi execute.
+
+### 6.5 Review Execution
+
+Duyệt **kết quả đã thực thi** dựa trên diff và evidence, không dựa vào câu “đã xong”. Bắt buộc xem test command/result, các file thay đổi, trace và các warning còn lại.
+
+### 6.6 Disposition của lint/audit/trace
+
+Human Director/Tech Lead chọn một trong ba cách:
+
+- **Remediate:** yêu cầu sửa blocker/warning, chạy validator lại.
+- **Accept with rationale:** chỉ dùng khi rule cho phép warning được giải trình; ghi rõ lý do, phạm vi và residual risk.
+- **Reject delivery:** không cho commit/PR khi rủi ro hoặc broken trace chưa được xử lý.
+
+Layer 1 failure, broken trace, orphan code và missing test trace không được coi là “đã chấp thuận” chỉ bằng comment chung chung.
+
+---
+
+## 7. Cập nhật Spec đúng cách
+
+### 7.1 Bug hoặc điều kiện biên nhỏ
 
 ```text
 /sdd-update --feature=feat-user-register --bump=patch --reason="Add OTP rate-limit behavior"
 ```
 
-Thêm requirement/error case và changelog vào `SPEC.md`, sau đó:
+Thêm requirement/error case và changelog vào `SPEC.md`. Vì Spec đã thay đổi, review cũ bị invalidate. Human Director phải review recommendation mới và ghi `APPROVED` trước khi Agent được execute:
 
 ```text
 /add-execute --feature=feat-user-register
@@ -282,226 +396,133 @@ Thêm requirement/error case và changelog vào `SPEC.md`, sau đó:
 /sdd-trace --feature=feat-user-register --diff
 ```
 
-### 5.2 Tính năng tương thích mới
+### 7.2 Behavior tương thích mới
 
-Dùng `--bump=minor` khi thêm behavior không phá vỡ contract hiện tại:
+Dùng `--bump=minor` khi thêm behavior không phá contract:
 
 ```text
-/sdd-update --feature=feat-user-register --bump=minor --reason="Reduce OTP expiration window"
+/sdd-update --feature=feat-user-register --bump=minor --reason="Add optional recovery flow"
 ```
 
-Kiểm tra lại `PLAN.md`, `TASKS.md`, code và test trước khi commit.
+Review lại recommendation, cập nhật Plan/Tasks nếu bị ảnh hưởng, ghi `APPROVED`, rồi mới execute. Kiểm tra code và test trước khi commit.
 
-### 5.3 Thay đổi phá vỡ contract
+### 7.3 Thay đổi phá vỡ contract
 
-Dùng `--bump=major` khi thay đổi API/DB hoặc behavior không tương thích ngược:
+Dùng `--bump=major` khi thay đổi API, DB hoặc behavior không tương thích ngược:
 
 ```text
 /sdd-update --feature=feat-user-register --bump=major --reason="Change registration contract"
 ```
 
-Phải ghi risk và migration plan; breaking change cần Tech Lead/Human Director review trước implementation.
+Phải ghi migration plan, rollback plan và risk. Tech Lead/Human Director phải approve Spec mới trước khi cập nhật Plan/Tasks hoặc implementation; không dùng `--major` để bỏ qua review.
 
 ---
 
-## 6. Các kịch bản vận hành
+## 8. Các kịch bản vận hành thường gặp
 
-### Kịch bản 1 — Feature mới từ đầu
+### 8.1 Greenfield — tạo dự án mới
 
-**Bối cảnh:** xây dựng đăng ký tài khoản bằng email/OTP.
-
-```text
-/sdd-context --feature=feat-user-register
-/sdd-spec --feature=feat-user-register
-# Human review, sau đó xác nhận APPROVED và chuyển Spec sang APPROVED & LOCKED
-/sdd-plan --feature=feat-user-register
-/sdd-tasks --feature=feat-user-register
-/add-execute --feature=feat-user-register
-/sdd-lint --feature=feat-user-register
-/sdd-audit --feature=feat-user-register
-/sdd-trace --feature=feat-user-register
-/sdd-sync
+```bash
+git clone <template-url> my-project
+cd my-project
+/sdd-init --project-name="my-project" --stack="Node.js + TypeScript + PostgreSQL"
 ```
 
-Kết quả mong đợi: có đủ `CONTEXT.md`, `SPEC.md`, `PLAN.md`, `TASKS.md`, source, tests và traceability trước Git delivery.
+Sau đó đọc `CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`, xác nhận stack/test command và chạy `/sdd-context` cho feature đầu tiên.
 
-### Kịch bản 2 — Bug phát hiện từ test hoặc production
+### 8.2 Brownfield — tích hợp repo có sẵn
 
-**Bối cảnh:** OTP có thể bị gửi lại không giới hạn.
+Linux/macOS/Git Bash:
 
-Không sửa trực tiếp `src/usecase/send-otp.ts` nếu Spec chưa mô tả rate limit. Thực hiện:
+```bash
+./scripts/adopt.sh /path/to/existing-repository
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\adopt.ps1 -TargetPath C:\Projects\existing-repository
+```
+
+Sau migration, mở repo đích và chạy `/sdd-adopt`. Chỉ dùng `--force`/`-Force` sau khi con người đã xác nhận file đích được phép ghi đè.
+
+### 8.3 Reverse Spec module legacy
+
+```text
+/sdd-adopt --reverse-feature=feat-legacy-auth --path=src/modules/auth
+```
+
+Reverse Spec chỉ mô tả behavior hiện tại; không chứng minh behavior đó đúng về business. Owner phải review trước khi refactor.
+
+### 8.4 Bug hoặc test fail
+
+Ví dụ thiếu rate limit OTP:
 
 ```text
 /sdd-update --feature=feat-user-register --bump=patch --reason="Add OTP rate-limit behavior"
-```
-
-Bổ sung requirement, ví dụ:
-
-```markdown
-### REQ-011: Rate Limit Gửi OTP
-IF người dùng gửi lại OTP quá 3 lần trong 60 giây,
-THEN hệ thống SHALL từ chối với HTTP 429 và error_code `ERR_OTP_RATE_LIMIT`.
-```
-
-Sau đó:
-
-```text
 /add-execute --feature=feat-user-register
 /sdd-trace --feature=feat-user-register --diff
 /sdd-audit --feature=feat-user-register
 ```
 
-### Kịch bản 3 — Product Owner thay đổi yêu cầu
+Nếu failure là code bug đã có Spec rõ, sửa code theo Spec. Nếu failure là business rule chưa được nêu, sửa Spec trước.
 
-**Bối cảnh:** thời hạn OTP đổi từ 5 phút xuống 2 phút.
-
-```text
-/sdd-update --feature=feat-user-register --bump=minor --reason="Reduce OTP expiration window"
-```
-
-Review changelog, update plan/tasks nếu affected, regenerate code/test và chạy trace diff. Không chỉ sửa hằng số trong code rồi bỏ qua Spec.
-
-### Kịch bản 4 — Test fail hoặc Agent lặp lỗi
-
-Agent phải dừng sau khi đã phân tích đủ nguyên nhân, không vá ngẫu nhiên.
-
-1. Đọc failure và xác định code bug hay Spec gap.
-2. Nếu Spec mơ hồ, báo Human Director.
-3. Cập nhật `SPEC.md`, bump version nếu cần.
-4. Đồng bộ `PLAN.md`, `TASKS.md`, code và tests.
-5. Chạy lại validation từ pha bị ảnh hưởng.
-
-### Kịch bản 5 — RFC thay đổi Constitution
-
-**Bối cảnh:** team muốn thêm hoặc sửa hard rule.
+### 8.5 RFC thay đổi Constitution
 
 ```text
 /sdd-rfc --title=soft-delete-policy
 ```
 
-Tech Lead điền motivation, proposed change, risk và migration plan trong `.sdd/rfcs/RFC-XXX-*.md`. Chỉ sau approval mới chạy:
+Tech Lead/Human Director ghi motivation, proposed change, risk và migration plan trong `.sdd/rfcs/RFC-XXX-*.md`. Sau khi reviewer có thẩm quyền approve, dùng:
 
 ```text
 /sdd-rfc --approve=<rfc-number>
 ```
 
-Không sửa trực tiếp `CONSTITUTION.md`. Git Operator sẽ block thay đổi Constitution không có RFC approved.
+Lệnh `--approve` chỉ dành cho Tech Lead theo contract của `/sdd-rfc`. Trước khi chạy, reviewer phải kiểm tra RFC đã có recommendation, review block, decision, identity và timestamp; không dùng lệnh này để thay thế Human Final Review. Không sửa trực tiếp `CONSTITUTION.md`. Git Operator sẽ block thay đổi Constitution không có RFC approved.
 
-### Kịch bản 6 — Brownfield adoption
-
-**Bối cảnh:** repository Node.js/Python/Go đang chạy nhưng chưa có SDD.
-
-```bash
-# Từ thư mục template
-./scripts/adopt.sh /path/to/legacy-repo
-```
-
-Hoặc Windows:
-
-```powershell
-.\scripts\adopt.ps1 -TargetPath C:\Projects\legacy-repo
-```
-
-Trong repo đích:
-
-```text
-/sdd-adopt
-```
-
-Nếu cần refactor module cũ:
-
-```text
-/sdd-adopt --reverse-feature=feat-legacy-module --path=src/modules/legacy
-```
-
-Sau reverse Spec, chạy `/sdd-lint` và review với owner trước khi dùng `/sdd-layer-edit` hoặc `/add-execute`.
-
-### Kịch bản 7 — Thay đổi xuyên bốn tầng
-
-**Bối cảnh:** thêm `discount_code` vào checkout.
+### 8.6 Thay đổi xuyên bốn tầng
 
 ```text
 /sdd-layer-edit --feature=feat-order-checkout --action=modify
 ```
 
-Kiểm tra kết quả theo boundary:
+Con người kiểm tra domain, usecase, interface, infra và test theo Plan. Không cho controller truy cập DB trực tiếp.
 
-1. `src/domain/`: value object/entity.
-2. `src/usecase/`: business workflow và `@ears` tag.
-3. `src/interface/`: DTO/controller boundary.
-4. `src/infra/`: repository/external integration.
+### 8.7 Handoff và resume
 
-Sau đó chạy audit architecture và test integration. Không để controller truy cập DB trực tiếp.
-
-### Kịch bản 8 — Validation trước commit
-
-Dùng khi thay đổi đã sẵn sàng nhưng chưa commit:
-
-```text
-/git-validate --scope=commit
-/git-commit --message="feat(auth): add OTP rate limit"
-```
-
-`/git-commit` phải stage đúng file intended và chạy lại validator ngay trước `git commit`. Gate block secret, forbidden files, empty staged diff, unresolved Git operation, Constitution change không có RFC hoặc quality failure.
-
-### Kịch bản 9 — Tạo PR remote-first
-
-Source branch phải được push và remote diff phải là nguồn kết luận:
-
-```text
-/git-pr --base=main --head=feature/user-register --push
-```
-
-Chỉ dùng `--push` khi người dùng yêu cầu rõ. `/git-pr` phải:
-
-1. fetch remote;
-2. xác nhận `origin/main` và `origin/feature/user-register` tồn tại;
-3. kiểm tra local HEAD khớp remote HEAD;
-4. kiểm tra `origin/main...origin/feature/user-register`;
-5. chạy `/git-validate --scope=pr --strict`;
-6. chỉ sau `READY` mới gọi `gh pr create`.
-
-Không dùng `git diff main...HEAD` để kết luận PR. Không merge, force-push hoặc bypass required checks.
-
-### Kịch bản 10 — Documentation, skill hoặc governance-only change
-
-Khi không có source behavior:
-
-```text
-/sdd-audit
-/git-commit --message="feat(skill): improve validation gate"
-/git-pr --base=main --head=feature/git-operator
-```
-
-Validator ghi `N/A` cho trace/test không áp dụng nếu repository không có source/test tương ứng, nhưng vẫn kiểm tra secret, path policy, Git state và docs consistency. Không báo `PASS` giả cho command chưa chạy.
-
-### Kịch bản 11 — Handoff và resume
-
-Khi còn task dở:
+Khi dừng giữa chừng:
 
 ```text
 /sdd-handoff --feature=feat-order-checkout
 ```
 
-Handoff phải ghi current task, file đã đổi, test evidence, blocker và next command. Session mới:
+Xác nhận `TASKS.md` dùng đúng `[x]`, `[/]`, `[ ]`; kiểm tra `Current Handoff State` có file đã đổi, test evidence, blocker và next command. Phiên sau:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
-```
-
-Sau đó:
-
-```text
 /sdd-resume --feature=feat-order-checkout
 ```
 
-Nếu repository chưa có feature active hoặc chưa có `TASKS.md`, không tạo feature giả. Ghi handoff ở report cấp repository trong `plans/reports/`.
+Review recommendation của handoff trước khi cho Agent tiếp tục execute.
+
+### 8.8 Docs/skill/governance-only change
+
+Khi không có source behavior:
+
+```text
+/sdd-audit
+/git-validate --scope=commit
+/git-commit --message="docs(guide): clarify SDD ADD human workflow"
+```
+
+Validator ghi `N/A` cho trace/test chỉ khi repository thực sự không có source/test tương ứng, kèm lý do.
 
 ---
 
-## 7. Requirement Traceability và Impact Analysis
+## 9. Requirement Traceability và Impact Analysis
 
-Traceability map:
+Ma trận truy vết chuẩn:
 
 ```text
 SPEC.md (REQ-XXX)
@@ -511,34 +532,36 @@ SPEC.md (REQ-XXX)
   -> tests/ (@ears)
 ```
 
-### Truy vết một requirement
+Truy vết một requirement:
 
 ```text
 /sdd-trace --feature=feat-user-register --req=REQ-001
 ```
 
-### Kiểm tra toàn feature
+Kiểm tra toàn feature:
 
 ```text
 /sdd-trace --feature=feat-user-register
 ```
 
-### Phân tích sau Spec change
+Phân tích sau Spec change:
 
 ```text
 /sdd-trace --feature=feat-user-register --diff
 ```
 
-Các trạng thái cần xử lý trước PR:
+Các trạng thái phải xử lý trước PR:
 
-- **Untraced requirement**: Spec có REQ nhưng chưa có code/test.
-- **Orphan code**: business method không có `@ears` hoặc trỏ tới REQ không tồn tại.
-- **Outdated implementation**: code/test chưa theo version Spec mới.
-- **Missing test**: requirement có code nhưng không có test verify.
+- **Untraced requirement:** Spec có REQ nhưng thiếu code hoặc test.
+- **Orphan code:** business method thiếu `@ears` hoặc trỏ tới REQ không tồn tại.
+- **Outdated implementation:** code/test chưa theo version Spec mới.
+- **Missing test:** có code nhưng chưa có test verify.
+
+Human reviewer phải quyết định remediation hoặc dừng delivery; không đánh dấu covered chỉ vì Agent có nêu tên file.
 
 ---
 
-## 8. EARS notation cheat sheet
+## 10. EARS notation cheat sheet
 
 | Loại | Mẫu | Ví dụ |
 | :--- | :--- | :--- |
@@ -552,67 +575,53 @@ Requirement cần tránh từ mơ hồ như “nhanh chóng”, “linh hoạt�
 
 ---
 
-## 9. Quality gates trước khi báo hoàn thành
+## 11. Quality gates trước khi báo hoàn thành
 
-### 9.1 Self-check
+### 11.1 Checklist cho Human Director / Tech Lead
 
-- [ ] `SPEC.md` ở trạng thái `APPROVED & LOCKED` và có SemVer.
+- [ ] Artifact hiện tại có recommendation và Human Final Review block canonical.
+- [ ] Review status không còn `PENDING`, `REVISE` hoặc `REJECTED` trước khi chuyển pha.
+- [ ] `APPROVED` có decision cụ thể, reviewer identity và timestamp.
+- [ ] Nếu artifact đã sửa sau approval, review cũ đã bị invalidate và review mới ở `PENDING`.
+- [ ] `SPEC.md` ở `APPROVED & LOCKED`, có SemVer và changelog.
+- [ ] Requirement có EARS, acceptance, error/edge cases và out-of-scope.
+- [ ] Plan/Tasks khớp Spec; task có dependency, file boundary và verify command.
 - [ ] Business methods có `@ears` reference hợp lệ.
-- [ ] Controller không truy cập DB trực tiếp.
-- [ ] Hardcoded secret và PII trong log đã bị loại bỏ/mask.
-- [ ] Error response tuân thủ contract trong `CONSTITUTION.md`.
-- [ ] Test happy path và error/edge cases đều pass.
+- [ ] Controller không truy cập DB trực tiếp; không có secret hoặc PII trong log.
+- [ ] Test happy path và error/edge cases đã chạy; failure không bị che.
 - [ ] `/sdd-lint`, `/sdd-audit`, `/sdd-trace` đã chạy khi applicable.
 - [ ] `/sdd-sync` đã chạy khi feature/contract/registry thay đổi.
+- [ ] Mọi warning còn lại có disposition và residual risk rõ.
 - [ ] `/git-validate` trả `READY` trước commit hoặc PR.
 
-### 9.2 Git Operator rules
+### 11.2 Git Operator rules
 
 | Scope | Nguồn diff | Required gate |
 | :--- | :--- | :--- |
 | Commit | `git diff --cached` | `/git-validate --scope=commit` |
 | PR | `origin/<base>...origin/<head>` | `/git-validate --scope=pr --strict` |
 
-Kết quả hợp lệ của validator là `PASS`, `FAIL` hoặc `N/A` có lý do. `READY` không được phát hành nếu còn `FAIL`, diff rỗng hoặc PR còn warning chưa giải trình.
+`READY` không được phát hành nếu diff rỗng, còn `FAIL`, PR còn warning chưa giải trình, hoặc review artifact không hợp lệ.
+
+### 11.3 Checklist kết thúc session
+
+1. Mọi task intended có trạng thái rõ.
+2. `[x]` chỉ dùng khi test/verify pass.
+3. Evidence mới nhất được ghi trong handoff hoặc report.
+4. Blocker, open question và giả định không bị che giấu.
+5. Review pending được nêu rõ, không tự approve.
+6. Next step có command cụ thể.
 
 ---
 
-## 10. Handoff và resume protocol
+## 12. Nguyên tắc ghi nhớ nhanh
 
-### 10.1 Kết thúc phiên
-
-Với feature active:
-
-```text
-/sdd-handoff --feature=<slug>
-```
-
-Kiểm tra `TASKS.md`:
-
-- `[x]`: task hoàn thành và test pass;
-- `[/]`: task đang làm dở;
-- `[ ]`: task chưa bắt đầu.
-
-Với repository-level work không có feature, tạo report trong `plans/reports/` chứa current status, changed files, evidence, blockers và resume commands. Không tạo `CONTEXT.md`, `SPEC.md` hoặc `TASKS.md` placeholder.
-
-### 10.2 Khởi động lại
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
-```
-
-```bash
-./scripts/start-claude.sh -c
-```
-
-Sau đó chạy `/sdd-resume --feature=<slug>` khi feature có `TASKS.md`. Đọc lại `CONTEXT.md`, `SPEC.md`, `PLAN.md` và `TASKS.md` trước khi tiếp tục execute.
-
-### 10.3 Điều kiện kết thúc
-
-Session chỉ được báo hoàn thành khi:
-
-1. mọi task intended đã có trạng thái rõ;
-2. evidence test/quality được ghi;
-3. blocker và open question không bị che giấu;
-4. thay đổi đã qua Git validation nếu chuẩn bị commit/PR;
-5. next step có command cụ thể.
+1. Con người quyết định **làm gì và chấp nhận rủi ro nào**; Agent đề xuất và thực thi **cách làm trong phạm vi đã duyệt**.
+2. `PENDING` nghĩa là dừng, không phải “chờ Agent tự xử lý”.
+3. `APPROVED` phải nằm trong artifact, có người, quyết định và timestamp.
+4. `REVISE` và `REJECTED` đều block downstream; sửa xong phải tạo recommendation mới.
+5. Sửa artifact sau approval làm review cũ mất hiệu lực.
+6. `[x]` là trạng thái task có evidence; không phải approval của con người.
+7. `PASS` là kết quả của một check; `READY` là quyết định cuối của Git validation.
+8. Khi Spec chưa rõ, quay lại Spec; không vá code để che lỗ hổng yêu cầu.
+9. Khi chưa đủ bằng chứng, báo thiếu bằng chứng; không báo hoàn thành giả.

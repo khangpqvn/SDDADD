@@ -82,7 +82,7 @@ cd /path/to/your-existing-project
 ├── CLAUDE.md               # [Layer 1] Project Memory, Architecture DNA & Clean Arch Rules
 ├── CONSTITUTION.md         # [Layer 1] Hard Quality Gates (3 Layer Rules: Hard, Arch, Eng) & RFC Process
 ├── .claude/
-│   └── skills/             # 8 Custom Slash Commands cho SDD+ADD Workflow (tích hợp Checkpoint DoD)
+│   └── skills/             # 9 Custom Slash Commands cho SDD+ADD Workflow (tích hợp Checkpoint DoD)
 │       ├── sdd-init.md     # /sdd-init (Greenfield Project Initializer)
 │       ├── sdd-adopt.md    # /sdd-adopt (Brownfield Legacy Adoption & Reverse Spec)
 │       ├── sdd-context.md  # /sdd-context --feature=<slug> (Pha 0: Context Discovery + DoD)
@@ -90,6 +90,7 @@ cd /path/to/your-existing-project
 │       ├── sdd-plan.md     # /sdd-plan --feature=<slug> (Pha 2: Architecture & Risk Plan + DoD)
 │       ├── sdd-tasks.md    # /sdd-tasks --feature=<slug> (Pha 3: Atomic Task Breakdown + DoD)
 │       ├── add-execute.md  # /add-execute --feature=<slug> (Pha 4 & 5: Execution, Self-Check & DoD)
+│       ├── sdd-update.md   # /sdd-update --feature=<slug> (Nâng version SemVer, cập nhật EARS & ghi Changelog)
 │       └── sdd-trace.md    # /sdd-trace --feature=<slug> (Requirement Traceability & Impact Analysis)
 ├── .sdd/                   # Thư mục quản lý Đặc tả Kỹ thuật (Source of Truth)
 │   ├── README.md           # Master Feature Registry (Đăng ký danh sách features)
@@ -117,6 +118,7 @@ cd /path/to/your-existing-project
 | `/sdd-plan` | `.claude/skills/sdd-plan.md` | **Pha 2**: Lập kế hoạch Clean Arch ➔ `.sdd/features/{slug}/PLAN.md` |
 | `/sdd-tasks` | `.claude/skills/sdd-tasks.md` | **Pha 3**: Atomic Tasks Breakdown ➔ `.sdd/features/{slug}/TASKS.md` |
 | `/add-execute` | `.claude/skills/add-execute.md` | **Pha 4 & 5**: AI Agent thực thi code, Self-check `CONSTITUTION.md` & Test |
+| `/sdd-update` | `.claude/skills/sdd-update.md` | Cập nhật đặc tả, nâng version SemVer (Major/Minor/Patch) & ghi Changelog |
 | `/sdd-trace` | `.claude/skills/sdd-trace.md` | Truy vết ma trận yêu cầu (RTM 5 tầng) & Phân tích tác động khi đổi Spec |
 
 ---

@@ -38,6 +38,8 @@ Mỗi tính năng (Feature) mới đều trải qua 5 pha tuyến tính. Không 
 | **Pha 2: Plan** | `/sdd-plan --feature=<slug>` | `SPEC.md` | `.sdd/features/{slug}/PLAN.md` | Thiết kế kiến trúc Clean Arch (`domain`, `usecase`, `interface`, `infra`), phân tích rủi ro kỹ thuật, vẽ Data Flow. |
 | **Pha 3: Tasks** | `/sdd-tasks --feature=<slug>` | `PLAN.md` + `SPEC.md` | `.sdd/features/{slug}/TASKS.md` | Phân rã công việc thành các Atomic Tasks (`T001`, `T002`), mỗi task độc lập, có thể verify và gắn `@ears` tag. |
 | **Pha 4 & 5: Execute** | `/add-execute --feature=<slug>` | `TASKS.md` + `SPEC.md` | Source Code + Test Suite | AI Agent thực thi từng task, viết test, tự kiểm tra quy chuẩn `CONSTITUTION.md` và chạy test báo GREEN. |
+| **Cập nhật Spec** | `/sdd-update --feature=<slug> --bump=<major\|minor\|patch> --reason="..."` | `SPEC.md` hiện tại | `SPEC.md` (Version mới) + Changelog | Tự động nâng phiên bản SemVer, cập nhật yêu cầu EARS, ghi Changelog và đề xuất lệnh đồng bộ Code/Test. |
+| **Truy vết & Diff** | `/sdd-trace --feature=<slug> [--req=REQ-XXX] [--diff]` | Codebase + Spec | Traceability Report | Truy vết 5 tầng (Spec ➔ Plan ➔ Task ➔ Code ➔ Test), phân tích tác động thay đổi và phát hiện đứt gãy vết. |
 
 ---
 

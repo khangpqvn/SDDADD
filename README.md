@@ -83,7 +83,7 @@ cd /path/to/your-existing-project
 ├── CLAUDE.md               # [Layer 1] Project Memory, Architecture DNA & Clean Arch Rules
 ├── CONSTITUTION.md         # [Layer 1] Hard Quality Gates (3 Layer Rules: Hard, Arch, Eng) & RFC Process
 ├── .claude/
-│   └── skills/             # 17 Custom Slash Commands cho SDD+ADD Workflow (tích hợp Checkpoint DoD)
+│   └── skills/             # 20 Custom Slash Commands cho SDD+ADD Workflow và Git Operator Gates
 │       ├── sdd-init/SKILL.md         # /sdd-init (Greenfield Project Initializer)
 │       ├── sdd-adopt/SKILL.md        # /sdd-adopt (Brownfield Legacy Adoption & Reverse Spec)
 │       ├── sdd-context/SKILL.md      # /sdd-context --feature=<slug> (Pha 0: Context Discovery + DoD)
@@ -101,7 +101,10 @@ cd /path/to/your-existing-project
 │       ├── sdd-sync/SKILL.md         # /sdd-sync (Đồng bộ Master Registry & Shared Contracts)
 │       ├── sdd-layer-edit/SKILL.md   # /sdd-layer-edit (Chỉnh sửa đồng bộ mã nguồn qua 4 tầng Clean Arch)
 │       ├── sdd-claude-edit/SKILL.md # /sdd-claude-edit (Quản lý & cập nhật CLAUDE.md - Project Memory & Arch DNA)
-│       └── sdd-agents-edit/SKILL.md # /sdd-agents-edit (Quản lý & cập nhật AGENTS.md - Persona, Scope & Permissions)
+│       ├── sdd-agents-edit/SKILL.md # /sdd-agents-edit (Quản lý & cập nhật AGENTS.md - Persona, Scope & Permissions)
+│       ├── git-validate/SKILL.md    # /git-validate (Validation gate trước commit/PR)
+│       ├── git-commit/SKILL.md      # /git-commit (Commit sau khi validation đạt READY)
+│       └── git-pr/SKILL.md          # /git-pr (Remote-first Pull Request sau khi validation đạt READY)
 ├── .sdd/                   # Thư mục quản lý Đặc tả Kỹ thuật (Source of Truth)
 │   ├── README.md           # Master Feature Registry (Đăng ký danh sách features)
 │   ├── shared_context.md   # Shared State & Active API Contracts giữa các features
@@ -132,6 +135,32 @@ cd /path/to/your-existing-project
 | `/add-execute` | `.claude/skills/add-execute/SKILL.md` | **Pha 4 & 5**: AI Agent thực thi code, Self-check `CONSTITUTION.md` & Test |
 | `/sdd-update` | `.claude/skills/sdd-update/SKILL.md` | Cập nhật đặc tả, nâng version SemVer (Major/Minor/Patch) & ghi Changelog |
 | `/sdd-trace` | `.claude/skills/sdd-trace/SKILL.md` | Truy vết ma trận yêu cầu (RTM 5 tầng) & Phân tích tác động khi đổi Spec |
+| `/git-validate` | `.claude/skills/git-validate/SKILL.md` | Gate bắt buộc kiểm tra Git, secrets, Constitution, SDD trace và quality trước commit/PR |
+| `/git-commit` | `.claude/skills/git-commit/SKILL.md` | Stage và tạo commit chỉ sau khi `/git-validate --scope=commit` đạt READY |
+| `/git-pr` | `.claude/skills/git-pr/SKILL.md` | Kiểm tra remote-first và tạo Pull Request chỉ sau khi gate PR đạt READY |
+
+---
+
+### Git Operator Workflow
+
+Mọi commit và Pull Request phải đi qua gate dùng chung:
+
+```text
+/git-commit --message="feat(scope): description"
+# git-commit stages intended files, then invokes git-validate --scope=commit
+
+/git-pr --base=main --head=feature/my-change
+# git-pr invokes git-validate --scope=pr --strict before gh pr create
+```
+
+`/git-validate` dùng staged diff cho commit và `origin/<base>...origin/<head>` cho PR. Gate sẽ block secret, file nhạy cảm, Constitution thay đổi không có RFC approved, SDD lint/audit/trace failure, test failure, dirty worktree hoặc remote head chưa được push. Bước không áp dụng phải ghi rõ `N/A` kèm lý do; không được báo giả là `PASS`.
+
+Luồng khuyến nghị:
+
+1. Feature mới: `/sdd-context` → `/sdd-spec` → `/sdd-plan` → `/sdd-tasks` → `/add-execute` → `/sdd-lint` → `/sdd-audit` → `/sdd-trace` → `/sdd-sync` → `/git-commit` → `/git-pr`.
+2. Docs/skill/governance: `/sdd-audit` → `/git-commit` → `/git-pr`.
+3. Gate fail: đọc evidence → sửa đúng blocker → chạy lại validator; không dùng `--no-verify` hoặc force-push để bypass.
+4. Kết thúc phiên: `/sdd-handoff` → mở lại bằng `scripts/start-claude.ps1 -Continue` → `/sdd-resume`.
 
 ---
 

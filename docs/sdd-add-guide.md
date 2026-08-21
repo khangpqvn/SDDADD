@@ -210,6 +210,80 @@ Khi bạn muốn chỉnh sửa thủ công (manual edit) file `SPEC.md` sau khi 
 
 ---
 
+### Git Operator Gate: Validate trước Commit và Pull Request
+
+Mọi thay đổi phải được kiểm tra bởi Git Operator trước khi tạo commit hoặc PR. Gate dùng staged diff cho commit và remote diff cho PR; không dùng local-only diff để kết luận PR.
+
+```text
+/git-commit --message="feat(scope): description"
+# git-commit stages intended files and invokes git-validate --scope=commit
+
+/git-pr --base=main --head=feature/my-change
+# git-pr invokes git-validate --scope=pr --strict before gh pr create
+```
+
+Có thể chạy `/git-validate` riêng để kiểm tra trước khi gọi operator; operator luôn chạy lại gate ngay trước thao tác commit hoặc tạo PR.
+
+Gate sẽ block khi phát hiện secret/file nhạy cảm, Git operation đang dở, dirty worktree trong PR scope, Constitution thay đổi không có RFC approved, SDD lint/audit/trace lỗi, thiếu test cho source behavior, test/lint/build thất bại, diff rỗng hoặc source branch chưa push. Bước không áp dụng phải ghi `N/A` kèm lý do.
+
+Khi gate fail, sửa đúng blocker rồi chạy lại validator. Không dùng `--no-verify`, không force-push để vượt gate, không reset/amend/discard tự động. `/git-pr --push` chỉ được dùng khi người dùng yêu cầu rõ; sau push phải chạy lại remote validation.
+
+### Các luồng vận hành đề xuất
+
+#### Luồng A — Feature mới có code và test
+
+```text
+/sdd-context --feature=<slug>
+  -> /sdd-spec --feature=<slug>
+  -> /sdd-plan --feature=<slug>
+  -> /sdd-tasks --feature=<slug>
+  -> /add-execute --feature=<slug>
+  -> /sdd-lint --feature=<slug>
+  -> /sdd-audit --feature=<slug>
+  -> /sdd-trace --feature=<slug> --diff
+  -> /sdd-sync
+  -> /git-commit --feature=<slug> --message="feat(scope): description"
+  -> /git-pr --base=main --head=<branch> --feature=<slug>
+```
+
+Dùng khi thay đổi `src/`, `tests/` hoặc `.sdd/features/`. Không bỏ qua `SPEC.md`, traceability hoặc test. Nếu test fail do thiếu nghiệp vụ, sửa Spec trước theo nguyên tắc “Fix the Spec, NOT the Code”.
+
+#### Luồng B — Documentation, governance hoặc skill-only change
+
+```text
+/sdd-audit
+  -> /git-commit --message="feat(skill): description"
+  -> /git-pr --base=main --head=<branch>
+```
+
+Dùng khi chỉ thay đổi `.claude/skills/`, `README.md`, `docs/`, `CLAUDE.md`, `AGENTS.md` hoặc RFC. `git-validate` tự xác định các check SDD không áp dụng và phải ghi `N/A` kèm lý do. Thay đổi `CONSTITUTION.md` chỉ hợp lệ khi có RFC approved.
+
+#### Luồng C — Validation bị chặn
+
+```text
+/git-validate --scope=commit|pr --strict
+  -> đọc blocker và evidence
+  -> sửa đúng source/spec/test/config
+  -> chạy lại /sdd-lint, /sdd-audit hoặc /sdd-trace nếu liên quan
+  -> chạy lại /git-validate
+```
+
+Không commit hoặc tạo PR khi còn `FAIL`. Không biến `WARNING` thành `PASS`, không dùng `--no-verify`, và không dùng force-push để vượt gate. Với PR, source branch phải được push và validation phải dùng `origin/<base>...origin/<head>`.
+
+#### Luồng D — Kết thúc phiên và tiếp tục
+
+```text
+/sdd-handoff [--feature=<slug>]
+  -> lưu file đang dở, test evidence và blocker
+  -> mở phiên mới bằng scripts/start-claude.ps1 -Continue
+  -> /sdd-resume --feature=<slug>
+  -> chạy lại validator trước commit/PR
+```
+
+Dùng khi còn task chưa hoàn thành hoặc chưa đủ evidence để commit/PR. Với repository chưa có feature active, handoff ghi nhận trạng thái ở cấp repository thay vì tạo feature giả.
+
+---
+
 ### Kịch bản 9: Thực hiện Chỉnh sửa Mã nguồn Xuyên 4 Tầng Kiến trúc (Cross-Layer Edit)
 - **Bối cảnh**: Bạn cần bổ sung thêm trường `discount_code` vào luồng thanh toán đơn hàng.
 - **Luồng xử lý**:

@@ -35,3 +35,9 @@ Sử dụng skill này khi cần kết thúc phiên làm việc dở dang. Skill
      powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
      ```
      Sau đó gõ `/sdd-resume --feature={feature-slug}`.
+
+---
+
+## AI Recommendation & Human Final Review
+
+Before ending a session, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with the next task, evidence gaps, blockers, open questions, and resume command. Persist it in `TASKS.md` or a repository-level `.sdd/reviews/handoff-<slug>.md` with `PENDING HUMAN REVIEW`. The Human Director confirms the resume scope before execution; the Agent must not mark handoff complete or approve the next action by itself.

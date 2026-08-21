@@ -31,3 +31,9 @@ Xuất bảng báo cáo Compliance Report:
 - ❌ **FAILED (Blocker)**: Các lỗi vi phạm Layer 1 (Cần fix ngay lập tức).
 - ⚠️ **WARNING**: Các vi phạm Layer 2/3 (Cần giải trình hoặc giải quyết).
 - ✅ **PASSED**: Danh sách quy tắc đã tuân thủ.
+
+---
+
+## AI Recommendation & Human Final Review
+
+After each audit, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with findings, severity, evidence, remediation options, and residual risk. Persist it in the relevant feature artifact or `.sdd/reviews/audit-<slug>.md` with `PENDING HUMAN REVIEW`. The Human Director/Tech Lead approves the finding disposition; Layer 1 failures and unresolved blockers remain blocked. The Agent must not mark an audit approved by itself.

@@ -30,18 +30,24 @@ Sử dụng skill này khi muốn áp dụng phương pháp luận **SDD + ADD**
 ### 3. Tự động Khởi tạo Hạ tầng `.sdd/` & Skills
 - Tạo cấu trúc thư mục `.sdd/`, `.sdd/features/`, `.sdd/rfcs/`.
 - Tạo `.sdd/README.md` (Master Feature Registry) và `.sdd/shared_context.md`.
-- Copy/Cập nhật đầy đủ bộ 9 Slash Commands vào `.claude/skills/` (`sdd-init`, `sdd-adopt`, `sdd-context`, `sdd-spec`, `sdd-plan`, `sdd-tasks`, `add-execute`, `sdd-update`, `sdd-trace`).
+- Copy/Cập nhật đầy đủ bộ 21 Slash Commands vào `.claude/skills/`, gồm các skill SDD/ADD, governance, validation và Git Operator hiện hành.
 
 ### 4. Đảo ngược Đặc tả cho Module có sẵn (Reverse Spec — Tùy chọn)
 Nếu truyền `--reverse-feature=<slug>` và `--path=<module-path>`:
 - Agent sẽ đọc source code và tests trong `<module-path>`.
 - Trích xuất các Business Rules hiện có và tạo lại bộ 4 file SDD trong `.sdd/features/{slug}/`:
   - `CONTEXT.md`: Tóm tắt bài toán module hiện tại đang giải quyết.
-  - `SPEC.md`: Viết lại toàn bộ Functional Requirements hiện có bằng **EARS Notation** và gán phiên bản `v1.0.0 (LOCKED)`.
-  - `PLAN.md` & `TASKS.md`: Đánh dấu trạng thái `COMPLETED` cho code hiện tại.
+  - `SPEC.md`: Viết lại toàn bộ Functional Requirements hiện có bằng **EARS Notation** và gán phiên bản `v1.0.0 (DRAFT)` để Human Director/Tech Lead review.
+  - `PLAN.md` & `TASKS.md`: Ghi nhận code hiện tại làm baseline quan sát được; không tự đánh dấu `COMPLETED` trước Human Final Review.
 - Gắn JSDoc tag `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` vào các function nghiệp vụ hiện có để đảm bảo tính truy vết 100%.
 
 ### 5. Thông báo Hoàn thành & Hướng dẫn Tiếp theo
 Skill xuất báo cáo chi tiết kết quả tích hợp và hướng dẫn:
 - Cách dùng SDD+ADD cho các tính năng mới sắp tới (`/sdd-context --feature=feat-new`).
 - Cách đảo ngược Spec cho các module cũ còn lại khi cần refactor (`/sdd-adopt --reverse-feature=<slug> --path=<path>`).
+
+---
+
+## AI Recommendation & Human Final Review
+
+After adoption or reverse Spec, generate a recommendation using `.claude/skills/_shared/ai-review-protocol.md` covering detected architecture, governance assumptions, migration risks, reverse-Spec confidence, and alternatives. Persist it in `.sdd/reviews/adopt-<slug>.md` or the target project's review location with `PENDING HUMAN REVIEW`. The Human Director/Tech Lead must approve the adoption scope before downstream feature work; the Agent must not self-approve or claim legacy behavior is business-approved.

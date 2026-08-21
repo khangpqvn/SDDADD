@@ -33,7 +33,9 @@ Dựa trên tham số `--bump`:
 - Cập nhật header file `SPEC.md`:
   ```markdown
   # Version: 1.0.1 (SemVer)
-  # Status: APPROVED & LOCKED
+  # Status: DRAFT
+  # Human Final Review: PENDING
+  # The Human Director restores APPROVED & LOCKED only after review.
   ```
 
 ### 3. Cập nhật Yêu cầu Nghiệp vụ (EARS Notation)
@@ -57,3 +59,9 @@ Tự động chèn dòng lịch sử vào mục `## 9. Revision & Changelog` ở
 - Xuất hướng dẫn và tự động đề xuất lệnh thực thi tiếp theo:
   - Nếu `patch`: Chạy ngay `/add-execute --feature={<feature-slug>}` để Agent cập nhật Code và Test cases.
   - Nếu `minor` hoặc `major`: Chạy `/sdd-tasks --feature={<feature-slug>}` để phân rã thêm Tasks mới, sau đó chạy `/add-execute --feature={<feature-slug>}`.
+
+---
+
+## AI Recommendation & Human Final Review
+
+After proposing or applying a Spec update, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` covering the requested change, SemVer impact, affected requirements, migration risk, and downstream files. Persist it in `SPEC.md` and keep `Human Final Review.Status: PENDING`; `/add-execute` or a new task breakdown is blocked until the Human Director approves. Any later edit invalidates the prior review. The Agent must not self-approve a changed contract.

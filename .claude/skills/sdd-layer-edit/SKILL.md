@@ -33,3 +33,9 @@ Sử dụng skill này khi cần thêm mới hoặc thay đổi một luồng ng
 - Thêm/Sửa DB Repository implementation, Redis Cache Adapter, External Client.
 - **Bắt buộc**: Sử dụng Soft-Delete (`deleted_at TIMESTAMP`) cho lệnh xóa (`DATA-01`). KHÔNG dùng `DELETE FROM`.
 - **Bắt buộc**: Không hardcode API Key hay Password (`SEC-01`).
+
+---
+
+## AI Recommendation & Human Final Review
+
+Before editing any layer, generate a recommendation using `.claude/skills/_shared/ai-review-protocol.md` covering affected requirements, layer boundaries, files, risks, alternatives, and verification. Persist it in the feature review/artifact and keep `Human Final Review.Status: PENDING`. The Human Director must approve the implementation scope before edits; after edits, refresh the recommendation and do not self-approve.

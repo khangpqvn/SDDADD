@@ -18,7 +18,8 @@ Sử dụng skill này dựa trên `.sdd/features/{feature-slug}/CONTEXT.md` và
    - Đọc `.sdd/features/{feature-slug}/CONTEXT.md` và `CONSTITUTION.md` ở root.
 
 2. **Gắn Header Semantic Versioning & State**:
-   - Khai báo phiên bản `Version: x.y.z (SemVer)` và trạng thái `APPROVED & LOCKED`.
+   - Khai báo phiên bản `Version: x.y.z (SemVer)` và trạng thái `DRAFT`.
+   - Chỉ Human Director/Tech Lead được chuyển trạng thái sang `APPROVED & LOCKED` sau khi duyệt recommendation trong artifact.
 
 3. **Áp dụng EARS Notation cho Requirements**:
    - *Ubiquitous*: `THE system SHALL [action]`
@@ -58,8 +59,12 @@ Sử dụng skill này dựa trên `.sdd/features/{feature-slug}/CONTEXT.md` và
 # Feature: [Tên Feature]
 # Feature Slug: [feature-slug]
 # Version: 1.0.0 (SemVer)
-# Status: APPROVED & LOCKED
+# Status: DRAFT
 # Owner: [Human Director / Lead]
+# Human Final Review: PENDING
+
+> Human Director/Tech Lead restores `APPROVED & LOCKED` only after reviewing the persisted recommendation.
+
 
 ---
 
@@ -103,5 +108,11 @@ interface SampleEntity {
 
 ## 9. Revision & Changelog
 ### v1.0.0 (2026-08-21)
-- Initial Approved Spec Version locked for Implementation.
+- Initial draft Spec Version pending Human Final Review.
 ```
+
+---
+
+## AI Recommendation & Human Final Review
+
+After drafting or changing `SPEC.md`, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` and persist it in the artifact. Include requirement gaps, EARS risks, edge cases, out-of-scope boundaries, and SemVer impact. Keep `Human Final Review.Status: PENDING`; `/sdd-plan` is blocked until the Human Director records `APPROVED`. Any later Spec change invalidates the prior review. The Agent must not set `APPROVED & LOCKED` on behalf of a human.

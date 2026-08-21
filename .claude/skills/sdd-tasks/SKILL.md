@@ -67,3 +67,9 @@ Sử dụng skill này dựa trên `.sdd/features/{feature-slug}/PLAN.md` để 
   - **Files**: `src/usecase/...`
   - **Verifiable**: Unit tests pass 100%
 ```
+
+---
+
+## AI Recommendation & Human Final Review
+
+After generating or changing `TASKS.md`, persist the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md`. Include task ordering, dependencies, affected files, verification commands, and delivery risks. Keep `Human Final Review.Status: PENDING`; `/add-execute` may not start from these tasks until the Human Director records `APPROVED`. The Agent must not mark the task plan approved by itself.

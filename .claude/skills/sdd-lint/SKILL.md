@@ -6,7 +6,7 @@ user-invocable: true
 
 # Skill: SDD Spec Linter (`/sdd-lint`)
 
-Sử dụng skill này để linter và thẩm định file `.sdd/features/{feature-slug}/SPEC.md` nhằm phát hiện các câu từ mập mờ, vi phạm định dạng EARS hoặc thiếu trường hợp biên trước khi khóa Spec (LOCKED).
+Sử dụng skill này để linter và thẩm định file `.sdd/features/{feature-slug}/SPEC.md` nhằm phát hiện các câu từ mập mờ, vi phạm định dạng EARS hoặc thiếu trường hợp biên trước khi Human Director/Tech Lead xem xét khóa Spec.
 
 ## Tham số
 - `--feature=<feature-slug>`: Tên feature slug cần lint.
@@ -32,3 +32,9 @@ Sử dụng skill này để linter và thẩm định file `.sdd/features/{feat
 4. **Báo cáo Lỗi & Đề xuất Sửa đổi**:
    - In ra danh sách warning/error chi tiết kèm dòng bị lỗi.
    - Đề xuất câu EARS sửa đổi chuẩn hóa.
+
+---
+
+## AI Recommendation & Human Final Review
+
+After linting, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with errors, warnings, proposed EARS corrections, edge-case gaps, and residual risk. Persist it in the feature `SPEC.md` or `.sdd/reviews/lint-<slug>.md` with `PENDING HUMAN REVIEW`. The Human Director decides whether to accept the proposed corrections; lint failures remain blocked until resolved or explicitly dispositioned. The Agent must not self-approve the Spec.

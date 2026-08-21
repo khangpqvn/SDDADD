@@ -50,7 +50,8 @@ Sử dụng skill này dựa trên `.sdd/features/{feature-slug}/SPEC.md` và `C
 # Feature Slug: [feature-slug]
 # Target Spec Version: 1.0.0
 # Version: 1.0.0
-# Status: APPROVED
+# Status: DRAFT
+# Human Final Review: PENDING
 
 ---
 
@@ -73,3 +74,9 @@ Sử dụng skill này dựa trên `.sdd/features/{feature-slug}/SPEC.md` và `C
 ## 5. Questions for Human Director
 1. Question 1...
 ```
+
+---
+
+## AI Recommendation & Human Final Review
+
+After producing or revising `PLAN.md`, persist the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` in the artifact. Explain architecture options, dependency direction, risks, mitigations, open technical decisions, and affected requirements. Keep the human review `PENDING`; task decomposition and execution require Human Director approval. The Agent must stop instead of self-approving.

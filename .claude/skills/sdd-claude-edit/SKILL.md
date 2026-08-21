@@ -32,3 +32,9 @@ Sử dụng skill này khi cần cập nhật `CLAUDE.md` — nơi lưu trữ B�
 
 4. **Kiểm tra Tính Đồng bộ**:
    - Đảm bảo các chỉ dẫn trong `CLAUDE.md` khớp với thực tế thư mục `src/` và các file skill trong `.claude/skills/`.
+
+---
+
+## AI Recommendation & Human Final Review
+
+Before changing `CLAUDE.md`, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` covering architecture evidence, proposed memory change, alternatives, drift risk, and affected skills. Persist it in `.sdd/reviews/claude-edit.md` with `PENDING HUMAN REVIEW`. The Human Director/Tech Lead must approve before the edit; after editing, refresh the recommendation and do not self-approve the updated architecture memory.

@@ -1,6 +1,6 @@
 # SDD + ADD Starter Template
 
-Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương pháp luận **SDD (Spec-Driven Development)** và **ADD (Agent-Driven Development)** với AI Coding Assistants (Claude Code, Roo Code, Cline, Cursor). Tích hợp sẵn hệ thống **Checkpoints DoD**, **Semantic Versioning Docs**, **Spec Hierarchy** và **Native Shell Scripts cho Repo có sẵn**.
+Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương pháp luận **SDD (Spec-Driven Development)** và **ADD (Agent-Driven Development)** với AI Coding Assistants (Claude Code, Roo Code, Cline, Cursor). Tích hợp sẵn hệ thống **Checkpoints DoD**, **Semantic Versioning Docs**, **Spec Hierarchy**, **AI Recommendation + Human Final Review** và **Native Shell Scripts cho Repo có sẵn**.
 
 ---
 
@@ -163,6 +163,35 @@ Mọi commit và Pull Request phải đi qua gate dùng chung:
 ```
 
 `/git-validate` dùng staged diff cho commit và `origin/<base>...origin/<head>` cho PR. Gate sẽ block secret, file nhạy cảm, Constitution thay đổi không có RFC approved, SDD lint/audit/trace failure, test failure, dirty worktree hoặc remote head chưa được push. Bước không áp dụng phải ghi rõ `N/A` kèm lý do; không được báo giả là `PASS`.
+
+### AI Recommendation và Human Final Review
+
+Mỗi skill SDD/ADD phải tạo recommendation có evidence, risks, assumptions, alternatives và next action theo [canonical protocol](.claude/skills/_shared/ai-review-protocol.md). Recommendation luôn bắt đầu ở `PENDING HUMAN REVIEW` và được lưu trong feature artifact hoặc `.sdd/reviews/` cho report không thuộc feature.
+
+Agent chỉ được đề xuất. Human Director/Tech Lead là người review cuối và phải ghi `APPROVED`, `REVISE` hoặc `REJECTED` cùng decision, reviewer và timestamp. Artifact pending/revised/rejected không được chuyển pha, lock, execute, complete, commit hoặc PR. Thay đổi sau approval phải invalidate review và tạo recommendation mới.
+
+```text
+AI RECOMMENDATION: PENDING HUMAN REVIEW
+HUMAN DECISION REQUIRED: <specific approval boundary>
+NEXT STEP: Human Director records APPROVED, REVISE, or REJECTED in the persisted review block.
+```
+
+Luồng feature có review:
+
+```text
+/sdd-context -> human APPROVED
+/sdd-spec -> human APPROVED
+/sdd-plan -> human APPROVED
+/sdd-tasks -> human APPROVED
+/add-execute -> AI recommendation -> human APPROVED
+/sdd-lint /sdd-audit /sdd-trace -> human disposition
+/sdd-sync -> human APPROVED
+/git-validate -> /git-commit -> /git-pr
+```
+
+Chi tiết schema và state transition nằm trong `.claude/skills/_shared/ai-review-protocol.md`.
+
+---
 
 Luồng khuyến nghị:
 

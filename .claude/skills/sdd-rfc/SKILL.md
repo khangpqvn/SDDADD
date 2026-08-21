@@ -31,3 +31,9 @@ Khi Tech Lead duyệt RFC:
 - Chuyển trạng thái RFC sang `APPROVED`.
 - Tự động cập nhật quy tắc mới vào file `CONSTITUTION.md`.
 - Bump patch/minor version của `CONSTITUTION.md`.
+
+---
+
+## AI Recommendation & Human Final Review
+
+After drafting or evaluating an RFC, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with motivation, alternatives, security/architecture impact, migration risk, and proposed disposition. Persist it in the RFC or `.sdd/reviews/rfc-<number>.md` with `PENDING HUMAN REVIEW`. Only the authorized Tech Lead/Human Director may approve the RFC and Constitution change; the Agent must not self-approve.

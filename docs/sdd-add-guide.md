@@ -53,7 +53,7 @@ Mỗi feature nằm tại `.sdd/features/{feature-slug}/`:
 | File | Nội dung | DoD chính |
 | :--- | :--- | :--- |
 | `CONTEXT.md` | Problem, pain points, glossary, stakeholders, constraints | Không còn open question quan trọng chưa được ghi nhận |
-| `SPEC.md` | Functional requirements theo EARS, SemVer, trạng thái approval | Requirement rõ, duy nhất, có error/edge cases |
+| `SPEC.md` | Functional requirements theo EARS, SemVer, trạng thái review | Requirement rõ, duy nhất, có error/edge cases |
 | `PLAN.md` | Clean Architecture, component boundary, data flow, risk | Có mapping từ requirement tới component |
 | `TASKS.md` | Atomic tasks, dependencies, files, verification commands | Mỗi task independent hoặc có dependency rõ và verifiable |
 
@@ -172,23 +172,23 @@ Các script khởi động dùng chế độ `--dangerously-skip-permissions`. C
 
 ## 4. Vòng đời feature chuẩn
 
-Mỗi feature đi qua các pha sau. Không chuyển pha khi DoD của pha hiện tại chưa đạt.
+Mỗi feature đi qua các pha sau. Không chuyển pha khi DoD của pha hiện tại chưa đạt. Mỗi pha phải tạo AI recommendation và chờ Human Director/Tech Lead review theo [AI Recommendation & Human Final Review Protocol](../.claude/skills/_shared/ai-review-protocol.md). Recommendation được lưu bền vững trong artifact hoặc `.sdd/reviews/`; trạng thái `PENDING HUMAN REVIEW`, `REVISE` và `REJECTED` đều chặn bước downstream.
 
 ```text
-CONTEXT -> SPEC -> PLAN -> TASKS -> EXECUTE -> VERIFY -> SYNC -> COMMIT -> PR
+CONTEXT -> HUMAN REVIEW -> SPEC -> HUMAN REVIEW -> PLAN -> HUMAN REVIEW -> TASKS -> HUMAN REVIEW -> EXECUTE -> HUMAN REVIEW -> VERIFY -> HUMAN DISPOSITION -> SYNC -> HUMAN REVIEW -> COMMIT -> PR
 ```
 
 | Pha | Command | Input | Output | Gate chuyển pha |
 | :--- | :--- | :--- | :--- | :--- |
-| 0. Context | `/sdd-context --feature=<slug>` | Problem statement | `CONTEXT.md` | Problem, glossary, owner, constraints rõ |
-| 1. Spec | `/sdd-spec --feature=<slug>` | `CONTEXT.md` | `SPEC.md` | EARS, REQ IDs, SemVer, approval state |
-| 2. Plan | `/sdd-plan --feature=<slug>` | `SPEC.md` | `PLAN.md` | Boundary, flow, risks và mapping rõ |
-| 3. Tasks | `/sdd-tasks --feature=<slug>` | `PLAN.md`, `SPEC.md` | `TASKS.md` | Atomic, independent/dependency, verifiable |
-| 4. Execute | `/add-execute --feature=<slug>` | `TASKS.md`, `SPEC.md` | Code + tests | `@ears`, architecture và self-check đạt |
-| 5. Verify | `/sdd-lint`, `/sdd-audit`, `/sdd-trace` | Spec + code + tests | Quality reports | Không còn blocker |
-| 6. Sync | `/sdd-sync` | `.sdd/features/` | Registry + contracts | Registry không drift |
-| 7. Commit | `/git-commit` | Intended changes | Git commit | `/git-validate --scope=commit` = `READY` |
-| 8. PR | `/git-pr` | Pushed source branch | Pull Request | Remote validation `--strict` = `READY` |
+| 0. Context | `/sdd-context --feature=<slug>` | Problem statement | `CONTEXT.md` + recommendation | Human Director `APPROVED` |
+| 1. Spec | `/sdd-spec --feature=<slug>` | `CONTEXT.md` | `SPEC.md` + recommendation | Human Director `APPROVED` (`APPROVED & LOCKED`) |
+| 2. Plan | `/sdd-plan --feature=<slug>` | `SPEC.md` | `PLAN.md` + recommendation | Human Director `APPROVED` |
+| 3. Tasks | `/sdd-tasks --feature=<slug>` | `PLAN.md`, `SPEC.md` | `TASKS.md` + recommendation | Human Director `APPROVED` |
+| 4. Execute | `/add-execute --feature=<slug>` | `TASKS.md`, `SPEC.md` | Code + tests + recommendation | Human Director `APPROVED` |
+| 5. Verify | `/sdd-lint`, `/sdd-audit`, `/sdd-trace` | Spec + code + tests | Quality report + recommendation | Human disposition; blockers resolved |
+| 6. Sync | `/sdd-sync` | `.sdd/features/` | Registry + contracts + recommendation | Human Director `APPROVED` |
+| 7. Commit | `/git-commit` | Intended changes | Git commit | `/git-validate --scope=commit` = `READY` + reviews valid |
+| 8. PR | `/git-pr` | Pushed source branch | Pull Request | Remote validation `--strict` = `READY` + reviews valid |
 
 ### 4.1 Pha 0 — Context
 
@@ -313,7 +313,7 @@ Phải ghi risk và migration plan; breaking change cần Tech Lead/Human Direct
 ```text
 /sdd-context --feature=feat-user-register
 /sdd-spec --feature=feat-user-register
-# Human review và xác nhận APPROVED & LOCKED
+# Human review, sau đó xác nhận APPROVED và chuyển Spec sang APPROVED & LOCKED
 /sdd-plan --feature=feat-user-register
 /sdd-tasks --feature=feat-user-register
 /add-execute --feature=feat-user-register

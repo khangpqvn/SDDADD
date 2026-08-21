@@ -38,7 +38,7 @@ Tạo các thư mục bắt buộc:
 - **`.sdd/shared_context.md`**: Đồng bộ State và API Contracts giữa các feature.
 
 ### 4. Khởi tạo Bộ Slash Commands SDD+ADD Skills (`.claude/skills/`)
-Đảm bảo dự án có đầy đủ 9 slash commands hỗ trợ quy trình:
+Đảm bảo dự án có đầy đủ 21 slash commands cho SDD/ADD, governance, validation và Git Operator:
 - `/sdd-init` — Initializer cho Greenfield project
 - `/sdd-adopt` — Adoption & Reverse Spec cho Brownfield project
 - `/sdd-context` — Pha 0 Context Discovery
@@ -50,10 +50,16 @@ Tạo các thư mục bắt buộc:
 - `/sdd-trace` — Truy vết ma trận yêu cầu (RTM) & Phân tích tác động thay đổi Spec (Impact Analysis)
 
 ### 5. Khởi tạo Document Hướng dẫn Vận hành (`docs/sdd-add-guide.md`)
-- Xuất tài liệu hướng dẫn quy trình 5 bước phát triển tính năng cho các thành viên trong team.
+- Xuất handbook hướng dẫn lifecycle SDD + ADD, AI recommendation gates và các kịch bản vận hành cho team.
 
 ### 6. Thông báo Hoàn thành & Hướng dẫn Bước Tiếp theo
 Sau khi chạy xong, skill đưa ra hướng dẫn cho user gõ lệnh bắt đầu feature đầu tiên:
 ```bash
 /sdd-context --feature=feat-001-<feature-name>
 ```
+
+---
+
+## AI Recommendation & Human Final Review
+
+After initialization or framework changes, generate a recommendation using `.claude/skills/_shared/ai-review-protocol.md` covering detected stack, governance assumptions, missing setup, and migration risks. Persist it in `.sdd/reviews/init.md` (or the target project's review location) with `PENDING HUMAN REVIEW`. The Human Director must approve the bootstrap/adoption scope before the first feature phase; the Agent must not claim the project is approved or self-approve.

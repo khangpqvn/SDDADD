@@ -75,3 +75,9 @@ Sử dụng skill này khi bắt đầu một feature mới để khai phá bài
 - **Assumption 1**: ...
 - **Open Question 1**: ...
 ```
+
+---
+
+## AI Recommendation & Human Final Review
+
+After creating or updating `CONTEXT.md`, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` and persist it in the artifact. The recommendation must cover unresolved business questions, assumptions, stakeholders, constraints, and alternatives. Set `Human Final Review.Status` to `PENDING`; do not treat Context as ready for `/sdd-spec` until the Human Director records `APPROVED` with decision, reviewer, and timestamp. The Agent must stop instead of self-approving.

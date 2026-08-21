@@ -23,3 +23,9 @@ Sử dụng skill này để quét và tự động cập nhật Master Feature 
 3. **Tổng hợp Shared Contracts (`.sdd/shared_context.md`)**:
    - Trích xuất các DTOs, API Endpoints, Event Schemas và State Definitions dùng chung giữa các feature.
    - Cập nhật vào `.sdd/shared_context.md` để các feature khác tham chiếu mà không gây đứt gãy hợp đồng tích hợp.
+
+---
+
+## AI Recommendation & Human Final Review
+
+After registry and contract synchronization, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with changed features, contract impact, drift evidence, and residual integration risk. Persist it in `.sdd/reviews/sync.md` with `PENDING HUMAN REVIEW`. The Human Director reviews the synchronization before downstream delivery; the Agent must not claim the registry or contracts are approved by itself.

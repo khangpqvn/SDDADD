@@ -103,6 +103,7 @@ copy_folder() {
 
 echo -e "${BOLD}${BLUE}📦 Step 1: Copying .claude/skills/ slash commands...${NC}"
 copy_folder ".claude/skills" ".claude/skills"
+copy_file ".claude/skills/_shared/ai-review-protocol.md" ".claude/skills/_shared/ai-review-protocol.md"
 
 echo -e "\n${BOLD}${BLUE}📄 Step 2: Copying Layer 1 Governance Files...${NC}"
 copy_file "CONSTITUTION.md" "CONSTITUTION.md"
@@ -114,6 +115,8 @@ copy_file ".sdd/README.md" ".sdd/README.md"
 copy_file ".sdd/shared_context.md" ".sdd/shared_context.md"
 mkdir -p "$TARGET_DIR/.sdd/features"
 copy_file ".sdd/features/.gitkeep" ".sdd/features/.gitkeep"
+mkdir -p "$TARGET_DIR/.sdd/reviews"
+copy_file ".sdd/reviews/.gitkeep" ".sdd/reviews/.gitkeep"
 mkdir -p "$TARGET_DIR/.sdd/rfcs"
 copy_file ".sdd/rfcs/.gitkeep" ".sdd/rfcs/.gitkeep"
 
@@ -127,4 +130,5 @@ echo -e "${BOLD}Next steps for the target project:${NC}"
 echo -e "  1. Open the target repo in Claude Code or your AI IDE."
 echo -e "  2. Run '/sdd-adopt' inside the target project to customize governance for its specific tech stack."
 echo -e "  3. Start a new feature using '/sdd-context --feature=<slug>'."
-echo -e "  4. To reverse-engineer spec for a legacy module: '/sdd-adopt --reverse-feature=<slug> --path=<module-path>'\n"
+echo -e "  4. To reverse-engineer spec for a legacy module: '/sdd-adopt --reverse-feature=<slug> --path=<module-path>'"
+echo -e "  5. Review the generated AI recommendation before starting downstream work.\n"

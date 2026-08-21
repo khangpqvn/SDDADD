@@ -107,6 +107,9 @@ Quy tắc kết quả:
 - Layer 2/3 warning: `WARNING`; với `--strict` hoặc scope PR: `FAIL` nếu chưa có giải trình được chấp thuận.
 - Nếu feature có `SPEC.md` nhưng chưa ở trạng thái `APPROVED & LOCKED` và diff chạm source/test feature đó: `FAIL`.
 - Nếu thay đổi source behavior nhưng không xác định được requirement/test liên quan: `FAIL`, yêu cầu cập nhật Spec/trace trước.
+- Khi diff có SDD artifact, governance file hoặc review report, phải xác nhận recommendation/review block theo `.claude/skills/_shared/ai-review-protocol.md` tồn tại và không ở trạng thái `REVISE`/`REJECTED`.
+- `APPROVED` chỉ hợp lệ khi có decision, reviewer identity và timestamp; Agent-generated `APPROVED` không được chấp nhận.
+- Diff làm thay đổi artifact đã approved nhưng không tạo recommendation mới hoặc invalidate review: `FAIL`.
 
 ### 4. Test và quality gate
 

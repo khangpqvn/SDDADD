@@ -34,3 +34,9 @@ Sử dụng skill này ngay khi khởi động phiên làm việc mới để t�
      ```bash
      /add-execute --feature={feature-slug}
      ```
+
+---
+
+## AI Recommendation & Human Final Review
+
+After restoring context, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with the next task, evidence gaps, pending approvals, and proposed resume command. Persist it in `TASKS.md` or `.sdd/reviews/resume-<slug>.md` with `PENDING HUMAN REVIEW`. Do not invoke `/add-execute` until the Human Director records `APPROVED`; the Agent must not self-approve the resume scope.

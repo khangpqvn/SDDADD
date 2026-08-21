@@ -42,3 +42,9 @@ In báo cáo ma trận dạng bảng hiển thị rõ trạng thái phủ (Cover
 | `REQ-001` | v1.0.1 | `RegisterUserUseCase` | `T001`, `T002` | `src/usecase/register-user.ts:25` | PASS (2 tests) | 🟢 100% COVERED |
 | `REQ-002` | v1.0.1 | `SendOtpService` | `T003` | `src/usecase/send-otp.ts:14` | NO TEST | 🟡 MISSING TEST |
 | `REQ-003` | v1.1.0 (MODIFIED)| `RateLimiter` | `T005` | Outdated logic in `src/shared/limiter.ts` | FAIL | 🔴 IMPL OUTDATED |
+
+---
+
+## AI Recommendation & Human Final Review
+
+After producing a traceability or impact report, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with coverage gaps, broken traces, severity, remediation options, and residual risk. Persist it in the feature artifact or `.sdd/reviews/trace-<slug>.md` with `PENDING HUMAN REVIEW`. The Human Director decides whether to accept the disposition or require remediation; unresolved broken traces remain blocked. The Agent must not mark coverage approved by itself.

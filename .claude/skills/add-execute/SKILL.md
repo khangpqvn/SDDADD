@@ -47,3 +47,9 @@ Sử dụng skill này để AI Agent đọc Task từ `.sdd/features/{feature-s
 - [ ] Tất cả các lỗi phát hiện khi test đều được xử lý theo nguyên tắc **Fix the Spec, NOT the Code**.
 - [ ] AI Agent Self-Check Protocol hoàn thành 100% không vi phạm `CONSTITUTION.md`.
 - [ ] Commit message trích dẫn rõ phiên bản Spec: `feat(scope): message per spec/feature/{slug}/v1.0.0`.
+
+---
+
+## AI Recommendation & Human Final Review
+
+Before execution, read the persisted review blocks and generate a recommendation covering implementation approach, impacted files, self-check evidence, test evidence, and any Spec gap. Persist it in the feature artifact or `.sdd/reviews/<review-slug>.md` with `PENDING HUMAN REVIEW`. Do not execute when the required Context, Spec, Plan, or Tasks review is not `APPROVED`; after execution, generate a completion recommendation. The Human Director reviews the result and decides `APPROVED`, `REVISE`, or `REJECTED`; the Agent cannot mark execution complete on its own.

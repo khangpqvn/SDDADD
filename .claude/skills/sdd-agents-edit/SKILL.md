@@ -29,3 +29,9 @@ Sử dụng skill này khi cần cập nhật `AGENTS.md` — nơi định nghĩ
 
 4. **Thông báo Cập nhật**:
    - Thông báo cho người dùng biết các quy định phân quyền hoặc hành vi mới của Agent đã được thiết lập.
+
+---
+
+## AI Recommendation & Human Final Review
+
+Before changing `AGENTS.md`, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` covering permission impact, security risk, escalation behavior, alternatives, and affected skills. Persist it in `.sdd/reviews/agents-edit.md` with `PENDING HUMAN REVIEW`. The Human Director/Tech Lead must approve before the edit; after editing, refresh the recommendation and do not self-approve the new permissions.

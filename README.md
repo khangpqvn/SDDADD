@@ -1,6 +1,6 @@
 # SDD + ADD Starter Template
 
-Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương pháp luận **SDD (Spec-Driven Development)** và **ADD (Agent-Driven Development)** với AI Coding Assistants (Claude Code, Roo Code, Cline, Cursor). Tích hợp sẵn hệ thống **Checkpoints DoD**, **Semantic Versioning Docs**, **Spec Hierarchy** và **Cross-Platform Migration Script cho Repo có sẵn**.
+Template chuẩn hóa cho việc xây dựng dự án phần mềm theo phương pháp luận **SDD (Spec-Driven Development)** và **ADD (Agent-Driven Development)** với AI Coding Assistants (Claude Code, Roo Code, Cline, Cursor). Tích hợp sẵn hệ thống **Checkpoints DoD**, **Semantic Versioning Docs**, **Spec Hierarchy** và **Native Shell Scripts cho Repo có sẵn**.
 
 ---
 
@@ -26,25 +26,25 @@ cd my-new-project
 ---
 
 ### Trường hợp 2: Tích hợp SDD+ADD vào Repository CÓ SẴN (Brownfield / Legacy Codebase)
-Nếu bạn đã có một dự án đang chạy ở bất kỳ đường dẫn nào trên máy tính và muốn tích hợp SDD+ADD mà **không làm ảnh hưởng hay phá vỡ code cũ**:
+Nếu bạn đã có một dự án đang chạy ở bất kỳ đường dẫn nào trên máy tính và muốn tích hợp SDD+ADD mà **không cần cài thêm Node.js/Python hay công cụ ngoài**:
 
-#### Cách 1: Tự động Migrate từ Template bằng Script Cross-Platform (Linux, macOS, Windows)
-Truyền đường dẫn repo target hiện tại của bạn vào script:
+#### Cách 1: Tự động Migrate từ Template bằng Native Shell Scripts (Zero Dependencies)
+Truyền đường dẫn repo target hiện tại của bạn vào script native phù hợp HĐH:
 
 - **Linux / macOS / Git Bash (Windows)**:
   ```bash
-  node scripts/adopt.js /path/to/your-existing-project
+  ./scripts/adopt.sh /path/to/your-existing-project
   ```
-- **Windows (Command Prompt / PowerShell)**:
+- **Windows (PowerShell)**:
   ```powershell
-  node scripts/adopt.js C:\Projects\your-existing-project
+  .\scripts\adopt.ps1 -TargetPath C:\Projects\your-existing-project
   ```
 - **Relative Path (Đường dẫn tương đối)**:
   ```bash
-  node scripts/adopt.js ../your-existing-project
+  ./scripts/adopt.sh ../your-existing-project
   ```
 
-*Script sẽ tự động copy bộ skills, governance files (`CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`) và hạ tầng `.sdd/` vào project mục tiêu mà không ghi đè bất kỳ nguồn mã hiện tại nào.*
+*Script native sẽ tự động copy bộ skills, governance files (`CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`) và hạ tầng `.sdd/` vào project mục tiêu mà không đụng chạm hay ghi đè bất kỳ nguồn mã hiện tại nào.*
 
 #### Cách 2: Kích hoạt & Đảo ngược Spec trong Project Mục tiêu
 Sau khi đã chạy script migrate:
@@ -85,7 +85,8 @@ cd /path/to/your-existing-project
 ├── docs/
 │   └── sdd-add-guide.md    # Hướng dẫn chi tiết quy trình 5 bước SDD+ADD, DoD Checklist & Kịch bản thực tế
 ├── scripts/
-│   └── adopt.js            # Cross-platform Migration & Adoption script cho Repo có sẵn
+│   ├── adopt.sh            # Native Bash Script cho Linux / macOS / Git Bash
+│   └── adopt.ps1           # Native PowerShell Script cho Windows
 └── src/                    # Source code thực thi (Được sinh từ SPEC.md)
 ```
 

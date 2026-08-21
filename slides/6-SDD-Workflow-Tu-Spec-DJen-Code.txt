@@ -1,0 +1,744 @@
+SDD Workflow Từ Spec Đến Code
+5 pha · 1 triết lý · Không còn đoán mò Chương 6 · Spec-Driven Development
+
+GIỚI THIỆU CHƯƠNG
+Động Cơ Của SDD Workflow
+Chương 5 đã cho bạn ngôn ngữ — EARS Notation, 8 thành phần, Risk Matrix. Chương này cho bạn động cơ — một quy trình làm việc hoàn chỉnh biến spec thành production code thông qua năm pha được thiết kế kỹ lưỡng.
+Tỷ lệ 40/60 lý thuyết–thực hành có chủ đích: bạn sẽ thực sự chạy workflow, không chỉ đọc về nó. Ba công cụ cụ thể được giới thiệu theo thứ tự tăng dần về tính linh hoạt — không có "cách tốt nhất", chỉ có "cách phù hợp nhất" với đội nhóm và dự án của bạn.
+
+"Sai ở đâu, sửa ở Spec đó."
+Fix the Spec, not the Code.
+Khi AI generate code sai → không sửa code trực tiếp → tìm điểm trong Spec chưa rõ ràng → sửa Spec → re-generate. Code là artifact tạm thời. Spec mới là nguồn sự thật lâu dài.
+
+MỤC LỤC CHƯƠNG
+Nội Dung Chương 6
+Quy Trình 5 Pha của SDD
+1
+Context Discovery → Spec → Plan → Tasks → Implementation → Validation
+GitHub Spec Kit
+2
+Workflow thực tế với 5 Slash Commands — 5 Touchpoints trong GitHub Issues & PRs
+Cline (Roo Code)
+3
+Open Agentic IDE — đọc file, chạy terminal, multi-model, MCP integration
+DIY SDD
+4
+Xây dựng workflow riêng với Markdown thuần — tự do tuyệt đối, không toolkit
+Hands-on Lab A → Z
+5
+Lab A: CRUD đơn giản (45 phút) · Lab B: Import Business Logic phức tạp (60 phút)
+Evaluation & Reflection
+6
+Rubric chấm điểm, bài học từ hai Labs, tổng kết chương
+
+6.1
+Quy Trình 5 Pha của SDD
+Pipeline tuyến tính với các điểm kiểm tra rõ ràng. Mỗi pha có đầu vào, đầu ra, người chịu trách nhiệm, và Definition of Done cụ thể. Không được phép chuyển sang pha tiếp theo khi pha hiện tại chưa hoàn thành.
+
+6.1 — SDD PIPELINE
+5 Pha — Tổng Quan SDD Pipeline
+Mỗi pha có đầu vào, đầu ra, và người chịu trách nhiệm rõ ràng — tạo nên một vòng lặp kiểm soát chất lượng từ ý tưởng đến code.
+
+Pha 0: CONTEXT
+
+Pha 1: SPEC Pha 2: PLAN
+
+Pha 3: TASKS
+
+Pha 4: IMPL
+
+Khi validation thất bại → không sửa code trực tiếp. Quay về Spec, tìm điểm chưa rõ, sửa nguồn — rồi re-generate. Đây là nguyên tắc cốt lõi: Fix the Spec, not the Code.
+
+6.1 — TỔNG QUAN BẢNG CÁC PHA
+Bảng Tổng Quan 5 Pha
+
+Pha
+
+Tên
+
+Actor
+
+0
+
+Context Discovery
+
+Human
+
+1
+
+Specification
+
+Human
+
+2
+
+Planning
+
+AI
+
+3
+
+Task Decomp.
+
+AI
+
+4
+
+Implementation
+
+AI
+
+5
+
+Validation
+
+Both
+
+Input
+User stories, domain knowledge
+Context doc, user stories
+SPEC.md
+PLAN.md
+TASKS.md + SPEC.md
+Code + SPEC.md
+
+Output Context document
+SPEC.md (APPROVED) PLAN.md TASKS.md Source code + tests
+Validation report
+
+Definition of Done Team hiểu domain & constraints
+AI review passed, spec locked
+Human approved arch + risks Tasks atomic & independent All tests green
+Code ↔ Spec 100% match
+
+Rule quan trọng nhất Không được phép chuyển sang pha tiếp theo khi pha hiện tại chưa hoàn thành — không có "gần xong", không có "sẽ update sau".
+
+6.1.1 — PHA 0
+Pha 0 — Context Discovery
+Đây là pha thường bị bỏ qua nhất vì nó không tạo ra file code nào. Nhưng đây chính là nguyên nhân số một khiến dự án AI-assisted thất bại: team đã viết spec và nhờ AI implement mà không thực sự hiểu domain. AI implement đúng spec nhưng spec lại sai về mặt business.
+
+Thời lượng thực tế
+Feature nhỏ: 30 phút là đủ Module lớn: cần 2–3 buổi workshop Điểm quan trọng: ra khỏi pha này với Context Document — không phải trong đầu, phải là file viết ra
+
+Dấu hiệu chưa xong
+Vẫn còn Open Questions chưa được trả lời Team chưa đồng thuận về domain terms Constraints chưa được liệt kê đầy đủ Không ai biết ai là Decision Maker cuối cùng
+
+6.1.1 — CONTEXT DOCUMENT TEMPLATE
+Template CONTEXT.md
+1 Problem Statement
+Vấn đề thực sự là gì? User đang bị đau ở đâu? Tránh solution thinking ở bước này. Chỉ mô tả pain.
+2 Domain Knowledge
+Các thuật ngữ domain-specific mà AI cần biết. Các quy tắc nghiệp vụ bất thành văn.
+3 Stakeholders
+Ai được lợi? Ai chịu ảnh hưởng? Ai có quyền quyết định?
+4 Constraints (không thể thay đổi)
+Tech, Business, Time — ràng buộc cứng.
+5 Assumptions & Open Questions
+Mỗi assumption là một rủi ro nếu sai. Open Questions cần clarify với stakeholder trước khi viết spec.
+
+6.1.2 — PHA 1
+Pha 1 — Specification
+Đây là pha con người làm chủ hoàn toàn. Dựa trên Context Document từ Pha 0, bạn viết SPEC.md theo đúng cấu trúc 8 thành phần và EARS Notation đã học ở Chương 5. Sau khi viết xong draft, mới đưa AI vào để review — không sớm hơn.
+Checklist Pha 1 — Definition of Done
+SPEC.md có đủ 8 thành phần (7 core + Out of Scope) Mỗi requirement dùng EARS Notation (WHEN/WHILE/WHERE/SHALL) AI đã review và tìm logic gaps — mọi gaps đã được resolve Không còn Open Questions từ Pha 0 Spec đã được team lead hoặc product owner approve SPEC.md version 1.0.0 đã commit vào git với tag "Out of Scope" section rõ ràng, không ambiguous
+Điểm mấu chốt Pha 1 kết thúc khi spec được lock với trạng thái APPROVED. Không có "gần xong", không có "sẽ update sau". Spec phải cứng trước khi AI bắt đầu làm việc.
+
+6.1.3 — PHA 2
+Pha 2 — Planning (AI tạo PLAN.md)
+Pha 2 là lần đầu tiên AI tham gia chủ động với vai trò kiến trúc sư. AI đọc SPEC.md và tạo ra PLAN.md — một tài liệu mô tả cách tiếp cận kỹ thuật, các component cần tạo, dependency giữa chúng, và risk assessment. Con người review và approve trước khi đi tiếp.
+
+PLAN.md phải có
+Architectural Approach — pattern, design pattern, lý do Components — tên, trách nhiệm, interface Data Flow — user input → processing → storage → response Dependencies — thứ tự implement, external deps Risks & Mitigations — ít nhất 3 rủi ro kỹ thuật Questions for Human — những điểm spec còn mơ hồ
+
+Tại sao cần Pha 2 riêng biệt?
+"Design trước, code sau" luôn cho kết quả tốt hơn. AI có xu hướng bắt đầu code ngay khi được đưa spec — giống như nhà thầu xây móng trước khi có bản vẽ.
+PLAN.md buộc AI phải "nghĩ" trước khi "làm".
+
+6.1.3 — PLAN.MD VÍ DỤ: COMPONENTS
+PLAN.md — Bảng Components & Data Flow
+
+Component ReviewRouter ReviewService ReviewRepository BlacklistService AggregateUpdateJob
+
+Trách nhiệm HTTP endpoints, validation Business logic từ SPEC §3 DB CRUD + aggregate query Filter inappropriate content Background rating recalculation
+
+Data Flow
+POST /reviews → ReviewRouter (validate input) → ReviewService.create_review() → OrderRepository.verify_purchase() [check buyer đã mua] → ReviewRepository.find_by_order() [check duplicate] → BlacklistService.scan() [check content] → ReviewRepository.create() [persist] → Response 201 Created (async) → AggregateUpdateJob.enqueue()
+
+File src/reviews/router.py src/reviews/service.py src/reviews/repository.py src/shared/blacklist.py src/jobs/aggregate_update.py
+
+6.1.3 — PLAN.MD VÍ DỤ: RISKS
+PLAN.md — Bảng Risks & Mitigations
+
+Rủi ro Race condition: double submit Aggregate lag > 5 min Blacklist false positives
+
+Khả năng High Med Med
+
+Impact High Med Low
+
+Mitigation DB unique constraint Redis cache + job queue Whitelist + user appeal
+
+"Questions for Human" là vàng. Đây là nơi AI cho bạn biết những chỗ spec còn mơ hồ. Nếu AI không có câu hỏi nào, hoặc spec của bạn rất tốt, hoặc AI đang assume — hãy hỏi lại: "Bạn đã assume điều gì?" Mỗi assumption ẩn là một bug tiềm ẩn cho nó.
+Questions for Human — ví dụ
+AggregateUpdateJob: dùng Celery hay Kafka? (spec không chỉ định) BlacklistService: hardcoded list hay dynamic từ DB? Spec §3 nói "cập nhật trong 5 phút" — eventual consistency hay realtime với cache invalidation?
+
+"Mỗi assumption ẩn là một bug tiềm ẩn cho nó."
+Nếu AI không đặt câu hỏi sau khi đọc PLAN.md — hãy chủ động hỏi nó: "Bạn đã assume điều gì trong quá trình tạo plan này?"
+PLAYBOOK SDD + ADD — CHƯƠNG 6
+
+6.1.4 — PHA 3
+Pha 3 — Task Decomposition
+Từ PLAN.md, AI tạo TASKS.md — danh sách các task cụ thể, có thể implement độc lập, với acceptance criteria rõ ràng cho từng task. Đây là bước chuyển từ "what to build" sang "how to build it step by step".
+
+Atomic
+Không chia nhỏ hơn được
+
+Independent
+Implement được mà không phụ thuộc task chưa xong
+
+Verifiable
+Có test case cụ thể để biết đã xong
+
+Prompt Pha 3 — Tạo TASKS.md Doc PLAN.md và SPEC.md, tạo TASKS.md — danh sách tasks có thể implement độc lập. Format ID: T001, T002... · Estimated time · Dependencies · EARS spec refs · Done criteria. Tối đa 4 giờ/task. Nếu task > 4h, chia nhỏ hơn.
+
+6.1.4 — TASKS.MD VÍ DỤ
+TASKS.md — Product Review Feature
+
+ID T001 T002 T003 T004 T005 T006 T007 T008
+
+Task Tạo DB migration reviews table Implement BlacklistService Implement ReviewRepository Implement ReviewService Implement ReviewRouter Implement AggregateUpdateJob Integration tests API documentation
+
+Est
+
+Deps
+
+Spec Refs
+
+1h
+
+—
+
+§5 Data
+
+2h
+
+—
+
+§3 Unwanted
+
+3h
+
+T001
+
+§5 Data
+
+4h
+
+T002,T003
+
+§3 Func.
+
+2h
+
+T004
+
+§3 Func.
+
+3h
+
+T003
+
+§4 Non-func
+
+2h
+
+T005,T006
+
+§7 Accept.
+
+1h
+
+T005
+
+—
+
+Done When Migration runs, rollback OK 10 test cases pass CRUD ops + aggregate query OK All business rules enforced All endpoints return correct HTTP Rating updates within 5 min All AC checklist items pass OpenAPI spec generated
+
+6.1.5 — PHA 4
+Pha 4 — Implementation
+Đây là pha AI làm việc nhiều nhất — nhưng không phải theo nghĩa "chat và nhận code". AI implement từng task trong TASKS.md, theo đúng thứ tự dependency, với SPEC.md và PLAN.md luôn trong context. Không có task nào được implement mà không có spec refs rõ ràng.
+Prompt mẫu — Implement Task T004: ReviewService - Implement ReviewService theo ĐÚNG spec §3 - Dùng dependency injection — không instantiate deps bên trong - Thêm EARS tag comment cho mỗi business rule - Xử lý TẤT CẢ Unwanted patterns trong spec §6 - Type hints bắt buộc cho tất cả method signatures - Tạo đồng thời: tests/reviews/test_service.py - KHÔNG implement những gì nằm trong Out of Scope (SPEC §8)
+
+6.1.5 — NGUYÊN TẮC CỐT LÕI
+"Fix the Spec, not the Code."
+❌ WRONG — Sửa code trực tiếp
+AI generate: if rating not in range(1, 5): Dev sửa tay: if rating not in range(1, 6): → Code diverge khỏi spec, không ai biết tại sao
+
+✓ RIGHT — Trace về Spec
+Test fails → Check SPEC §3: "rating 1–5 (integer)" Spec rõ nhưng AI dùng range() sai Update prompt → Re-generate → Correct Rule: KHÔNG có dòng code nào không truy được về spec.
+
+6.1.6 — PHA 5
+Pha 5 — Validation (Kiểm tra Code vs. Spec)
+Pha cuối cùng là formal verification: đọc code và spec song song, xác nhận mọi requirement đều được implement đúng. Đây không phải code review thông thường — đây là compliance check.
+
+Spec Section §3 WHEN submit §3 WHEN submit
+
+Requirement (tóm tắt) Validate rating 1–5 Validate comment 10–500
+
+Code File/Line service.py:L45 service.py:L52
+
+§3 Unwanted buyer §3 Unwanted dup
+
+Reject non-buyer review Reject duplicate review
+
+service.py:L61 service.py:L72
+
+§8 Out of Scope
+
+NO moderation queue
+
+(verify absent)
+
+Test Name
+
+Status
+
+test_rating_boundary_valid Pass
+
+test_comment_length_boun daries
+
+Pass
+
+test_non_buyer_rejected
+
+Pass
+
+test_duplicate_review_reje cted
+
+Pass
+
+test_no_moderation_endpo int
+
+Pass
+
+Out of Scope cũng cần Validation Nhiều team chỉ verify "những gì đã làm". SDD cũng verify "những gì không được làm". grep codebase tìm code không có trong spec → nếu AI "helpful" implement thêm feature ngoài scope → remove ngay.
+
+6.1.7 — BÀI TẬP
+Bài Tập — Mapping SDD Phases
+Bài tập 6.1.A — Phase Identification ⭐⭐
+Cho đoạn hội thoại sau — xác định mỗi message thuộc pha nào và tại sao developer này đang làm sai:
+Dev: "Viết cho tôi authentication module cho app Node.js." AI: [Generate code 200 dòng không có spec] Dev: "Code bị lỗi, sửa đi." [Sửa code trực tiếp] Dev: "Thêm 2FA vào đi." [Feature mới không có spec]
+→ Pha nào bị skip? Sai lầm cụ thể là gì? SDD đúng trông như thế nào?
+
+Bài tập 6.1.B — PLAN.md Review ⭐⭐⭐
+Viết SPEC.md ngắn (Detailed level) cho tính năng "Password Reset". Sau đó đưa cho Cline với prompt Pha 2 để generate PLAN.md.
+Review output của AI: risks nào nó tìm được? Questions nào nó đặt ra? Bạn đồng ý với architectural approach không?
+
+6.2
+GitHub Spec Kit — Workflow thực tế với Slash Commands
+Workflow thực tế với Slash Commands — đưa SDD pipeline trực tiếp vào GitHub Issues và Pull Requests. 5 Slash Commands, 5 Touchpoints, mỗi lần chuyển pha đều có human-in-the-loop.
+
+6.2.1 — CÀI ĐẶT VÀ CẤU HÌNH
+GitHub Spec Kit — Cài Đặt Và Cấu Hình
+Trước khi dùng slash commands, team cần chuẩn hóa môi trường repository. Mục tiêu của bước này là đảm bảo mọi thành viên chạy chung một workflow: cùng templates, cùng actions, cùng cấu hình model và guardrails.
+
+Checklist cài đặt
+Thêm thư mục .github/ISSUE_TEMPLATE/ cho feature spec template Thêm workflows .github/workflows/speckit-*.yml Thêm prompts trong .github/speckit/prompts/ theo từng pha Thiết lập quyền cho GitHub Actions: tạo comment, tạo PR, đọc issue
+
+Cấu hình bắt buộc
+.github/speckit/constitution.md — AGENTS.md của project .github/speckit/config.yml — model, token limits, retries Secrets cho CI (API keys) lưu ở GitHub Secrets, không hardcode Quy định nhãn issue: spec:draft, spec:approved, plan:approved
+
+Nguyên tắc setup Cài đặt một lần, dùng lâu dài. Khi cấu hình chưa chuẩn, slash commands sẽ tạo output không đồng nhất giữa các project.
+
+6.2 — GITHUB SPEC KIT
+GitHub Spec Kit — Triết Lý Thiết Kế
+GitHub Spec Kit là tập hợp workflows, templates, và GitHub Actions được thiết kế để đưa SDD pipeline trực tiếp vào GitHub Issues và Pull Requests. Thay vì quản lý SPEC.md, PLAN.md, TASKS.md thủ công, Spec Kit cung cấp các slash commands — những điểm chạm (touchpoints) chuẩn hóa giữa người và AI.
+Mỗi slash command là một "handoff point" — nơi con người chuyển giao quyền kiểm soát cho AI một cách có chủ đích, với context được chuẩn bị sẵn. Không có gì xảy ra mà không có ý chí của người dùng.
+
+6.2.2 — 5 SLASH COMMANDS
+5 Slash Commands — 5 Touchpoints
+
+Command /speckit.constitution /speckit.specify /speckit.plan /speckit.tasks
+/speckit.implement
+
+Pha Setup Pha 1 Pha 2 Pha 3
+Pha 4
+
+Actor kích hoạt Tech lead, once Developer / PM Developer Developer (sau approve) Developer (per task)
+
+AI làm gì Tạo AGENTS.md từ project description + tech stack Review spec draft, tìm gaps, tạo SPEC.md version cuối Đọc SPEC.md, tạo PLAN.md với arch + risks + questions Đọc PLAN.md, tạo TASKS.md với atomic tasks và deps
+Implement task cụ thể + tests, tạo PR
+
+Slash Commands là Touchpoints, không phải automation Không command nào là "bấm và quên". Sau /speckit.specify → người dùng đọc và APPROVE spec trước khi tiếp tục. Sau /speckit.plan → người dùng review PLAN.md, trả lời Questions for Human. AI chờ. Không có gì tự động sang pha tiếp theo — đây là cách SDD đảm bảo human-in-the-loop.
+
+6.2.2 — SLASH COMMANDS CHI TIẾT
+/speckit.specify & /speckit.plan
+/speckit.specify — Từ ý tưởng đến SPEC.md
+Command quan trọng nhất. Gọi khi đã có draft spec (hoặc chỉ có user story). AI sẽ:
+Expand thành SPEC.md đầy đủ 8 thành phần Thêm EARS notation cho mỗi requirement Tìm edge cases: xóa địa chỉ mặc định → làm sao? Thêm Out of Scope rõ ràng Post spec vào Issue dưới dạng comment + attach file
+
+/speckit.plan — AI kiến trúc hóa
+Trigger sau khi SPEC.md đã được approve. AI sẽ:
+Fetch SPEC.md từ Issue Đọc constitution.md (tech stack, patterns) Tạo PLAN.md: arch, components, data flow, deps, risks Post PLAN.md vào Issue dưới dạng comment Tag reviewer để approve
+Sau khi plan được approve → dev có thể chạy /speckit.tasks
+
+6.2.2 — SLASH COMMANDS CHI TIẾT
+/speckit.tasks & /speckit.implement
+
+/speckit.tasks — Atomic task breakdown
+Trigger sau khi PLAN.md approved. AI sẽ:
+Đọc SPEC.md + PLAN.md Tạo TASKS.md với atomic tasks (max 4h/task) Tạo GitHub sub-issues cho mỗi task tự động Gán dependencies bằng GitHub issue links
+Issue #42 (feature): "Shipping Address" #43 (T001): "Create DB migration" #44 (T002): "Implement Repository" #45 (T003): "Implement Service [deps: #44]"
+
+/speckit.implement — Code theo spec
+Trigger trong task sub-issue. AI sẽ:
+Đọc task definition, fetch SPEC.md và PLAN.md Đọc code đã có từ dependency tasks Generate code + tests với EARS tags Tạo Pull Request tự động với traceability report
+PR description: Task ID · Spec refs · Test coverage · Out of Scope verified
+
+6.2.3 — WALKTHROUGH ĐẦY ĐỦ
+Full Walkthrough — Từ Init Đến Complete
+
+Ngày 1 — Setup & Specify
+PM tạo GitHub Issue: "Feature: Shipping Address" Dev đọc, hiểu domain → viết Context trong Issue body Dev trigger: /speckit.constitution (chỉ lần đầu) Dev viết draft spec → trigger: /speckit.specify Review output, resolve 3 gaps AI tìm được Approve spec → Issue labeled "spec:approved"
+
+Ngày 2-4 — Plan, Tasks, Implement
+/speckit.plan #42 → AI tạo PLAN.md Review plan, trả lời 2 Questions for Human Approve plan → /speckit.tasks #42 → 5 sub-issues Mỗi task sub-issue: /speckit.implement → code + PR Review PR: check traceability, approve nếu OK → merge Tất cả 5 tasks merged → Run validation → Close #42
+
+Timeline & Audit Trail 4 ngày cho feature với full spec trail. Mọi quyết định — ai làm gì, khi nào, dựa trên spec nào — đều được lưu trong GitHub Issues. Traceability hoàn hảo.
+
+6.3
+Cline (Roo Code) — Sức mạnh của Open Agentic IDE
+Open Agentic IDE — đối cực của Spec Kit. Chạy ngay trong VSCode, đọc file, chạy terminal, gọi MCP servers, thực thi kế hoạch multi-step mà không cần copy-paste từng đoạn code.
+
+6.3.1 — TẠI SAO CHỌN CLINE?
+Cline vs. Các Công Cụ Khác
+
+Tiêu chí Open source Agentic (multi-step) Multi-model support
+MCP integration File system access Terminal execution Cost model Vendor lock-in
+
+Cline (Roo Code) MIT License Native Anthropic/OpenAI/Ollam a Full Full read/write With approval Pay-per-token (API) Lowest
+
+GitHub Copilot Chat Proprietary Limited Copilot only
+None Read only No Subscription GitHub/MS
+
+Cursor AI Proprietary Composer Multiple
+Partial Full Yes Subscription Medium
+
+Kiro IDE AWS-controlled Native AWS Bedrock
+Limited Full Yes AWS pricing AWS
+
+6.3.2 — CLINE AUTONOMOUS WORKFLOW
+Cline Tự Động Đọc File & Chạy Terminal
+Điểm khác biệt lớn nhất của Cline so với AI chatbot thông thường là khả năng thực thi — không chỉ suggest. Ví dụ: giao Cline implement Task T004 với full autonomy.
+
+Cline tự động thực hiện từng bước
+01 read_file("TASKS.md") → hiểu T004 requirements
+
+02 read_file("SPEC.md") → load business rules
+
+03 read_file("src/reviews/repository.py") → đọc interface
+
+04 write_file("src/reviews/service.py") → implement
+
+05 write_file("tests/reviews/test_service.py") → tests
+
+06 execute_command("pytest tests/reviews/ -v") → run
+
+07 [nếu fail] đọc output, fix service.py, re-run cho đến khi pass
+
+08 Report: "All 15 tests passed. Coverage: 94%."
+
+Developer chỉ cần approve các "dangerous" actions write_file, execute_command khi Cline xin phép — toàn bộ còn lại Cline tự xử lý.
+
+6.3.3 — MULTI-MODEL STRATEGY
+Multi-Model — Chọn Model Đúng Cho Đúng Task
+
+Task trong SDD Pha 0: Context Discovery Pha 1: Spec review + gaps Pha 2: Planning (PLAN.md) Pha 3: Task decomp. Pha 4: Boilerplate code Pha 4: Business logic Pha 5: Validation Offline / confidential
+
+Model khuyến nghị Claude Sonnet Claude Sonnet Claude Sonnet Claude Haiku Claude Haiku / GPT4o-mini Claude Sonnet Claude Sonnet Llama 3 via Ollama
+
+Lý do Cần reasoning, domain understanding Logic analysis, contradiction detect Architecture decisions cần depth Structured breakdown, không cần depth Simple patterns, CRUD generation Complex logic cần reasoning Careful comparison cần accuracy Data không ra ngoài machine
+
+Approx cost $0.003/1k tokens $0.003/1k tokens $0.003/1k tokens $0.00025/1k tokens $0.00015/1k tokens $0.003/1k tokens $0.003/1k tokens Free (local GPU)
+
+6.3.4 — CLINE + MCP
+Cline + MCP = Agentic SDD Hoàn Chỉnh
+Kết nối Cline với MCP servers tạo ra workflow agentic thực sự: AI không chỉ generate code — nó đọc Jira để biết requirement, đọc GitHub để biết existing code, viết code, chạy tests, và tạo PR. Tất cả mà không cần bạn switch tab.
+
+MCP Servers cho SDD Workflow
+@modelcontextprotocol/server-github — đọc/tạo Issues, PRs jira-mcp — đọc tickets, update status @modelcontextprotocol/server-filesystem — đọc/ghi files
+
+Kịch bản agentic đầy đủ
+Bạn nói với Cline:
+"Đọc Jira ticket PROJ-123, implement theo spec, tạo PR và link vào ticket."
+Cline sẽ tự động orchestrate toàn bộ: fetch ticket → read spec → implement → test → create PR → update Jira.
+
+Không có MCP → Cline chỉ là AI code editor thông minh. Với MCP → Cline thực hiện multi-step workflow hoàn chỉnh. Đây chính là tầm nhìn của SDD: con người design ý định, AI thực thi toàn bộ.
+
+6.3.5 — BÀI TẬP
+Bài Tập — Cline Agentic Workflow
+
+Bài tập 6.3.A — Single-task agent run
+Chọn 1 task từ TASKS.md (không quá 2h) Dùng Cline đọc SPEC.md + PLAN.md + task definition Yêu cầu Cline implement + viết test + chạy test tự động Ghi lại trace: command nào chạy, lỗi nào gặp, cách self-fix
+
+Bài tập 6.3.B — MCP-enhanced workflow
+Kết nối Cline với MCP GitHub hoặc filesystem server Chạy kịch bản: đọc issue → implement task → tạo PR description Đánh giá output theo 3 tiêu chí: traceability, test coverage, out-ofscope compliance Viết reflection ngắn: điểm mạnh/yếu khi để agent tự chạy multistep
+
+Mục tiêu Không phải "ra code nhanh nhất", mà là kiểm soát được hành vi agent qua spec artifacts và approval points.
+
+6.4
+DIY SDD
+Xây dựng workflow riêng không cần toolkit — chỉ với Markdown files, git, và bất kỳ AI chat nào. Bản chất SDD không phụ thuộc vào công cụ, mà phụ thuộc vào nguyên lý.
+
+6.4.1 — CẤU TRÚC THƯ MỤC .SDD/
+Thư Mục .sdd/ — Tiêu Chuẩn SDD
+Quy ước thư mục .sdd/ đặt tất cả spec artifacts trong một nơi, tách biệt với source code nhưng nằm cùng repo. Dấu chấm đầu tên tránh nhầm lẫn với source code, đồng thời truyền tín hiệu rõ ràng: đây là metadata của dự án.
+
+Cấu trúc thư mục
+
+.sdd/
+
+├── README.md # Hướng dẫn SDD trong project
+
+├── constitution.md # = AGENTS.md: rules cho AI
+
+├── specs/
+
+│ ├── _template.md # Template tạo spec mới
+
+│ ├── feature-auth/
+
+│ │ ├── SPEC.md # Spec chính (locked khi approved)
+
+│ │ ├── CONTEXT.md # Context discovery output
+
+│ │ ├── PLAN.md # AI-generated plan
+
+│ │ ├── TASKS.md # Task breakdown
+
+│ │ └── CHANGELOG.md
+
+│ └── feature-cart/
+
+├── reviews/
+
+# AI spec review outputs
+
+└── metrics/
+
+# Token usage, spec quality
+
+Tại sao .sdd/ vào git?
+Spec là source of truth → phải được version control như code git diff SPEC.md → xem spec thay đổi thế nào qua thời gian git blame SPEC.md → ai thay đổi dòng nào, khi nào git revert → rollback spec khi quyết định thay đổi Pull Request cho spec → review process giống code review
+
+6.4.2 — CONTRACT VỚI AI
+Biến Markdown Thành "Bản Giao Kèo" Với AI
+Mỗi khi bắt đầu AI session mới, bạn không chat tự nhiên — bạn trình bày contract và yêu cầu AI "ký" (acknowledge) trước khi làm việc. Điều này áp dụng cho mọi AI: ChatGPT, Claude, Gemini, hay bất kỳ model nào.
+System Prompt chuẩn — Đầu mỗi AI session
+=== CONTRACT === — khai báo bối cảnh Paste nội dung constitution.md (rules) CURRENT TASK: Chúng ta đang ở Pha N. Nhiệm vụ cụ thể. CONTEXT FILES: Paste SPEC.md, PLAN.md nếu có CONSTRAINTS: KHÔNG implement Out of Scope · KHÔNG assume Mọi code phải có EARS tag tham chiếu về SPEC section
+Bước "Xác nhận" cuối prompt — rất quan trọng Yêu cầu AI: "Xác nhận bạn đã đọc contract. Tóm tắt nhiệm vụ của bạn trong 3 bullet points trước khi bắt đầu." Nếu AI tóm tắt sai → bạn biết nó đã hiểu sai context và có thể điều chỉnh ngay.
+
+6.4.3 — DIY WORKFLOW THỰC TẾ
+DIY Workflow Hoàn Chỉnh — Password Reset
+
+Bước 1–4: Setup & Spec
+Tạo structure: mkdir -p .sdd/specs/feature-password-reset Viết CONTEXT.md (30 phút, tự làm) — domain knowledge, constraints Viết SPEC.md draft (45 phút) — 8-component template, EARS notation AI Review session → paste contract + yêu cầu tìm logic gaps Update SPEC.md, lock: git commit + git tag spec/passwordreset/v1.0.0
+
+Bước 5–9: Plan, Tasks, Implement
+AI tạo PLAN.md (Claude.ai session mới) → paste contract với Pha 2 Copy output vào file, review và approve AI tạo TASKS.md (session mới) → paste SPEC.md + PLAN.md Implement trong VSCode với Cursor/Cline — dùng SPEC.md + PLAN.md trong context (@file) Validation: AI đọc code + spec, tạo traceability matrix → merge nếu pass
+
+6.4.4 — NAMING CONVENTIONS
+Naming Conventions & Git Strategy
+
+Artifact Feature spec Bugfix spec Plan Tasks AI review Git tag Git commit Branch
+
+Naming feature-{name}/SPEC.md fix-{issue-id}/SPEC.md PLAN.md (trong folder) TASKS.md (trong folder) {name}-review-{date}.md spec/{name}/v{semver} spec({name}): {action} spec/{name}-draft
+
+Location .sdd/specs/ .sdd/specs/ .sdd/specs/{name}/ .sdd/specs/{name}/ .sdd/reviews/ git tag commit msg git branch
+
+Ví dụ feature-cart/SPEC.md fix-gh-234/SPEC.md feature-cart/PLAN.md feature-cart/TASKS.md cart-review-2025-01-20.md spec/cart/v1.0.0 spec(cart): approve v1.0.0 spec/cart-draft
+
+6.5
+Hands-on Lab A → Z
+Bài thực hành trung tâm của chương — chạy toàn bộ SDD pipeline cho hai tính năng với độ phức tạp khác nhau. Lab B là "bài test thực sự".
+
+6.5.1 — LAB A
+Lab A — CRUD Đơn Giản (45 phút)
+Feature: Quản lý Categories cho blog. Simple CRUD, không có business logic phức tạp. Mục đích: làm quen với SDD pipeline trong môi trường "an toàn" trước khi tackle Lab B.
+
+User Story ban đầu (rough)
+Tạo, đọc, sửa, xóa categories Category có: name (unique), slug (auto-gen), description Không thể xóa category đang có bài viết Danh sách sorted by name
+
+Pipeline Steps (30 phút với Cline)
+Pha 2 — "Đọc SPEC.md và tạo PLAN.md. Chú ý: slug autogeneration logic cần rõ ràng." Pha 3 — "Đọc PLAN.md, tạo TASKS.md. Max 4h/task. T001 (migration) là task đầu tiên." Pha 4 — "Implement {task_id}. Đọc SPEC.md và PLAN.md. EARS tags bắt buộc. Generate tests cùng lúc." Pha 5 — "Tạo traceability matrix: mỗi EARS requirement → code line → test name → pass/fail."
+
+6.5.1 — LAB A: SPEC.MD THAM KHẢO
+Lab A — SPEC.md Category Management
+§3 Functional Requirements (EARS)
+WHEN admin POST /categories với valid data, THE system SHALL tạo category và return 201 + object WHEN admin GET /categories, THE system SHALL return danh sách sorted by name ascending WHEN admin PUT /categories/{id}, THE system SHALL cập nhật và return 200 + updated object WHEN admin DELETE /categories/{id}, THE system SHALL xóa và return 204
+§6 Error Handling (Unwanted)
+WHERE POST với name đã tồn tại → 409 Conflict WHERE DELETE category có bài viết → 422 + "Cannot delete: category has {n} posts. Reassign first." WHERE PUT/DELETE với id không tồn tại → 404
+§8 Out of Scope
+Không có nested/hierarchical categories Không có soft delete (hard delete only) Không có search/filter trong sprint này
+
+6.5.2 — LAB B
+Lab B — Import CSV Với Business Logic Phức Tạp (60 phút)
+Đây là bài test thực sự. Tính năng Import Data có đủ độ phức tạp để bộc lộ tất cả những gì có thể sai nếu Planning và Task Decomposition bị bỏ qua: format validation, error logging, partial success, rollback strategy. Những vấn đề này không hiện ra khi nhìn vào user story — chỉ hiện ra khi bạn spec kỹ.
+User Story ban đầu (từ PM) — tất cả những gì PM cung cấp Admin có thể upload file CSV để import hàng loạt sản phẩm. Requirements: upload CSV, parse và import vào database, báo cáo số lượng thành công/thất bại, xử lý lỗi định dạng.
+← Đây là tất cả. Phần tiếp theo: bạn phải tự phát hiện tất cả những gì còn thiếu qua SDD process.
+
+6.5.2 — LAB B: CONTEXT DISCOVERY
+Lab B — Câu Hỏi Context Discovery
+Danh sách câu hỏi bạn phải trả lời trước khi viết spec. Chúng không xuất hiện trong user story — bạn phải tự phát hiện:
+
+Câu hỏi "CSV format cụ thể thế nào? Header row có không?" "Nếu 1 row lỗi trong 1000 rows — rollback hay skip?" "Duplicate product (same SKU) → update hay error?" "File size limit?" "Log ở đâu? Admin xem được không? Trong bao lâu?" "Import async hay sync? Timeout?" "Validation per-row hay per-field?"
+
+Nếu không hỏi → Bug AI đoán format → import sai toàn bộ Hành vi undefined → inconsistent data Silent data override hoặc false rejection Memory exhaustion khi upload 500MB CSV Log mất sau restart, không debug được 30s timeout khi import 50,000 rows Row 1 lỗi field 2 → message không rõ
+
+6.5.2 — LAB B: SPEC.MD
+Lab B — SPEC.md Product CSV Import
+§3 Functional — CSV Format & Upload Flow
+Accept CSV: UTF-8, comma delimiter, header row bắt buộc: sku, name, price, stock, category_slug Tối đa 10,000 rows mỗi file · File size tối đa: 10MB WHEN admin POST /imports/csv với valid file, THE system SHALL: lưu file vào temp, tạo import_job (status=pending), return 202 Accepted + job_id, process async Processing Strategy: partial success — mỗi row xử lý độc lập, không transaction toàn bộ file WHERE SKU đã tồn tại → upsert (không lỗi, không duplicate)
+§6 Error Handling — Unwanted Patterns
+WHERE file không phải CSV hoặc > 10MB → 400 ngay (không process) WHERE header row thiếu cột bắt buộc → fail toàn bộ job + error message WHERE một row thiếu trường → skip row, ghi error: "Row {n}: Missing {field}" WHERE price không phải số dương → skip + "Row {n}: Invalid price" WHERE error_count = total_rows → status = "failed" + email alert admin WHERE 3 concurrent jobs đang running → 429 Too Many Requests
+
+6.5.2 — LAB B: TẠI SAO CẦN PLANNING KỸ HƠN
+Lab A vs Lab B — Độ Phức Tạp Thiết Kế
+
+Vấn đề thiết kế Async processing Transaction strategy Error storage Concurrency control File storage Progress tracking Testing complexity
+
+Lab A (CRUD) Không cần Per-request transaction Không cần Không cần Không cần Không cần Unit tests đủ
+
+Lab B (Import) Bắt buộc — background job queue Per-row, không global rollback import_errors table + downloadable Semaphore/lock cho 3-job limit Temp storage + cleanup job Real-time counters + polling Integration + end-to-end bắt buộc
+
+Bài học từ Lab B "Import CSV" nghe đơn giản nhưng chứa đựng 6 quyết định thiết kế quan trọng. Không có Context Discovery → miss file size limit, miss concurrent control. Không có PLAN.md → AI implement sync thay vì async → timeout ở production. Đây chính xác là lý do SDD tồn tại: complexity luôn cao hơn vẻ ngoài.
+
+6.5.2 — LAB B: TASKS.MD
+Lab B — TASKS.md Product CSV Import (12 tasks, ~28h)
+
+ID T001 T002 T003 T004 T005 T006 T007 T008 T009 T010 T011 T012
+
+Task
+
+Est
+
+DB migration: import_jobs table
+
+1h
+
+DB migration: import_errors table
+
+1h
+
+FileValidationService (size, ext)
+
+2h
+
+CSVParserService (header + rows)
+
+3h
+
+RowValidatorService (per-field)
+
+3h
+
+ImportJobRepository
+
+2h
+
+ImportWorker (async background) — critical path
+
+4h
+
+ConcurrencyGuard (3-job limit)
+
+2h
+
+ImportRouter (upload + status)
+
+2h
+
+ErrorExportEndpoint (CSV download)
+
+2h
+
+Integration tests
+
+4h
+
+Admin email alert (all-fail case)
+
+2h
+
+Dependencies — T001 — T003 — T001,T002 T004,T005,T006 T006 T007,T008 T006 T009,T010 T007
+
+6.5.3 — EVALUATION RUBRIC
+Evaluation Rubric — Chấm Điểm Cả Hai Labs
+
+Tiêu chí SPEC đủ 8 thành phần EARS notation Out of Scope rõ ràng PLAN.md có risks Tasks atomic (≤4h) Code có EARS tags Tests cover AC
+
+Lab A (CRUD) 8/8 sections ≥5 SHALL statements ≥3 items ≥2 risks All tasks ≤4h ≥80% rules tagged 100% AC covered
+
+Lab B (Import) 8/8 sections ≥12 SHALL statements ≥5 items ≥5 risks All tasks ≤4h ≥80% rules tagged 100% AC covered
+
+Điểm 20đ 20đ 10đ 10đ 15đ 10đ 15đ
+
+100
+Tổng điểm
+
+40%
+Lý thuyết
+
+60%
+Thực hành
+
+8
+SPEC components
+
+6.5.4 — REFLECTION
+Reflection — Bài Học Từ Hai Labs
+Câu hỏi phân tích
+Lab A vs Lab B: Bao nhiêu thời gian bạn dành cho Context Discovery và Spec Writing? Tỷ lệ lý thuyết theo SDD là 30–40% thời gian dự án. Thực tế của bạn là bao nhiêu? Khi AI generate PLAN.md cho Lab B, nó hỏi bao nhiêu Questions for Human? So sánh với Lab A. Điều đó nói lên gì về mức độ phức tạp tương đối?
+
+Câu hỏi ứng dụng thực tế
+Nếu bạn bỏ qua Context Discovery và đưa user story trực tiếp vào AI để code — điều gì sẽ thiếu trong sản phẩm cuối? Liệt kê cụ thể. Trong môi trường làm việc thực, đồng nghiệp hoặc PM của bạn sẽ phản ứng thế nào khi bạn nói "Tôi cần 1 ngày để viết spec trước khi code"? Làm thế nào bạn justify?
+
+Task Decomposition không phải overhead — nó là quality gate. Khi ai đó implement tất cả trong 1 task (không decompose) → context overflow, AI forget spec details → thiếu partial success logic → lỗi production.
+
+6.5.5 — TỔNG KẾT CHƯƠNG 6
+Tổng Kết — Ba Con Đường SDD
+
+Cách tiếp cận GitHub Spec Kit Cline (Roo Code) DIY Markdown
+
+Phù hợp với
+Team dùng GitHub, muốn cấu trúc
+Developer muốn speed + autonomy
+Team nhỏ, linh hoạt, bất kỳ AI
+
+Điểm mạnh Traceability tốt, audit trail hoàn hảo
+Agentic, multi-model, MCP integration Không vendor lock, đơn giản, tự do
+
+Điểm yếu Cần setup, learning curve Cần giám sát, có thể overrun Tự kỷ luật cao hơn cần thiết
+
+Key Takeaways
+5 pha: Context → Spec → Plan → Tasks → Impl → Validate Fix the Spec, not the Code — nguyên tắc bất biến Mọi code phải truy được về spec — không exception Out of Scope cũng cần validation — không chỉ "những gì đã làm"
+Chương tiếp theo — Chương 7
+Test-Driven Specification
+Given-When-Then (BDD) notation · AI generate test suite trước khi viết code (TDS) · Contract testing cho API · Mutation testing với AI-generated test cases.
+
+"Code là artifact tạm thời. Spec mới là nguồn sự thật lâu dài."
+5 pha · Fix the Spec · Human-in-the-loop ở mọi điểm quan trọng
+5
+SDD Phases
+
+3
+Tooling Paths
+
+2
+Hands-on Labs
+
+CHƯƠNG 6 — HOÀN THÀNH
+
+∞
+Spec First
+
+

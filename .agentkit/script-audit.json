@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-21T06:52:26Z",
+  "report": {
+    "schema_version": 1,
+    "roots": [
+      "D:\\Work\\SDDADD"
+    ],
+    "summary": {
+      "total": 0,
+      "by_risk": {},
+      "by_language": {},
+      "findings": 0,
+      "executable_only": 0
+    },
+    "scripts": []
+  }
+}

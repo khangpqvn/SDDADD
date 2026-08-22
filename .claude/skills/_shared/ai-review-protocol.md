@@ -51,6 +51,12 @@ For non-feature work, persist the same blocks in `.sdd/reviews/<review-slug>.md`
 - `Tech Lead` or `Architecture Board` may review architecture, governance, or RFC changes when the repository rules assign that authority.
 - The Agent records the reviewer identity but never supplies it on behalf of a human.
 
+## Human decision recording
+
+Human reviewers should use `/sdd-review` to persist a decision instead of editing review fields ad hoc. The command validates the target, recommendation state, required fields, timestamp and allowed status before changing only the `Human Final Review` block.
+
+`/sdd-review` requires `Status`, `Decision`, `Reviewer`, `Reviewed at` and `Follow-up`. For `SPEC.md`, an approved review may transition the header to `Status: APPROVED & LOCKED` only after the Spec DoD checks pass. `REVISE` and `REJECTED` leave the artifact blocked. `/sdd-review` never changes `CONSTITUTION.md` and does not replace `/sdd-rfc --approve=<rfc-number>` for RFC or Constitution changes.
+
 ## Skill integration contract
 
 Each skill must state:
@@ -59,4 +65,5 @@ Each skill must state:
 - where it persists the blocks;
 - the exact human decision required;
 - the status required before its next action;
-- that the Agent stops instead of self-approving.
+- that the Agent stops instead of self-approving;
+- that Human records the decision through `/sdd-review` when the target is supported.

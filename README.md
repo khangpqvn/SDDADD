@@ -84,10 +84,11 @@ cd /path/to/your-existing-project
 ├── CLAUDE.md               # [Layer 1] Project Memory, Architecture DNA & Clean Arch Rules
 ├── CONSTITUTION.md         # [Layer 1] Hard Quality Gates (3 Layer Rules: Hard, Arch, Eng) & RFC Process
 ├── .claude/
-│   └── skills/             # 21 Custom Slash Commands cho SDD+ADD Workflow và Git Operator Gates
+│   └── skills/             # 22 Custom Slash Commands cho SDD+ADD Workflow và Git Operator Gates
 │       ├── sdd-init/SKILL.md         # /sdd-init (Greenfield Project Initializer)
 │       ├── sdd-adopt/SKILL.md        # /sdd-adopt (Brownfield Legacy Adoption & Reverse Spec)
 │       ├── sdd-context/SKILL.md      # /sdd-context --feature=<slug> (Pha 0: Context Discovery + DoD)
+│       ├── sdd-review/SKILL.md       # /sdd-review (Ghi nhận Human Final Review và chuyển trạng thái)
 │       ├── sdd-spec/SKILL.md         # /sdd-spec --feature=<slug> (Pha 1: Executable Spec EARS+BDD+SemVer + DoD)
 │       ├── sdd-plan/SKILL.md         # /sdd-plan --feature=<slug> (Pha 2: Architecture & Risk Plan + DoD)
 │       ├── sdd-tasks/SKILL.md        # /sdd-tasks --feature=<slug> (Pha 3: Atomic Task Breakdown + DoD)
@@ -125,11 +126,14 @@ cd /path/to/your-existing-project
 
 ## 🛠️ DANH SÁCH SLASH COMMANDS (CUSTOM SKILLS)
 
+Human review state phải được ghi bằng `/sdd-review` sau khi đọc recommendation và evidence. Command này không thay thế `/sdd-rfc --approve=<rfc-number>` cho thay đổi Constitution.
+
 | Slash Command | File Skill | Công dụng |
 | :--- | :--- | :--- |
 | `/sdd-init` | `.claude/skills/sdd-init/SKILL.md` | Khởi tạo khung SDD+ADD cho dự án mới (Greenfield) |
 | `/sdd-adopt` | `.claude/skills/sdd-adopt/SKILL.md` | Tích hợp SDD+ADD vào repo có sẵn (Brownfield) & Đảo ngược Spec từ code cũ |
 | `/sdd-context` | `.claude/skills/sdd-context/SKILL.md` | **Pha 0**: Context Discovery ➔ `.sdd/features/{slug}/CONTEXT.md` |
+| `/sdd-review` | `.claude/skills/sdd-review/SKILL.md` | Human ghi nhận `APPROVED`, `REVISE` hoặc `REJECTED` với đủ bằng chứng và thông tin reviewer |
 | `/sdd-spec` | `.claude/skills/sdd-spec/SKILL.md` | **Pha 1**: Executable Spec (SemVer) ➔ `.sdd/features/{slug}/SPEC.md` |
 | `/sdd-plan` | `.claude/skills/sdd-plan/SKILL.md` | **Pha 2**: Lập kế hoạch Clean Arch ➔ `.sdd/features/{slug}/PLAN.md` |
 | `/sdd-tasks` | `.claude/skills/sdd-tasks/SKILL.md` | **Pha 3**: Atomic Tasks Breakdown ➔ `.sdd/features/{slug}/TASKS.md` |
@@ -169,7 +173,7 @@ Mọi commit và Pull Request phải đi qua gate dùng chung:
 
 Mỗi skill SDD/ADD phải tạo recommendation có evidence, risks, assumptions, alternatives và next action theo [canonical protocol](.claude/skills/_shared/ai-review-protocol.md). Recommendation luôn bắt đầu ở `PENDING HUMAN REVIEW` và được lưu trong feature artifact hoặc `.sdd/reviews/` cho report không thuộc feature.
 
-Agent chỉ được đề xuất. Human Director/Tech Lead là người review cuối và phải ghi `APPROVED`, `REVISE` hoặc `REJECTED` cùng decision, reviewer và timestamp. Artifact pending/revised/rejected không được chuyển pha, lock, execute, complete, commit hoặc PR. Thay đổi sau approval phải invalidate review và tạo recommendation mới.
+Agent chỉ được đề xuất. Human Director/Tech Lead ghi nhận review bằng `/sdd-review` với `APPROVED`, `REVISE` hoặc `REJECTED`, cùng decision, reviewer, timestamp và follow-up. Artifact pending/revised/rejected không được chuyển pha, lock, execute, complete, commit hoặc PR. Thay đổi sau approval phải invalidate review và tạo recommendation mới.
 
 ```text
 AI RECOMMENDATION: PENDING HUMAN REVIEW

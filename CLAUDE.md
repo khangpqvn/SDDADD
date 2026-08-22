@@ -14,6 +14,8 @@ Sử dụng template này để khởi tạo dự án mới với các quy tắc
 ## 2. Architecture & Directory Anatomy
 
 ### 2.1 Architectural Pattern
+
+Human Final Review state is recorded through `/sdd-review`; the canonical protocol remains `.claude/skills/_shared/ai-review-protocol.md`.
 Hệ thống khuyến nghị tuân thủ **Clean Architecture / Hexagonal Architecture**:
 
 ```text
@@ -32,7 +34,7 @@ src/
 ├── CLAUDE.md               # Project Memory & Architecture DNA (File hiện tại)
 ├── CONSTITUTION.md         # Hard Governance Rules (3-layer quality gates)
 ├── .claude/
-│   └── skills/             # 21 Custom Slash Commands cho SDD+ADD và Git Operator
+│   └── skills/             # 22 Custom Slash Commands cho SDD+ADD và Git Operator
 ├── .sdd/                   # Thư mục quản lý Đặc tả Kỹ thuật
 │   ├── README.md           # Master Feature Registry
 │   ├── shared_context.md   # Shared State & API Contracts giữa các feature

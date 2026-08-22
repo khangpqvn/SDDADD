@@ -73,6 +73,7 @@ Mỗi feature nằm tại `.sdd/features/{feature-slug}/`:
 
 - **Khởi tạo:** `/sdd-init`, `/sdd-adopt`.
 - **Đặc tả:** `/sdd-context`, `/sdd-spec`, `/sdd-plan`, `/sdd-tasks`.
+- **Human review:** `/sdd-review`.
 - **Thực thi:** `/add-execute`, `/sdd-layer-edit`.
 - **Kiểm định và đồng bộ:** `/sdd-update`, `/sdd-trace`, `/sdd-lint`, `/sdd-audit`, `/sdd-sync`.
 - **Governance và session:** `/sdd-claude-edit`, `/sdd-agents-edit`, `/sdd-handoff`, `/sdd-resume`.
@@ -95,7 +96,7 @@ Không gộp các trạng thái dưới đây. Mỗi loại trả lời một c�
 | `REVISE` | Cần sửa artifact/recommendation theo feedback | Không được execute hoặc chuyển pha; tạo recommendation mới sau khi sửa. |
 | `REJECTED` | Không chấp thuận hướng đề xuất | Dừng hướng hiện tại; chỉ tiếp tục khi có hướng/recommendation mới được duyệt. |
 
-`APPROVED` chỉ hợp lệ khi có đủ `Decision`, `Reviewer` và `Reviewed at`. Hội thoại, tin nhắn không ghi vào artifact hoặc câu “ok” không phải durable approval.
+`APPROVED` chỉ hợp lệ khi có đủ `Decision`, `Reviewer`, `Reviewed at` và `Follow-up`. Hội thoại, tin nhắn không ghi vào artifact hoặc câu “ok” không phải durable approval.
 
 ### 3.2 Trạng thái artifact
 
@@ -161,24 +162,39 @@ Thực hiện theo thứ tự sau, không chỉ đọc dòng `Recommendation`:
 4. **Kiểm tra phương án:** xem `Alternatives considered`; yêu cầu Agent bổ sung nếu trade-off quan trọng bị bỏ qua.
 5. **Kiểm tra phạm vi:** đối chiếu `Out of Scope`, file boundary, security rule và các requirement bị ảnh hưởng.
 6. **Chọn một quyết định:** `APPROVED`, `REVISE` hoặc `REJECTED`. Không để `PENDING` rồi yêu cầu Agent tự đoán.
-7. **Ghi quyết định vào artifact:** điền đủ decision, danh tính reviewer, timestamp và follow-up.
+7. **Gọi `/sdd-review`:** truyền đúng target, status, decision, reviewer, timestamp ISO-8601 có timezone và follow-up cụ thể. Skill sẽ từ chối nếu thiếu field hoặc target không hợp lệ.
 8. **Kiểm tra trạng thái sau review:** nếu `REVISE`/`REJECTED`, Agent phải dừng; nếu `APPROVED`, chỉ chuyển pha khi DoD và prerequisite đều đạt.
 
 ### 4.3 Cách “lật cờ” approve đúng cách
 
-Con người trực tiếp mở artifact mà skill đã ghi recommendation, tìm `## Human Final Review`, rồi cập nhật block. Ví dụ:
+Dùng `/sdd-review` để ghi quyết định. Skill này kiểm tra target, recommendation, đủ trường bắt buộc, timestamp và điều kiện lock trước khi sửa artifact. Không sửa block review thủ công nếu có thể gọi command.
+
+```text
+/sdd-review --feature=feat-user-register --artifact=context --status=APPROVED --decision="Đã duyệt problem, stakeholders, glossary và constraints; đủ cơ sở lập SPEC, chưa duyệt giải pháp kỹ thuật." --reviewer="Nguyen Van A, Product Owner" --reviewed-at="2026-08-22T00:45:00+07:00" --follow-up="/sdd-spec --feature=feat-user-register"
+```
+
+Skill sẽ ghi đủ:
 
 ```markdown
 ## Human Final Review
 - Status: APPROVED
-- Decision: APPROVED CONTEXT cho feature feat-user-register. Problem, stakeholders,
-  constraints và open questions đủ để lập SPEC; chưa phê duyệt giải pháp kỹ thuật.
-- Reviewer: Nguyen Van A, Product Owner
-- Reviewed at: 2026-08-21T23:30:00+07:00
-- Follow-up: `/sdd-spec --feature=feat-user-register`
+- Decision: <quyết định cụ thể và phạm vi đã review>
+- Reviewer: <identity>
+- Reviewed at: <ISO-8601 timestamp có timezone>
+- Follow-up: <command hoặc điều kiện tiếp theo>
 ```
 
-Đối với `SPEC.md`, sau khi `APPROVED` và đủ DoD, Human Director/Tech Lead đổi header artifact thành `Status: APPROVED & LOCKED`. Không đổi cờ chỉ vì Agent đã hoàn thành file.
+Đối với `SPEC.md`, gọi `/sdd-review` với `--status=APPROVED` sẽ đổi header sang `Status: APPROVED & LOCKED` chỉ khi recommendation hợp lệ và DoD tối thiểu đạt. Không đổi cờ chỉ vì Agent đã hoàn thành file.
+
+Các trạng thái khác:
+
+```text
+/sdd-review --target=.sdd/features/feat-user-register/PLAN.md --status=REVISE --decision="Bổ sung rollback migration và dependency direction." --reviewer="Nguyen Van B, Tech Lead" --reviewed-at="2026-08-22T01:10:00+07:00" --follow-up="Cập nhật PLAN.md, tạo recommendation mới rồi review lại."
+
+/sdd-review --target=.sdd/reviews/audit-feat-user-register.md --status=REJECTED --decision="Không chấp thuận disposition vì Layer 1 failure còn mở." --reviewer="Nguyen Van C, Human Director" --reviewed-at="2026-08-22T01:20:00+07:00" --follow-up="Sửa blocker, chạy lại /sdd-audit và tạo report review mới."
+```
+
+`REVISE` và `REJECTED` tiếp tục block downstream. Sau khi sửa artifact, Agent phải tạo recommendation mới; Human gọi lại `/sdd-review`. `/sdd-review` không thay thế `/sdd-rfc --approve=<rfc-number>` khi thay đổi `CONSTITUTION.md`.
 
 Ví dụ yêu cầu sửa:
 
@@ -220,9 +236,10 @@ Agent chỉ ghi nội dung do reviewer cung cấp. Agent không tự điền tê
 ## 5. Vòng đời feature chuẩn
 
 ```text
-CONTEXT -> HUMAN REVIEW -> SPEC -> HUMAN REVIEW -> PLAN -> HUMAN REVIEW
--> TASKS -> HUMAN REVIEW -> EXECUTE -> HUMAN REVIEW -> VERIFY
--> HUMAN DISPOSITION -> SYNC -> HUMAN REVIEW -> COMMIT -> PR
+CONTEXT -> /sdd-review APPROVED -> SPEC -> /sdd-review APPROVED + LOCK
+-> PLAN -> /sdd-review APPROVED -> TASKS -> /sdd-review APPROVED
+-> EXECUTE -> /sdd-review APPROVED -> VERIFY -> /sdd-review disposition
+-> SYNC -> /sdd-review APPROVED -> COMMIT -> PR
 ```
 
 | Pha | Command | Agent tạo ra | Con người phải làm | Điều kiện chuyển pha |
@@ -272,7 +289,7 @@ Chạy lint trước khi lock nếu cần:
 /sdd-lint --feature=feat-user-register
 ```
 
-Sau khi recommendation được duyệt, điền `Human Final Review.Status: APPROVED`, rồi đổi `SPEC.md` sang `Status: APPROVED & LOCKED`. Nếu sửa Spec sau đó, phải `/sdd-update`, review lại và lock lại.
+Sau khi review đủ bằng chứng, gọi `/sdd-review --target=.sdd/features/feat-user-register/SPEC.md --status=APPROVED` với đủ `--decision`, `--reviewer`, `--reviewed-at` và `--follow-up`. Skill sẽ lock `SPEC.md` thành `Status: APPROVED & LOCKED` nếu DoD đạt. Nếu sửa Spec sau đó, phải `/sdd-update`, review lại và lock lại.
 
 ### 5.3 Pha 2 — Plan
 

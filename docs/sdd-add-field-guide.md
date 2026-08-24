@@ -131,12 +131,21 @@ Chọn kịch bản → thực hiện từng bước → dừng tại Human Fina
 | Phá vỡ API / data / behavior contract | `major` |
 
 ```text
-/sdd-update --feature=feat-order-checkout --bump=patch --reason="Clarify duplicate payment"
+/sdd-update --feature=feat-order-checkout --artifact=spec --bump=patch \
+  --reason="[REQ-005] Clarify duplicate payment behavior"
 ```
 
 → Bổ sung EARS, BDD, error, acceptance, Out of Scope, changelog.
 → Review lại + lock. Approval cũ không còn hợp lệ.
 → `major`: phải có migration plan, rollback plan, risk trước execute.
+
+**Cập nhật artifact khác (không đổi Spec):**
+
+```text
+/sdd-update --feature=feat-order-checkout --artifact=context --reason="..."
+/sdd-update --feature=feat-order-checkout --artifact=plan   --reason="..."
+/sdd-update --feature=feat-order-checkout --artifact=tasks  --reason="..."
+```
 
 ---
 
@@ -367,7 +376,7 @@ Flow: chạy command → pass: dừng (uncommitted) → fail: phân tích + sử
 | `/sdd-spec` + `/sdd-lint` | 5 |
 | `/sdd-plan` + `/sdd-tasks` | 5, 8 |
 | `/add-execute` + `/sdd-layer-edit` | 5, 9 |
-| `/sdd-update --bump=patch/minor/major` | 6 |
+| `/sdd-update --artifact=spec/context/plan/tasks` | 6 |
 | `/sdd-audit` + `/sdd-trace` + `/sdd-sync` | 5, 7, 10 |
 | `/api-security-auditor` | 11 |
 | `/sql-performance-tuner` | 11 |

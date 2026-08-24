@@ -14,6 +14,8 @@ Dùng khi bắt đầu feature để làm rõ bài toán nghiệp vụ và tạo
 
 - `--feature=<feature-slug>`: Feature identifier kebab-case, ví dụ `feat-001-order-checkout`.
 
+> **Cập nhật CONTEXT.md đã approved?** Dùng `/sdd-update --artifact=context --reason="..."` thay vì chạy lại skill này. `/sdd-context` dùng để tạo Context lần đầu hoặc làm lại khi yêu cầu thay đổi hoàn toàn.
+
 ## Architecture Profile preflight
 
 Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).

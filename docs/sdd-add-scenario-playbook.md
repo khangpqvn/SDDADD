@@ -243,13 +243,22 @@ Dùng `/sdd-review`, không sửa thủ công nếu command có thể áp dụng
 2. Cập nhật Spec:
 
    ```text
-   /sdd-update --feature=feat-order-checkout --bump=patch --reason="Clarify duplicate payment behavior"
+   /sdd-update --feature=feat-order-checkout --artifact=spec --bump=patch \
+     --reason="[REQ-005] Clarify duplicate payment behavior"
    ```
 
 3. Bổ sung EARS, BDD, error, acceptance, Out of Scope và changelog.
 4. Review lại và lock Spec. Approval cũ không còn hợp lệ.
-5. Kiểm tra Plan/Tasks, profile, test và code bị ảnh hưởng. Sinh lại/downstream update khi cần.
-6. Với `major`, có migration plan, rollback plan và risk trước execution.
+5. Nếu Plan/Tasks bị ảnh hưởng, dùng `/sdd-update --artifact=plan` hoặc `--artifact=tasks` để sửa targeted (hoặc sinh lại với `/sdd-plan`, `/sdd-tasks` nếu thay đổi lớn). Với `major`, có migration plan, rollback plan và risk trước execution.
+6. Sau execute, chạy `/sdd-sync` nếu shared contract thay đổi.
+
+**Cập nhật artifact khác không liên quan Spec:**
+
+```text
+/sdd-update --feature=feat-order-checkout --artifact=context --reason="Add compliance stakeholder"
+/sdd-update --feature=feat-order-checkout --artifact=plan   --reason="Add Redis risk mitigation"
+/sdd-update --feature=feat-order-checkout --artifact=tasks  --reason="Add T009 for dedup check"
+```
 
 **Không làm:** sửa code để đáp ứng rule chưa có trong Spec, rồi bổ sung Spec sau.
 

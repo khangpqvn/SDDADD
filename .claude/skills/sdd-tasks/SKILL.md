@@ -14,6 +14,8 @@ Dùng `PLAN.md` đã approved để tạo `.sdd/features/{feature-slug}/TASKS.md
 
 - `--feature=<feature-slug>`: Feature identifier.
 
+> **Sửa TASKS.md đã approved mà Plan không đổi?** Dùng `/sdd-update --artifact=tasks --reason="..."`. `/sdd-tasks` tạo Tasks từ đầu từ Plan đã approved — dùng khi Tasks chưa có hoặc Plan thay đổi yêu cầu phân rã lại.
+
 ## Architecture Profile gate (BLOCKING)
 
 - Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).

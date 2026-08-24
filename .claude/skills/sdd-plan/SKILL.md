@@ -14,6 +14,8 @@ Dùng `SPEC.md` và `CONSTITUTION.md` để tạo `.sdd/features/{feature-slug}/
 
 - `--feature=<feature-slug>`: Feature identifier.
 
+> **Sửa PLAN.md đã approved mà Spec không đổi?** Dùng `/sdd-update --artifact=plan --reason="..."`. `/sdd-plan` tạo Plan từ đầu từ Spec đã approved — dùng khi Plan chưa có hoặc Spec thay đổi lớn yêu cầu lập lại Plan.
+
 ## Architecture Profile gate (BLOCKING)
 
 Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).

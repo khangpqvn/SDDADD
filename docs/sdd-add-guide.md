@@ -492,41 +492,69 @@ Layer 1 failure, broken trace, orphan code và missing test trace không đượ
 
 ---
 
-## 7. Cập nhật Spec đúng cách
+## 7. Cập nhật artifact SDD đúng cách
 
-### 7.1 Bug hoặc điều kiện biên nhỏ
+`/sdd-update` cập nhật bất kỳ artifact SDD đã approved mà không sinh lại từ đầu. Dùng `--artifact=<spec|context|plan|tasks>` để chỉ định artifact cần sửa.
+
+| Tình huống | Lệnh |
+| :--- | :--- |
+| Sửa/thêm requirement trong Spec đã lock | `/sdd-update --artifact=spec --bump=<patch\|minor\|major>` |
+| Cập nhật stakeholder, constraint hoặc glossary trong Context | `/sdd-update --artifact=context` |
+| Sửa component/risk trong Plan mà Spec không đổi | `/sdd-update --artifact=plan` |
+| Thêm/sửa task mà Plan không đổi | `/sdd-update --artifact=tasks` |
+
+Mặc định `--artifact=spec` nếu không truyền tham số.
+
+### 7.1 Bug hoặc điều kiện biên nhỏ trong Spec
 
 ```text
-/sdd-update --feature=feat-user-register --bump=patch --reason="Add OTP rate-limit behavior"
+/sdd-update --feature=feat-user-register --artifact=spec --bump=patch \
+  --reason="[REQ-003] Add OTP rate-limit: max 5 attempts per 10 minutes, return 429"
 ```
 
-Thêm requirement/error case và changelog vào `SPEC.md`. Vì Spec đã thay đổi, review cũ bị invalidate. Human Director phải review recommendation mới và ghi `APPROVED` trước khi Agent được execute:
+Spec về `DRAFT`; review cũ bị invalidate. Human Director review recommendation mới và ghi `APPROVED & LOCKED` trước khi execute:
 
 ```text
 /add-execute --feature=feat-user-register
-/sdd-lint --feature=feat-user-register
-/sdd-trace --feature=feat-user-register --diff
+/sdd-lint    --feature=feat-user-register
+/sdd-trace   --feature=feat-user-register --diff
 ```
 
 ### 7.2 Behavior tương thích mới
 
-Dùng `--bump=minor` khi thêm behavior không phá contract:
-
 ```text
-/sdd-update --feature=feat-user-register --bump=minor --reason="Add optional recovery flow"
+/sdd-update --feature=feat-user-register --artifact=spec --bump=minor \
+  --reason="Add optional account recovery flow via email"
 ```
 
-Review lại recommendation, cập nhật Plan/Tasks nếu bị ảnh hưởng, ghi `APPROVED`, rồi mới execute. Kiểm tra code và test trước khi commit.
+Review lại recommendation. Nếu Plan/Tasks bị ảnh hưởng, dùng `/sdd-update --artifact=plan` hoặc `/sdd-update --artifact=tasks` (hoặc sinh lại với `/sdd-plan`, `/sdd-tasks` nếu thay đổi lớn). Ghi `APPROVED`, rồi mới execute.
 
 ### 7.3 Thay đổi phá vỡ contract
 
-Dùng `--bump=major` khi thay đổi API, DB hoặc behavior không tương thích ngược:
-
 ```text
-/sdd-update --feature=feat-user-register --bump=major --reason="Change registration contract"
+/sdd-update --feature=feat-user-register --artifact=spec --bump=major \
+  --reason="Change registration response: remove token from body, use httpOnly cookie"
 ```
 
-Phải ghi migration plan, rollback plan và risk. Tech Lead/Human Director phải approve Spec mới trước khi cập nhật Plan/Tasks hoặc implementation; không dùng `--major` để bỏ qua review.
+Phải ghi migration plan, rollback plan và risk trong Spec. Tech Lead/Human Director approve Spec mới → cập nhật Plan/Tasks → execute. Sau execute, chạy `/sdd-sync` nếu shared contract thay đổi.
+
+### 7.4 Cập nhật Context, Plan hoặc Tasks (không đổi Spec)
+
+```text
+# Thêm compliance constraint vào Context
+/sdd-update --feature=feat-user-register --artifact=context \
+  --reason="Add GDPR constraint: user data must be deletable within 30 days"
+
+# Sửa risk trong Plan sau security review
+/sdd-update --feature=feat-user-register --artifact=plan \
+  --reason="Add Redis session token risk and mitigation after security review"
+
+# Thêm task edge case phát hiện lúc implement
+/sdd-update --feature=feat-user-register --artifact=tasks \
+  --reason="Add T009 for concurrent registration dedup check"
+```
+
+Mỗi loại artifact update đều invalidate review cũ và tạo recommendation mới cần Human Director approve trước khi tiếp tục.
 
 ---
 
@@ -571,10 +599,11 @@ Reverse Spec chỉ mô tả behavior hiện tại; không chứng minh behavior 
 Ví dụ thiếu rate limit OTP:
 
 ```text
-/sdd-update --feature=feat-user-register --bump=patch --reason="Add OTP rate-limit behavior"
+/sdd-update --feature=feat-user-register --artifact=spec --bump=patch \
+  --reason="[REQ-003] Add OTP rate-limit: max 5 attempts per 10 minutes"
 /add-execute --feature=feat-user-register
-/sdd-trace --feature=feat-user-register --diff
-/sdd-audit --feature=feat-user-register
+/sdd-trace   --feature=feat-user-register --diff
+/sdd-audit   --feature=feat-user-register
 ```
 
 Nếu failure là code bug đã có Spec rõ, sửa code theo Spec. Nếu failure là business rule chưa được nêu, sửa Spec trước.
@@ -802,7 +831,10 @@ Requirement cần tránh từ mơ hồ như “nhanh chóng”, “linh hoạt�
 | Dự án mới | `./scripts/adopt.sh` hoặc `/sdd-init` |
 | Feature mới | `/sdd-context --feature=<slug>` |
 | Test thất bại (code bug) | `/add-execute` lại sau khi fix |
-| Test thất bại (Spec gap) | `/sdd-update --bump=patch --reason=...` |
+| Test thất bại (Spec gap) | `/sdd-update --artifact=spec --bump=patch --reason=...` |
+| Sửa Context đã approved | `/sdd-update --artifact=context --reason=...` |
+| Sửa Plan đã approved (Spec không đổi) | `/sdd-update --artifact=plan --reason=...` |
+| Thêm task (Plan không đổi) | `/sdd-update --artifact=tasks --reason=...` |
 | CI fail, muốn tự động sửa | `./scripts/self-heal.sh --test-cmd="<approved test command>" --feature=<slug>` |
 | Audit SQL performance | `/sql-performance-tuner --feature=<slug>` |
 | Audit API security | `/api-security-auditor --feature=<slug>` |

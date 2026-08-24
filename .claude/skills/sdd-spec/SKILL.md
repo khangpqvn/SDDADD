@@ -13,7 +13,8 @@ Dùng `CONTEXT.md` và `CONSTITUTION.md` để tạo `.sdd/features/{feature-slu
 ## Tham số
 
 - `--feature=<feature-slug>`: Feature identifier.
-- `--bump=<major|minor|patch>`: Dùng khi cập nhật Spec.
+
+> **Cập nhật Spec đã `APPROVED & LOCKED`?** Dùng `/sdd-update --artifact=spec --bump=<patch|minor|major>` thay vì chạy lại skill này. `/sdd-spec` dùng để tạo Spec lần đầu hoặc làm lại khi context thay đổi lớn.
 
 ## Architecture Profile preflight
 

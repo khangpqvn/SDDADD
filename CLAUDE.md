@@ -1,81 +1,87 @@
-# CLAUDE.md — Project Memory & Architecture DNA
+# CLAUDE.md — Bộ nhớ dự án và kiến trúc
 
 # Version: 1.0.0
 # Project: Starter Template (SDD + ADD Boilerplate)
 
 ---
 
-## 1. TL;DR & Purpose
-Repository này là **Starter Template chuẩn** được thiết kế theo phương pháp luận **SDD (Spec-Driven Development)** và **ADD (Agent-Driven Development)**.
-Sử dụng template này để khởi tạo dự án mới với các quy tắc quản trị có sẵn, hệ thống Slash Commands tự động và tài liệu đặc tả chuẩn hóa.
+## 1. Mục đích
+
+Repository là Starter Template theo **SDD** (Spec-Driven Development) và **ADD** (Agent-Driven Development). Dùng template để khởi tạo dự án mới với governance, slash command và tài liệu đặc tả chuẩn hóa.
 
 ---
 
-## 2. Architecture & Directory Anatomy
+## 2. Kiến trúc và cấu trúc thư mục
 
-### 2.1 Architectural Pattern
+### 2.1 Kiến trúc chuẩn
 
-Human Final Review state is recorded through `/sdd-review`; the canonical protocol remains `.claude/skills/_shared/ai-review-protocol.md`.
-Hệ thống khuyến nghị tuân thủ **Clean Architecture / Hexagonal Architecture**:
+Trạng thái Human Final Review được ghi bằng `/sdd-review`; protocol canonical nằm tại `.claude/skills/_shared/ai-review-protocol.md`.
+
+**Nguồn sự thật kiến trúc:** `.sdd/architecture-profile.md` là profile machine-readable canonical mà SDD/ADD skills sử dụng. `CLAUDE.md` là bộ nhớ kiến trúc dành cho con người và phải phản ánh các thay đổi profile đã approved. Thứ tự chọn: profile approved → repository evidence rõ ràng → input explicit của skill → core-only baseline. Skill không được tự suy đoán HTTP framework, database, ORM/query layer, validation library hoặc test/build command chưa được chọn.
+
+Dự án tuân thủ **Clean Architecture / Hexagonal Architecture**:
 
 ```text
 src/
-├── domain/         # Entities, Value Objects, Domain Events (Pure TS, No external deps)
-├── usecase/        # Business Logic, Interactors, Application Services
-├── interface/      # HTTP Controllers, Event Consumers, Presenters, DTOs
-├── infra/          # DB Repositories, Redis Cache, External Services
-└── shared/         # Logger, Security Utils, Constitution Checks
+├── domain/         # Entity, Value Object, Domain Event thuần TypeScript
+├── usecase/        # Luồng ứng dụng, business logic và port
+├── interface/      # HTTP/event adapter, DTO và presenter
+├── infra/          # Repository, cache và external-service adapter
+└── shared/         # Error, logger, bảo mật và tiện ích dùng chung
 ```
 
-### 2.2 Directory Standard Layout
+### 2.2 Cấu trúc chuẩn
+
 ```text
 .
-├── AGENTS.md               # Agent Constitution (Persona, Scope, Tool Permissions)
-├── CLAUDE.md               # Project Memory & Architecture DNA (File hiện tại)
-├── CONSTITUTION.md         # Hard Governance Rules (3-layer quality gates)
-├── .agentignore            # Context Hygiene — exclude patterns cho AI agents
-├── .claude/
-│   └── skills/             # Custom Slash Commands cho SDD+ADD, Git và Domain skills
-│       ├── sql-performance-tuner/   # SQL query optimization & N+1 detection
-│       ├── api-security-auditor/    # OWASP Top 10 API security audit
-│       └── error-handler-pattern/   # Typed errors & unified response schema
-├── .sdd/                   # Thư mục quản lý Đặc tả Kỹ thuật
-│   ├── README.md           # Master Feature Registry
-│   ├── shared_context.md   # Shared State & API Contracts giữa các feature
-│   ├── mcp-config.yaml     # MCP Tool Access Control per agent (Slide 11.6)
-│   ├── constraints/        # 3-Layer Constraint Hierarchy (Slide 10.4)
-│   │   ├── global.md       # Layer 1: Tech stack, approved packages, naming
-│   │   ├── business.md     # Layer 2: Auth rules, PII masking, rate-limit
-│   │   └── safety.md       # Layer 3: Cấm drop DB, cấm delete no-WHERE, git safety
-│   ├── rfcs/               # Đề xuất thay đổi Hiến pháp hệ thống
-│   └── features/           # Nơi chứa bộ 4 file SDD cho từng feature
+├── AGENTS.md               # Constitution dành cho Agent: vai trò, phạm vi, quyền tool
+├── CLAUDE.md               # Bộ nhớ dự án và kiến trúc
+├── CONSTITUTION.md         # Hard governance rule và quality gate
+├── .agentignore            # Tệp cần bỏ qua để giữ context sạch
+├── .claude/skills/         # Slash command SDD/ADD, Git và technical skill
+├── .sdd/
+│   ├── README.md           # Feature registry
+│   ├── architecture-profile.md # Binding công nghệ, evidence và artifact gate
+│   ├── shared_context.md   # State và API contract dùng chung
+│   ├── mcp-config.yaml     # MCP access control theo Agent
+│   ├── constraints/        # Global, business và safety constraints
+│   ├── reviews/            # Report và review ngoài feature
+│   ├── rfcs/               # RFC thay đổi governance
+│   └── features/           # Bộ CONTEXT, SPEC, PLAN, TASKS của từng feature
 ├── docs/
-│   ├── sdd-add-guide.md              # Handbook lifecycle, review gates và kịch bản vận hành
-│   └── multi-agent-orchestration-guide.md  # Multi-Agent setup, MCP access, tool borrowing
-├── scripts/                # Shell scripts hỗ trợ
-│   ├── adopt.sh / adopt.ps1          # Migration vào project mới
-│   └── self-heal.sh                  # Self-Healing Loop: test → fix → re-test → commit
-├── src/                    # Source code thực thi
-└── tests/                  # Executable Verification Suite
+│   ├── sdd-add-guide.md
+│   ├── architecture-profile-guide.md
+│   └── multi-agent-orchestration-guide.md
+├── scripts/
+│   ├── adopt.sh / adopt.ps1       # Tích hợp vào repository có sẵn
+│   ├── self-heal.sh               # Test, sửa có giới hạn và Human review
+│   └── start-claude.sh / .ps1     # Chế độ --dangerously-skip-permissions
+├── src/                    # Mã nguồn thực thi
+└── tests/                  # Test suite
 ```
 
 ---
 
-## 3. Core Architectural Principles
+## 3. Nguyên tắc kiến trúc cốt lõi
 
-- **Spec-as-Code**: Tất cả đặc tả nằm trong Git dưới định dạng Markdown có cấu trúc để AI Agent đọc/ghi tự động.
-- **EARS Notation**: Mọi Functional Requirement trong `SPEC.md` bắt buộc viết bằng EARS (Ubiquitous, Event-driven, State-driven, Optional, Unwanted).
-- **Fix the Spec, not the Code**: Khi test thất bại, bổ sung điều kiện vào Spec trước khi re-generate code.
+- **Spec-as-Code:** Đặc tả được lưu trong Git ở Markdown có cấu trúc để con người và Agent cùng đọc/ghi.
+- **EARS Notation:** Functional Requirement trong `SPEC.md` phải dùng EARS: Ubiquitous, Event-driven, State-driven, Optional hoặc Unwanted.
+- **Fix the Spec, not the Code:** Khi test thất bại vì requirement thiếu, bổ sung Spec rồi mới thay đổi behavior.
+- **Architecture Profile Gate:** `CONTEXT.md` và `SPEC.md` có thể core-only; `PLAN.md`, `TASKS.md`, `/add-execute` và `/sdd-layer-edit` phải dừng khi thiếu binding hoặc exact verification command cần thiết.
 
 ---
 
-## 4. Engineering Conventions & Anti-Patterns
+## 4. Quy ước kỹ thuật và anti-pattern
 
-### 4.1 Conventions
-- **Naming**: File kebab-case (`order-repository.ts`), Class PascalCase (`OrderRepository`), Interface/Type PascalCase (`OrderEntity`).
-- **EARS Tagging**: Mọi function/method thực thi business rule phải có JSDoc tag `@ears SPEC.md#REQ-XXX`.
+### 4.1 Quy ước
 
-### 4.2 Anti-Patterns to Avoid
-- ❌ **Direct DB access from Controllers**: Controller chỉ gọi Usecase.
-- ❌ **Inline Magic Numbers**: Phải đưa vào constants hoặc configuration.
-- ❌ **Patching Code directly on Spec mismatch**: Phải quay lại sửa `.sdd/features/{slug}/SPEC.md` trước.
+- **Tên:** Tệp dùng kebab-case (`order-repository.ts`); class, interface và type dùng PascalCase (`OrderRepository`, `OrderEntity`).
+- **EARS tagging:** Function/method thực thi business rule phải có JSDoc `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
+- **Dependency direction:** Interface gọi usecase; usecase phụ thuộc port; infra triển khai port. Domain không phụ thuộc adapter hay third-party package.
+
+### 4.2 Anti-pattern cần tránh
+
+- Không truy cập DB trực tiếp từ controller/interface.
+- Không dùng magic number inline; đưa vào constant hoặc configuration đã approved.
+- Không vá code trực tiếp khi Spec không khớp; quay lại `.sdd/features/{slug}/SPEC.md` trước.
+- Không thêm framework, ORM, package, migration hoặc command ngoài Architecture Profile đã approved.

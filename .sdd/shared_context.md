@@ -1,4 +1,4 @@
-# MULTI-AGENT SHARED CONTEXT & API CONTRACTS
+# Multi-Agent shared context và API contract
 
 # Version: 1.0.0
 # Last-Updated: 2026-08-21 14:40 UTC
@@ -6,17 +6,20 @@
 
 ---
 
-## 1. Active Agents & Bounded Context Ownership
+## 1. Active Agent và ownership boundary
 
-| Agent Name | Role / Specialist | Ownership Boundary |
+| Tên Agent | Vai trò / chuyên môn | Ownership boundary |
 | :--- | :--- | :--- |
-| **`@lead-architect`** | Plan & Contract Governance | `.sdd/`, `CONSTITUTION.md`, `CLAUDE.md` |
-| **`@backend-agent`** | Usecase & Domain Developer | `src/domain/`, `src/usecase/` |
-| **`@infra-agent`** | DB, Redis & Integration Dev | `src/infra/`, `tests/integration/` |
-| **`@tester-agent`** | Verification & E2E Tester | `tests/unit/`, `tests/e2e/` |
+| `@lead-architect` | Governance Plan và contract | `.sdd/`, `CLAUDE.md`; sau khi template phát hành, `CONSTITUTION.md` chỉ thay đổi qua RFC đã `APPROVED` |
+| `@backend-agent` | Usecase và domain | `src/domain/`, `src/usecase/` |
+| `@infra-agent` | DB, cache và integration | `src/infra/`, `tests/integration/` |
+| `@interface-agent` | HTTP/event adapter, DTO và presenter | `src/interface/` |
+| `@tester-agent` | Verification và E2E | `tests/unit/`, `tests/e2e/` |
+
+Lead phải gửi mỗi Agent profile version, binding liên quan, evidence, exact command được phép chạy, ownership boundary và MCP profile. Agent không được thêm package, adapter, path hoặc command ngoài profile đã approved.
 
 ---
 
-## 2. Frozen API Contracts (Single Source of Truth)
+## 2. Frozen API contract
 
-*(Chưa có API contract tĩnh. Sẽ được tự động cập nhật khi chạy `/sdd-tasks` cho từng feature)*
+*(Chưa có API contract cố định. `/sdd-tasks` cập nhật phần này cho từng feature sau khi review.)*

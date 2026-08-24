@@ -1,72 +1,39 @@
 ---
 name: sdd-init
-description: Khởi tạo toàn bộ khung dự án mẫu chuẩn SDD + ADD từ đầu (Layer 1 Governance, .sdd Structure, Shared Context & Guide)
+description: Khởi tạo template SDD + ADD, Architecture Profile, governance và cấu trúc dự án
 user-invocable: true
 ---
 
-# Skill: SDD Initializer (`/sdd-init`)
+# SDD Initializer (`/sdd-init`)
 
-Sử dụng skill này khi bắt đầu một dự án mới hoàn toàn (hoặc bổ sung SDD+ADD vào dự án hiện tại) để khởi tạo tự động toàn bộ khung quản trị, thư mục đặc tả và các quy tắc chất lượng.
+Dùng khi khởi tạo dự án mới hoặc bổ sung khung SDD + ADD vào dự án hiện tại.
 
 ## Tham số
-- `--project-name=<name>`: (Tùy chọn) Tên dự án (e.g. `order-service`).
-- `--stack=<tech-stack>`: (Tùy chọn) Công nghệ sử dụng (e.g. `Node.js + TypeScript + PostgreSQL`).
 
-## Các công việc Skill thực hiện tự động (6 Bước)
+- `--project-name=<name>`: Tùy chọn; tên dự án, ví dụ `order-service`.
+- `--stack=<tech-stack>`: Tùy chọn; chỉ nêu binding đã biết, ví dụ `Node.js + TypeScript + PostgreSQL`.
 
-### 1. Khởi tạo Thư mục Cấu trúc Dự án
-Tạo các thư mục bắt buộc:
-- `.sdd/features/`
-- `.sdd/rfcs/`
-- `.claude/skills/`
-- `docs/`
-- `scripts/`
-- `src/domain/entities/`
-- `src/usecase/`
-- `src/interface/`
-- `src/infra/`
-- `src/shared/`
-- `tests/`
+## Architecture Profile
 
-### 2. Khởi tạo Layer 1 Governance Files (Tại Root)
-- **`CONSTITUTION.md`**: Tạo bản Hiến pháp dự án với 3 tầng Quality Gates (Hard Rules, Arch Constraints, Eng Standards).
-- **`AGENTS.md`**: Tạo bản Agent Constitution quy định Persona, Scope và Bảng phân quyền Tool Permissions Matrix.
-- **`CLAUDE.md`**: Tạo bộ nhớ dài hạn (Project Memory) ghi nhận Tech Stack, Clean Architecture DNA và Naming Conventions.
+`/sdd-init` phải tạo `.sdd/architecture-profile.md` và dùng profile này làm nguồn sự thật cho artifact sinh ra.
 
-### 3. Khởi tạo Tầng Đặc tả `.sdd/` (Master Registry & Shared Context)
-- **`.sdd/README.md`**: Master Feature Registry quản lý trạng thái tất cả các features.
-- **`.sdd/shared_context.md`**: Đồng bộ State và API Contracts giữa các feature.
+- Chỉ parse `--stack` thành binding được nêu explicit. `Node.js + TypeScript + PostgreSQL` không tự chọn HTTP framework, ORM, validation hoặc test command.
+- Không có `--stack` thì chỉ seed core-only baseline: TypeScript + Node.js + Clean Architecture.
+- Ghi evidence, binding chưa chọn và canonical block `PENDING HUMAN REVIEW` vào profile.
+- `/sdd-context` và `/sdd-spec` được tiếp tục với binding chưa chọn. `/sdd-plan`, `/sdd-tasks` và implementation bị block đến khi binding/command cần thiết được approved.
+- `CLAUDE.md` phản ánh architecture decision đã approved; skill đọc profile, không suy đoán từ prose.
 
-### 4. Khởi tạo Bộ Slash Commands SDD+ADD Skills (`.claude/skills/`)
-Đảm bảo dự án có đầy đủ 22 slash commands cho SDD/ADD, governance, validation và Git Operator:
-- `/sdd-init` — Initializer cho Greenfield project
-- `/sdd-adopt` — Adoption & Reverse Spec cho Brownfield project
-- `/sdd-context` — Pha 0 Context Discovery
-- `/sdd-review` — Human Final Review state manager; ghi quyết định bền vững và chuyển trạng thái artifact
-- `/sdd-spec` — Pha 1 Executable Spec (EARS + BDD + SemVer)
-- `/sdd-plan` — Pha 2 Architecture Planning
-- `/sdd-tasks` — Pha 3 Atomic Task Decomposition
-- `/add-execute` — Pha 4 & 5 Agentic Execution & Self-Check Validation
-- `/sdd-update` — Cập nhật đặc tả, nâng version SemVer (Major/Minor/Patch) & ghi Changelog
-- `/sdd-trace` — Truy vết ma trận yêu cầu (RTM) & Phân tích tác động thay đổi Spec (Impact Analysis) giúp Human kiểm tra trước khi review
-- `/sdd-lint`, `/sdd-audit`, `/sdd-sync` — Kiểm định và đồng bộ trước khi ghi nhận disposition/review
-- `/sdd-handoff`, `/sdd-resume` — Handoff và khôi phục context
-- `/sdd-rfc`, `/sdd-layer-edit`, `/sdd-claude-edit`, `/sdd-agents-edit` — Governance và chỉnh sửa có kiểm soát
-- `/git-validate`, `/git-commit`, `/git-pr` — Git delivery gates và delivery operators
+## Các bước
+
+1. Tạo `.sdd/features/`, `.sdd/reviews/`, `.sdd/rfcs/`, `.claude/skills/`, `docs/`, `scripts/`, `src/{domain,usecase,interface,infra,shared}/` và `tests/`.
+2. Khởi tạo `CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`, `.agentignore` và `.sdd/constraints/`.
+3. Khởi tạo `.sdd/README.md`, `.sdd/architecture-profile.md`, `.sdd/shared_context.md`, `.sdd/mcp-config.yaml`.
+4. Cài bộ slash command SDD/ADD, Git và technical skill từ template hiện hành.
+5. Cài `docs/sdd-add-guide.md`, `docs/architecture-profile-guide.md`, `docs/multi-agent-orchestration-guide.md` và script hỗ trợ.
+6. Hướng dẫn bắt đầu feature bằng `/sdd-context --feature=feat-001-<feature-name>`.
 
 `/sdd-review` không thay thế `/sdd-rfc --approve=<rfc-number>` khi thay đổi `CONSTITUTION.md`.
 
-### 5. Khởi tạo Document Hướng dẫn Vận hành (`docs/sdd-add-guide.md`)
-- Xuất handbook hướng dẫn lifecycle SDD + ADD, AI recommendation gates và các kịch bản vận hành cho team.
+## AI Recommendation và Human Final Review
 
-### 6. Thông báo Hoàn thành & Hướng dẫn Bước Tiếp theo
-Sau khi chạy xong, skill đưa ra hướng dẫn cho user gõ lệnh bắt đầu feature đầu tiên:
-```bash
-/sdd-context --feature=feat-001-<feature-name>
-```
-
----
-
-## AI Recommendation & Human Final Review
-
-After initialization or framework changes, generate a recommendation using `.claude/skills/_shared/ai-review-protocol.md` covering detected stack, governance assumptions, missing setup, and migration risks. Persist it in `.sdd/reviews/init.md` (or the target project's review location) with `PENDING HUMAN REVIEW`. The Human Director must approve the bootstrap/adoption scope before the first feature phase; the Agent must not claim the project is approved or self-approve.
+Sau khởi tạo hoặc thay đổi framework, tạo recommendation theo `.claude/skills/_shared/ai-review-protocol.md` gồm detected stack, governance assumption, missing setup và migration risk. Lưu tại `.sdd/reviews/init.md` với `PENDING HUMAN REVIEW`. Human Director approve bootstrap/adoption scope trước pha feature đầu tiên; Agent không self-approve hoặc tuyên bố dự án đã approved.

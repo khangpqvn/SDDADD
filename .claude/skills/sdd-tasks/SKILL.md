@@ -1,75 +1,40 @@
 ---
 name: sdd-tasks
-description: Pha 3 SDD - Phân rã Kế hoạch (.sdd/features/{feature-slug}/PLAN.md) thành Atomic Tasks (.sdd/features/{feature-slug}/TASKS.md) kèm DoD Checklist
+description: Pha 3 SDD — phân rã PLAN.md thành TASKS.md có ownership, dependency và verification command
 user-invocable: true
 ---
 
-# Skill: SDD Phase 3 — Task Decomposition (`/sdd-tasks`)
+# SDD Phase 3 — Task Decomposition (`/sdd-tasks`)
 
-Sử dụng skill này dựa trên `.sdd/features/{feature-slug}/PLAN.md` để phân rã dự án thành các atomic tasks tại `.sdd/features/{feature-slug}/TASKS.md`.
+Dùng `PLAN.md` đã approved để tạo `.sdd/features/{feature-slug}/TASKS.md`.
 
 ## Tham số
-- `--feature=<feature-slug>`: Tên định danh feature.
 
-## Quy trình thực hiện (4 Bước)
+- `--feature=<feature-slug>`: Feature identifier.
 
-1. **Phân rã Task theo Nguyên tắc 3 Nguyên tử**:
-   - **Atomic**: Không thể chia nhỏ hơn.
-   - **Independent**: Thực thi độc lập hoặc có thứ tự dependency rõ ràng.
-   - **Verifiable**: Mỗi task có test case cụ thể (Definition of Done).
+## Architecture Profile gate (BLOCKING)
 
-2. **Gắn EARS Traceability**:
-   - Trích dẫn requirement từ SPEC (`@ears SPEC.md#REQ-XXX`) hoặc `CONSTITUTION.md`.
+- Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
+- Đọc profile và `PLAN.md` đã approved trước khi sinh task.
+- Chỉ ghi exact path, package, migration, config và command có profile evidence.
+- `TASKS.md` bị block nếu thiếu test/build/lint command hoặc feature binding cần thiết. Không dùng `npm test` làm giá trị thay thế.
+- Mỗi task phải nêu architecture layer, profile binding, `@ears` reference và exact verification command.
 
-3. **Cập nhật `.sdd/shared_context.md`**:
-   - Ghi nhận API Contracts tĩnh dùng chung giữa các feature.
+## Các bước
 
-4. **Đối chiếu Checklist Definition of Done (DoD) & Xuất File**:
-   - Kiểm tra DoD Checklist bên dưới trước khi xuất file.
-   - Ghi file `.sdd/features/{feature-slug}/TASKS.md`.
+1. Phân rã task theo ba tiêu chí: Atomic, Independent và Verifiable.
+2. Gắn requirement `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` cho business behavior.
+3. Cập nhật `.sdd/shared_context.md` với API contract dùng chung, chỉ dùng syntax adapter đã approved.
+4. Ghi dependency, ownership, file boundary, command, risk và tạo recommendation.
 
----
+## DoD
 
-## 📋 CHECKPOINT CHECKLIST (Definition of Done — Pha 3)
-- [ ] Mọi task đạt nguyên tắc **Atomic** (không thể chia nhỏ hơn).
-- [ ] Mọi task đạt nguyên tắc **Independent** (hoặc khai báo rõ thứ tự phụ thuộc `blockedBy`).
-- [ ] Mọi task đạt nguyên tắc **Verifiable** (có lệnh test cụ thể để verify).
-- [ ] 100% tasks đều có JSDoc Traceability trích dẫn từ Spec (`@ears SPEC.md#REQ-XXX`).
-- [ ] Hợp đồng API dùng chung đã được đồng bộ vào `.sdd/shared_context.md`.
+- [ ] Task atomic, independent hoặc có `blockedBy`, và verifiable.
+- [ ] Task có path, layer, profile binding, requirement và command.
+- [ ] Không task nào vượt Out of Scope.
+- [ ] Shared contract đã đồng bộ khi applicable.
+- [ ] Human Final Review `APPROVED` trước `/add-execute`.
 
----
+## AI Recommendation và Human Final Review
 
-## Template `.sdd/features/{feature-slug}/TASKS.md`
-
-```markdown
-# PHASE 3: ATOMIC TASK DECOMPOSITION (TASKS.md)
-
-# Feature: [Tên Feature]
-# Status: IN_PROGRESS
-
----
-
-## Task Breakdown
-
-### Phase 3.1: Foundational Setup
-- [ ] **`T001`**: Implement Domain Entities
-  - **Files**: `src/domain/entities/...`
-  - **Verifiable**: `npm test ...` passes
-  - **Requirement**: `@ears SPEC.md#REQ-XXX`
-
-### Phase 3.2: Infrastructure Implementation
-- [ ] **`T002`**: Implement Repository / Cache
-  - **Files**: `src/infra/...`
-  - **Verifiable**: Integration tests pass
-
-### Phase 3.3: Usecase Core Logic
-- [ ] **`T003`**: Implement Usecase Workflow
-  - **Files**: `src/usecase/...`
-  - **Verifiable**: Unit tests pass 100%
-```
-
----
-
-## AI Recommendation & Human Final Review
-
-After generating or changing `TASKS.md`, persist the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md`. Include task ordering, dependencies, affected files, verification commands, and delivery risks. Keep `Human Final Review.Status: PENDING`; `/add-execute` may not start from these tasks until the Human Director records `APPROVED`. The Agent must not mark the task plan approved by itself.
+Sau khi tạo/sửa `TASKS.md`, lưu canonical recommendation gồm thứ tự task, dependency, file, verification command và delivery risk. Giữ `Human Final Review.Status: PENDING`; `/add-execute` không được bắt đầu đến khi Human Director ghi `APPROVED`. Agent không tự approve task plan.

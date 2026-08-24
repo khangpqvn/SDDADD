@@ -1,6 +1,6 @@
 ---
 name: git-pr
-description: Validate remote-first changes and create a Pull Request only after all gates pass
+description: Kiểm định thay đổi remote-first và tạo Pull Request chỉ khi mọi gate đạt
 user-invocable: true
 ---
 
@@ -10,12 +10,12 @@ Dùng để tạo Pull Request. PR luôn dùng remote diff và bắt buộc qua 
 
 ## Tham số
 
-- `--base=<branch>`: target branch; mặc định branch mặc định của `origin`.
-- `--head=<branch>`: source branch; mặc định branch hiện tại.
-- `--feature=<feature-slug>`: tùy chọn, truyền tiếp cho validator.
-- `--push`: cho phép push source branch khi user yêu cầu rõ. Không có flag này thì không push.
-- `--draft`: tạo draft PR sau khi gate PASS.
-- `--issue=<id>`: tùy chọn, liên kết issue trong body.
+- `--base=<branch>`: Target branch; mặc định là default branch của `origin`.
+- `--head=<branch>`: Source branch; mặc định branch hiện tại.
+- `--feature=<feature-slug>`: Tùy chọn, truyền tiếp cho validator.
+- `--push`: Cho phép push source branch khi user yêu cầu rõ. Không có flag thì không push.
+- `--draft`: Tạo draft PR sau khi gate `PASS`.
+- `--issue=<id>`: Tùy chọn, liên kết issue trong body.
 
 ## Quy trình remote-first
 
@@ -37,18 +37,9 @@ Dùng để tạo Pull Request. PR luôn dùng remote diff và bắt buộc qua 
    git rev-parse --verify origin/<head>
    ```
 
-3. Nếu local có commit chưa push:
-   - Không tạo PR dựa trên local-only commit.
-   - Chỉ chạy `git push -u origin <head>` nếu user đã yêu cầu `--push` hoặc nói rõ push.
-   - Sau push, fetch lại và xác nhận local `HEAD == origin/<head>`.
-4. Block các trường hợp:
-   - head là `main`, `master`, `production`, `prod`, hoặc `release/*`;
-   - detached HEAD, dirty worktree, unresolved merge/rebase/cherry-pick;
-   - thiếu remote base/head hoặc remote head chưa phản ánh local HEAD;
-   - remote diff rỗng hoặc đã có PR mở cho cùng base/head;
-   - branch có conflict với base;
-   - required checks hiện tại fail hoặc review state là `CHANGES_REQUESTED`.
-5. Phân tích đúng remote diff:
+3. Local commit chưa push: không tạo PR dựa trên local-only commit. Chỉ `git push -u origin <head>` khi user dùng `--push` hoặc yêu cầu rõ. Sau push, fetch lại và xác minh local `HEAD == origin/<head>`.
+4. Block nếu head là `main`, `master`, `production`, `prod` hoặc `release/*`; detached HEAD, dirty worktree, merge/rebase/cherry-pick chưa xử lý; remote base/head thiếu; remote diff rỗng; PR đã tồn tại; branch conflict với base; required check fail hoặc review state `CHANGES_REQUESTED`.
+5. Phân tích remote diff:
 
    ```bash
    git log --oneline origin/<base>...origin/<head>
@@ -63,32 +54,29 @@ Dùng để tạo Pull Request. PR luôn dùng remote diff và bắt buộc qua 
    /git-validate --scope=pr --base=<base> --head=<head> --feature=<feature-slug> --strict
    ```
 
-   Chỉ tiếp tục nếu gate trả `GIT VALIDATION: READY`.
-7. Tạo title/body:
-   - Title conventional, imperative, dưới 72 ký tự, không version number.
-   - Body gồm Summary, Validation evidence, Test plan, Related issue.
-   - Không thêm AI attribution.
-8. Kiểm tra PR chưa tồn tại, sau đó yêu cầu user xác nhận nội dung outward-facing nếu request chưa bao gồm đồng ý tạo PR.
-9. Chỉ sau xác nhận và `READY`, chạy:
+   Chỉ tiếp tục khi trả `GIT VALIDATION: READY`.
+7. Title/body dùng conventional format, imperative, dưới 72 ký tự, không version number hoặc AI attribution. Body gồm Summary, Validation evidence, Test plan, Related issue.
+8. Kiểm tra PR chưa tồn tại; nếu request chưa chứa approval tạo PR, yêu cầu user xác nhận nội dung outward-facing.
+9. Sau confirmation và `READY`, chạy:
 
    ```bash
    gh pr create --base <base> --head <head> --title "..." --body-file <temporary-body-file>
    ```
 
-   Dùng `--draft` khi user yêu cầu. Không merge, close, force-push hoặc bypass checks trong skill này.
+   Dùng `--draft` khi user yêu cầu. Không merge, close, force-push hoặc bypass check.
 
-## Post-create verification
+## Xác minh sau tạo
 
 ```bash
 gh pr view <pr-url-or-number> --json number,url,state,baseRefName,headRefName,statusCheckRollup
 ```
 
-Báo rõ PR URL, validation result, checks pending/failing. Pending checks không được báo là green.
+Báo PR URL, validation result và check pending/failing. Pending check không được báo là green.
 
-## Failure handling
+## Xử lý lỗi
 
-- Push rejected: dừng, đề xuất `git pull --rebase`, resolve conflicts rồi chạy lại validation.
-- Validation blocked: báo blocker + lệnh khắc phục, không tạo PR.
+- Push bị từ chối: dừng, đề xuất `git pull --rebase`, resolve conflict rồi validation lại.
+- Validation blocked: báo blocker và lệnh khắc phục, không tạo PR.
 - `gh` auth/API failure: báo lỗi, không retry vô hạn.
 - Conflict: dừng; không tự resolve hoặc force-push.
 

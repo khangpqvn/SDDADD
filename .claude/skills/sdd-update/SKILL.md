@@ -1,67 +1,29 @@
 ---
 name: sdd-update
-description: Cập nhật đặc tả Feature (.sdd/features/{slug}/SPEC.md), nâng cấp phiên bản SemVer (Major/Minor/Patch), ghi Changelog và điều hướng đồng bộ Code/Test
+description: Cập nhật SPEC.md, bump SemVer, ghi changelog và đồng bộ downstream artifact theo profile
 user-invocable: true
 ---
 
-# Skill: SDD Feature Update & Version Bump (`/sdd-update`)
+# SDD Feature Update và SemVer Bump (`/sdd-update`)
 
-Sử dụng skill này khi cần **cập nhật yêu cầu nghiệp vụ**, **khắc phục bug logic**, **bổ sung trường hợp biên** hoặc **nâng cấp phiên bản (SemVer Bump)** cho một feature đã tồn tại trong `.sdd/features/{feature-slug}/SPEC.md`.
-
-Skill đảm bảo tuân thủ triệt để triết lý **"Fix the Spec, NOT the Code"**, tự động ghi nhật ký thay đổi (`Changelog`) và kích hoạt quy trình đồng bộ lại Kế hoạch/Code/Test.
+Dùng khi cập nhật business requirement, xử lý Spec gap hoặc đổi behavior trong `.sdd/features/{feature-slug}/SPEC.md`.
 
 ## Tham số
-- `--feature=<feature-slug>`: (Bắt buộc) Tên định danh feature cần cập nhật (e.g. `feat-001-user-auth`).
-- `--bump=<major|minor|patch>`: (Bắt buộc) Mức độ nâng cấp phiên bản Semantic Versioning:
-  - `patch`: Sửa lỗi nhỏ, bổ sung điều kiện biên/xử lý lỗi, làm rõ Spec mà không thêm chức năng mới lớn (e.g. `v1.0.0` ➔ `v1.0.1`).
-  - `minor`: Bổ sung tính năng/yêu cầu EARS mới tương thích ngược, không phá vỡ hợp đồng API/DB hiện tại (e.g. `v1.0.0` ➔ `v1.1.0`).
-  - `major`: Thay đổi lớn phá vỡ hợp đồng API (Breaking Changes), đổi Data Schema cốt lõi (e.g. `v1.0.0` ➔ `v2.0.0`).
-- `--reason="<nội dung lý do>"`: (Bắt buộc) Nội dung tóm tắt lý do cập nhật Spec để ghi vào Changelog.
-- `--req="<nội dung EARS requirement>"`: (Tùy chọn) Nội dung yêu cầu EARS mới hoặc điều chỉnh.
 
----
+- `--feature=<feature-slug>`: Bắt buộc; feature cần cập nhật.
+- `--bump=<major|minor|patch>`: Bắt buộc; mức SemVer.
+- `--reason="<lý-do>"`: Bắt buộc; tóm tắt lý do trong changelog.
+- `--req="<EARS requirement>"`: Tùy chọn; requirement mới/điều chỉnh.
 
-## Các công việc Skill thực hiện tự động (5 Bước)
+## Các bước
 
-### 1. Kiểm tra Trạng thái & Đọc Spec Hiện tại
-- Đọc file `.sdd/features/{feature-slug}/SPEC.md`.
-- Trích xuất phiên bản hiện tại (e.g. `v1.0.0`), trạng thái (`APPROVED & LOCKED`) và danh sách các `REQ-XXX` đang có.
+1. Đọc Spec, version, status và `REQ-XXX` hiện có.
+2. Tính version mới: `patch` cho làm rõ/sửa tương thích, `minor` cho behavior tương thích mới, `major` cho breaking contract.
+3. Đặt `SPEC.md` thành `DRAFT`, `Human Final Review: PENDING`; không giữ lock cũ.
+4. Cập nhật EARS requirement, BDD, error, acceptance, Out of Scope và changelog.
+5. Đọc Architecture Profile. Nếu thay đổi cần transport, persistence, validation, cache, messaging hay tooling mới, tạo profile recommendation và invalidate Plan/Tasks cũ.
+6. Chỉ đề xuất execution khi binding/command cần thiết đã `APPROVED` và có evidence; binding unresolved thì dừng ở `PENDING HUMAN REVIEW`.
 
-### 2. Tính toán & Nâng cấp Phiên bản Semantic Versioning (SemVer Bump)
-Dựa trên tham số `--bump`:
-- Calculate Version mới: `v1.0.0` ➔ `v1.0.1` (`patch`) | `v1.1.0` (`minor`) | `v2.0.0` (`major`).
-- Cập nhật header file `SPEC.md`:
-  ```markdown
-  # Version: 1.0.1 (SemVer)
-  # Status: DRAFT
-  # Human Final Review: PENDING
-  # The Human Director restores APPROVED & LOCKED only after review.
-  ```
+## AI Recommendation và Human Final Review
 
-### 3. Cập nhật Yêu cầu Nghiệp vụ (EARS Notation)
-- Thêm mới hoặc chỉnh sửa các `[REQ-XXX]` trong mục `## 3. Functional Requirements`:
-  - Đảm bảo giữ đúng chuẩn cú pháp EARS (`WHEN / WHILE / WHERE / IF ... SHALL ...`).
-  - Nếu thêm `REQ` mới, tự động lấy ID tiếp theo (e.g. `REQ-012`).
-
-### 4. Ghi Nhật ký Thay đổi (Changelog Protocol)
-Tự động chèn dòng lịch sử vào mục `## 9. Revision & Changelog` ở cuối file `SPEC.md`:
-```markdown
-### v1.0.1 (2026-08-21) - [Patch Bump]
-- Author: [Human Director / Agent]
-- Reason: [Nội dung truyền từ --reason]
-- Changes:
-  - Updated REQ-003: Reduced OTP expiration time from 5 mins to 2 mins.
-  - Added REQ-012: Added Rate Limit 3 attempts per minute for OTP resend.
-```
-
-### 5. Cập nhật Registry & Khởi động Đồng bộ Downstream (Re-sync Protocol)
-- Cập nhật phiên bản mới của feature vào Master Registry `.sdd/README.md`.
-- Xuất hướng dẫn và tự động đề xuất lệnh thực thi tiếp theo:
-  - Nếu `patch`: Chạy ngay `/add-execute --feature={<feature-slug>}` để Agent cập nhật Code và Test cases.
-  - Nếu `minor` hoặc `major`: Chạy `/sdd-tasks --feature={<feature-slug>}` để phân rã thêm Tasks mới, sau đó chạy `/add-execute --feature={<feature-slug>}`.
-
----
-
-## AI Recommendation & Human Final Review
-
-After proposing or applying a Spec update, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` covering the requested change, SemVer impact, affected requirements, migration risk, and downstream files. Persist it in `SPEC.md` and keep `Human Final Review.Status: PENDING`; `/add-execute` or a new task breakdown is blocked until the Human Director approves. Any later edit invalidates the prior review. The Agent must not self-approve a changed contract.
+Sau khi đề xuất hoặc áp dụng Spec update, lưu canonical recommendation trong `SPEC.md`, gồm thay đổi, SemVer impact, requirement bị ảnh hưởng, migration risk và downstream file. `/add-execute` hoặc task breakdown mới bị block đến khi Human Director approve. Mọi sửa tiếp theo làm review cũ mất hiệu lực; Agent không self-approve changed contract.

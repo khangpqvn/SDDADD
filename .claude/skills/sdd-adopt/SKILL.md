@@ -1,53 +1,37 @@
 ---
 name: sdd-adopt
-description: Tự động phân tích dự án có sẵn (Brownfield/Existing Repo) và tích hợp khung SDD+ADD mà không làm ảnh hưởng tới code hiện tại
+description: Khảo sát repository có sẵn, tạo Architecture Profile và tích hợp SDD + ADD không làm thay đổi source hiện có
 user-invocable: true
 ---
 
-# Skill: SDD Legacy Project Adoption (`/sdd-adopt`)
+# SDD Brownfield Adoption (`/sdd-adopt`)
 
-Sử dụng skill này khi muốn áp dụng phương pháp luận **SDD + ADD** vào một **Repository đã có sẵn nguồn mã (Existing / Brownfield Codebase)**. Skill sẽ tự động phân tích kiến trúc hiện tại, trích xuất Architecture DNA và thiết lập bộ khung quản trị SDD phù hợp với dự án.
+Dùng để áp dụng SDD + ADD vào repository có source code sẵn hoặc tạo Reverse Spec cho module legacy.
 
 ## Tham số
-- `--stack=<tech-stack>`: (Tùy chọn) Khai báo nhanh Tech Stack chính nếu có (e.g. `NestJS + PostgreSQL + Prisma`).
-- `--reverse-feature=<feature-slug>`: (Tùy chọn) Tên feature muốn đảo ngược đặc tả (Reverse-engineer Spec) từ một thư mục code có sẵn.
-- `--path=<module-path>`: (Tùy chọn) Thư mục nguồn của module cần đảo ngược Spec (e.g. `src/modules/auth`).
 
----
+- `--stack=<tech-stack>`: Tùy chọn; stack đã biết, ví dụ `NestJS + PostgreSQL + Prisma`.
+- `--reverse-feature=<feature-slug>`: Tùy chọn; feature cần Reverse Spec.
+- `--path=<module-path>`: Tùy chọn; path module nguồn, ví dụ `src/modules/auth`.
 
-## Các công việc Skill thực hiện tự động (5 Bước)
+## Các bước
 
-### 1. Phân tích & Trích xuất Kiến trúc Hiện tại (Codebase Scouting & Reverse Engineering)
-- Scan toàn bộ thư mục root và các file cấu hình (`package.json`, `docker-compose.yml`, `tsconfig.json`, `go.mod`, `requirements.txt`, `pom.xml`, etc.).
-- Nhận diện Tech Stack, Framework, Database, ORM, Test Framework và Naming Conventions đang dùng trong dự án.
-- Xác định cấu trúc thư mục hiện tại (ví dụ: MVC, Modular Monolith, Microservices, Hexagonal...).
+1. Kiểm tra root, manifest, lockfile, runtime/bootstrap config, DB/migration config, CI, test config và source layout.
+2. Tạo/cập nhật `.sdd/architecture-profile.md`; mỗi runtime, framework, DB, ORM, validation, test/build/lint command phải có evidence, confidence, conflict và `PENDING HUMAN REVIEW`.
+3. Resolve binding theo thứ tự: profile approved → repository evidence rõ ràng → `--stack` explicit → core-only baseline. Mâu thuẫn thì dừng; không ghi đè profile approved.
+4. Đồng bộ `CLAUDE.md` từ profile approved; `AGENTS.md` phải giới hạn path/tool phù hợp repository; `CONSTITUTION.md` chỉ thay đổi qua RFC process.
+5. Khởi tạo `.sdd/`, architecture protocol và toàn bộ slash command hiện hành.
 
-### 2. Tự động Tạo Layer 1 Governance Files Phù hợp với Dự án
-- **`CLAUDE.md`**: Ghi nhận Architecture DNA đảo ngược từ codebase hiện tại, bao gồm Tech Stack, Cấu trúc thư mục thực tế, Conventions và Run/Test Commands đang dùng.
-- **`AGENTS.md`**: Định nghĩa Persona và Tool Permissions phù hợp với codebase (giới hạn Agent chỉ sửa đổi các module được phép, bảo vệ các file config nhạy cảm của dự án).
-- **`CONSTITUTION.md`**: Thiết lập 3 tầng Quality Gates thích ứng với codebase hiện tại (Sec, Arch, Eng Rules).
+## Reverse Spec
 
-### 3. Tự động Khởi tạo Hạ tầng `.sdd/` & Skills
-- Tạo cấu trúc thư mục `.sdd/`, `.sdd/features/`, `.sdd/rfcs/`.
-- Tạo `.sdd/README.md` (Master Feature Registry) và `.sdd/shared_context.md`.
-- Copy/Cập nhật đầy đủ bộ 21 Slash Commands vào `.claude/skills/`, gồm các skill SDD/ADD, governance, validation và Git Operator hiện hành.
+Khi có `--reverse-feature` và `--path`:
 
-### 4. Đảo ngược Đặc tả cho Module có sẵn (Reverse Spec — Tùy chọn)
-Nếu truyền `--reverse-feature=<slug>` và `--path=<module-path>`:
-- Agent sẽ đọc source code và tests trong `<module-path>`.
-- Trích xuất các Business Rules hiện có và tạo lại bộ 4 file SDD trong `.sdd/features/{slug}/`:
-  - `CONTEXT.md`: Tóm tắt bài toán module hiện tại đang giải quyết.
-  - `SPEC.md`: Viết lại toàn bộ Functional Requirements hiện có bằng **EARS Notation** và gán phiên bản `v1.0.0 (DRAFT)` để Human Director/Tech Lead review.
-  - `PLAN.md` & `TASKS.md`: Ghi nhận code hiện tại làm baseline quan sát được; không tự đánh dấu `COMPLETED` trước Human Final Review.
-- Gắn JSDoc tag `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` vào các function nghiệp vụ hiện có để đảm bảo tính truy vết 100%.
+- Đọc source/test trong module.
+- Tạo `CONTEXT.md`, `SPEC.md`, `PLAN.md`, `TASKS.md` quan sát behavior hiện tại.
+- `SPEC.md` dùng EARS, bắt đầu `DRAFT`; `PLAN.md`/`TASKS.md` không tự thành `COMPLETED`.
+- Chỉ thêm `@ears` vào source sau scope approval và khi binding liên quan đã approved.
+- Reverse Spec mô tả behavior quan sát được, không chứng minh business behavior đúng.
 
-### 5. Thông báo Hoàn thành & Hướng dẫn Tiếp theo
-Skill xuất báo cáo chi tiết kết quả tích hợp và hướng dẫn:
-- Cách dùng SDD+ADD cho các tính năng mới sắp tới (`/sdd-context --feature=feat-new`).
-- Cách đảo ngược Spec cho các module cũ còn lại khi cần refactor (`/sdd-adopt --reverse-feature=<slug> --path=<path>`).
+## AI Recommendation và Human Final Review
 
----
-
-## AI Recommendation & Human Final Review
-
-After adoption or reverse Spec, generate a recommendation using `.claude/skills/_shared/ai-review-protocol.md` covering detected architecture, governance assumptions, migration risks, reverse-Spec confidence, and alternatives. Persist it in `.sdd/reviews/adopt-<slug>.md` or the target project's review location with `PENDING HUMAN REVIEW`. The Human Director/Tech Lead must approve the adoption scope before downstream feature work; the Agent must not self-approve or claim legacy behavior is business-approved.
+Sau adoption hoặc Reverse Spec, tạo recommendation theo `.claude/skills/_shared/ai-review-protocol.md` gồm kiến trúc phát hiện, governance assumption, migration risk, độ tin cậy Reverse Spec và alternative. Lưu tại `.sdd/reviews/adopt-<slug>.md` với `PENDING HUMAN REVIEW`. Human Director/Tech Lead approve scope trước downstream work; Agent không self-approve hoặc coi legacy behavior là business-approved.

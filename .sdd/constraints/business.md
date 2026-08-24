@@ -1,64 +1,61 @@
-# CONSTRAINT LAYER 2: BUSINESS RULES
+# Constraint Layer 2: Quy tắc nghiệp vụ
 # Version: 1.0.0
-# Scope: All agents handling business logic — domain, usecase layers
-# Reference: Slide 10.4 — 3-Layer Constraint Hierarchy
+# Phạm vi: Agent xử lý business logic — domain và usecase layer
+# Tham chiếu: Slide 10.4 — 3-Layer Constraint Hierarchy
 
 ---
 
-## 1. Authentication Rules
+## 1. Authentication và authorization
 
-- **JWT expiry**: Access token 15 phút, Refresh token 7 ngày
-- **Token rotation**: Refresh token phải được rotate sau mỗi lần dùng (invalidate old)
-- **Failed login throttle**: Khóa tài khoản sau 5 lần thất bại liên tiếp trong 15 phút
-- **Scope validation**: Mọi endpoint MUST kiểm tra JWT scope/role trước khi xử lý business logic
-- **Session revocation**: Logout phải invalidate token trên Redis blacklist (không chỉ client-side delete)
+Các quy tắc dưới đây chỉ áp dụng khi feature và Architecture Profile đã chọn authentication/authorization adapter:
 
----
-
-## 2. PII Masking Rules
-
-Các trường dữ liệu sau PHẢI được mask trong application logs và error responses:
-
-| Field Type      | Mask Pattern               | Example                       |
-| :-------------- | :------------------------- | :---------------------------- |
-| Email           | `usr_***@domain.com`       | `usr_***@gmail.com`           |
-| Phone           | `***-***-1234`             | `***-***-5678`                |
-| Credit Card     | `****-****-****-1234`      | `****-****-****-5678`         |
-| Password        | `[REDACTED]`               | —                             |
-| JWT Token       | `[TOKEN]`                  | —                             |
-| API Key         | `sk-***...{last4}`         | `sk-***...abcd`               |
-
-**Rule**: Logger middleware MUST sanitize request body/headers trước khi ghi log. Không dùng `JSON.stringify(req.body)` raw.
+- Mọi action thay đổi trạng thái phải xác thực identity và kiểm tra authorization trong usecase hoặc policy boundary.
+- Token expiry, token rotation, failed-login throttle, session revocation và scope/role policy phải được xác định trong `SPEC.md` hoặc binding đã approved; không tự áp thời lượng, package hoặc storage cụ thể.
+- Interface adapter chuyển identity đã xác thực vào usecase; controller không tự thực thi business authorization.
 
 ---
 
-## 3. Rate Limiting
+## 2. PII masking
 
-| Endpoint Category    | Limit              | Window   | Action on Exceed     |
-| :------------------- | :----------------- | :------- | :------------------- |
-| Auth (login/signup)  | 10 req             | 1 phút   | 429 + lockout        |
-| Public API           | 100 req            | 1 phút   | 429 + retry-after    |
-| Authenticated API    | 500 req            | 1 phút   | 429 + log            |
-| Admin API            | 200 req            | 1 phút   | 429 + alert          |
-| File Upload          | 10 req             | 1 giờ    | 429                  |
+PII phải được mask trong application log và error response:
 
-- Implement via Redis sliding window counter (không dùng in-memory — lost on restart)
-- Rate limit key: `{ip}:{endpoint}` hoặc `{userId}:{endpoint}` cho authenticated users
+| Loại dữ liệu | Mẫu mask | Ví dụ |
+| :--- | :--- | :--- |
+| Email | `usr_***@domain.com` | `usr_***@gmail.com` |
+| Số điện thoại | `***-***-1234` | `***-***-5678` |
+| Thẻ thanh toán | `****-****-****-1234` | `****-****-****-5678` |
+| Password | `[REDACTED]` | — |
+| JWT token | `[TOKEN]` | — |
+| API key | `sk-***...{last4}` | `sk-***...abcd` |
 
----
-
-## 4. Soft Delete Rules
-
-- **Mandatory**: Tất cả core business entities (User, Order, Product, etc.) MUST có `deleted_at TIMESTAMP NULL`
-- **Query filter**: Mọi repository query PHẢI tự động filter `WHERE deleted_at IS NULL` (default scope)
-- **Hard delete**: Chỉ được phép cho non-business data (logs, temp files, audit trails cũ > 7 năm)
-- **Cascade**: Soft delete parent entity KHÔNG tự động soft delete children — xử lý explicit từng entity
+Logger/sanitization adapter phải sanitize request body và header trước khi ghi log. Không dùng `JSON.stringify(req.body)` nguyên trạng.
 
 ---
 
-## 5. Business Logic Constraints
+## 3. Rate limiting
 
-- **Idempotency**: Mọi mutation endpoint (POST, PUT, PATCH) phải hỗ trợ `Idempotency-Key` header
-- **Optimistic Locking**: Entities có concurrent update risk PHẢI dùng `version` column (+ retry logic)
-- **Currency**: Tất cả giá trị tiền tệ lưu dạng integer cents/đồng — KHÔNG dùng float
-- **Timezone**: Tất cả timestamps lưu UTC trong DB — convert sang local chỉ ở presentation layer
+Khi feature cần rate limiting, `SPEC.md` phải xác định endpoint/action, limit, time window, key và behavior khi vượt ngưỡng. Chỉ chọn storage/algorithm sau khi cache hoặc persistence binding được approved.
+
+- Không dựa vào in-memory state cho policy cần tồn tại qua restart, trừ khi Spec chấp thuận rõ ràng.
+- Key phải giới hạn theo identity hoặc nguồn request phù hợp với abuse model đã mô tả trong Spec.
+- Response khi vượt limit phải dùng error contract đã approved.
+
+---
+
+## 4. Bảo vệ vòng đời dữ liệu
+
+Khi feature dùng persistence đã approved:
+
+- Core business data phải có retention, recovery, authorization và deletion policy theo `CONSTITUTION.md` DATA-01.
+- Soft-delete policy chỉ dùng khi `SPEC.md`, database/ORM binding và review đã xác định field representation cùng query behavior.
+- Hard delete chỉ dùng cho dữ liệu được Spec và safety review cho phép.
+- Cascade behavior phải explicit; không tự suy đoán từ ORM hoặc DB default.
+
+---
+
+## 5. Business logic chung
+
+- Mutation phải xét idempotency khi duplicate request có thể gây sai dữ liệu; behavior nằm trong `SPEC.md`.
+- Concurrent update phải có concurrency policy được Spec nêu rõ.
+- Giá trị tiền tệ không dùng floating-point; chọn unit nguyên trong contract.
+- Timestamp lưu theo UTC; chỉ chuyển đổi presentation khi cần.

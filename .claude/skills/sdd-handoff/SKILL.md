@@ -1,43 +1,33 @@
 ---
 name: sdd-handoff
-description: Lưu trạng thái phiên làm việc dở dang, cập nhật TASKS.md và tạo Handoff Report cho phiên tiếp theo
+description: Lưu trạng thái feature dở dang, cập nhật TASKS.md và tạo handoff report cho phiên sau
 user-invocable: true
 ---
 
-# Skill: SDD Handoff (`/sdd-handoff`)
+# SDD Handoff (`/sdd-handoff`)
 
-Sử dụng skill này khi cần kết thúc phiên làm việc dở dang. Skill sẽ tự động tổng hợp tiến độ, đóng bằng trạng thái công việc và tạo báo cáo Handoff cho phiên tiếp theo.
+Dùng trước khi kết thúc phiên có feature chưa hoàn thành. Skill tổng hợp tiến độ, lưu điểm dừng và tạo handoff report cho phiên tiếp theo.
 
 ## Tham số
-- `--feature=<feature-slug>`: (Tùy chọn) Feature slug đang thực hiện (e.g., `feat-001-order-checkout`). Nếu không truyền, skill sẽ tự động quét feature đang active trong `.sdd/features/`.
 
-## Các bước thực hiện (4 Bước)
+- `--feature=<feature-slug>`: Tùy chọn; feature đang thực hiện, ví dụ `feat-001-order-checkout`. Không truyền thì quét feature active trong `.sdd/features/`.
 
-1. **Quét & Cập nhật Trạng thái Tasks**:
-   - Mở file `.sdd/features/{feature-slug}/TASKS.md`.
-   - Đánh dấu chính xác trạng thái từng Task:
-     - `[x]` : Task đã hoàn thành và đã pass test.
-     - `[/]` : Task đang thực hiện dở dang.
-     - `[ ]` : Task chưa thực hiện.
+## Quy trình
 
-2. **Ghi nhận Ngữ cảnh dở dang (In-Progress Context)**:
-   - Liệt kê các file vừa chỉnh sửa trong phiên (`src/`, `tests/`).
-   - Ghi nhận hàm/method đang viết dở và kết quả test mới nhất.
-   - Ghi nhận các rào cản, câu hỏi mở hoặc blocker (nếu có).
+1. Mở `.sdd/features/{feature-slug}/TASKS.md` và ghi đúng task status:
+   - `[x]`: Hoàn thành; required exact verification command đã pass, hoặc `N/A` với lý do hợp lệ.
+   - `[/]`: Đang thực hiện.
+   - `[ ]`: Chưa thực hiện.
+2. Ghi file vừa sửa, profile version, binding/evidence, exact command đã chạy/kết quả, method đang dở, blocker và open question.
+3. Thêm/cập nhật `## Current Handoff State` cuối `TASKS.md`.
+4. Xuất tóm tắt và hướng dẫn phiên sau:
 
-3. **Cập nhật `.sdd/features/{feature-slug}/TASKS.md`**:
-   - Thêm phần `## Current Handoff State` vào cuối file `TASKS.md` chứa thông tin tóm tắt điểm dừng.
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
+   ```
 
-4. **Báo cáo Handoff & Lệnh Resume**:
-   - Xuất tóm tắt trạng thái phiên ra terminal.
-   - Hiển thị hướng dẫn khởi động phiên tiếp theo:
-     ```powershell
-     powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
-     ```
-     Sau đó gõ `/sdd-resume --feature={feature-slug}`.
+   Sau đó dùng `/sdd-resume --feature={feature-slug}`.
 
----
+## AI Recommendation và Human Final Review
 
-## AI Recommendation & Human Final Review
-
-Before ending a session, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with the next task, evidence gaps, blockers, open questions, and resume command. Persist it in `TASKS.md` or a repository-level `.sdd/reviews/handoff-<slug>.md` with `PENDING HUMAN REVIEW`. The Human Director confirms the resume scope before execution; the Agent must not mark handoff complete or approve the next action by itself.
+Trước khi kết thúc phiên, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm task tiếp theo, evidence gap, blocker, open question và resume command. Lưu trong `TASKS.md` hoặc `.sdd/reviews/handoff-<slug>.md` với `PENDING HUMAN REVIEW`. Human Director xác nhận resume scope trước execution; Agent không tự đánh dấu handoff hoàn tất hoặc approve hành động tiếp theo.

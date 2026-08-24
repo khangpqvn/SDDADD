@@ -1,87 +1,83 @@
 ---
 name: add-execute
-description: Pha 4 & 5 ADD - Thực thi Code cho Task (.sdd/features/{feature-slug}/TASKS.md) kèm Self-Check CONSTITUTION.md, DoD Validation & nguyên tắc Fix the Spec
+description: Pha 4–5 ADD — thực thi task theo Architecture Profile, governance và verification command đã approved
 user-invocable: true
 ---
 
-# Skill: ADD Phase 4 & 5 — Agentic Execution & Validation (`/add-execute`)
+# ADD Phase 4–5 — Agentic Execution và Validation (`/add-execute`)
 
-Sử dụng skill này để AI Agent đọc Task từ `.sdd/features/{feature-slug}/TASKS.md`, thực thi sinh Code, tự chạy Self-Check theo `CONSTITUTION.md` và tuân thủ nguyên tắc **Fix the Spec, not the Code**.
+Dùng để thực thi task trong `.sdd/features/{feature-slug}/TASKS.md`, theo **Fix the Spec, not the Code**, `CONSTITUTION.md` và Architecture Profile.
 
 ## Tham số
-- `--feature=<feature-slug>`: Tên định danh feature.
-- `--task=<task-id>`: (Tùy chọn) Mã Task cụ thể cần thực hiện (ví dụ: `T001`).
 
-## Quy trình thực hiện (6 Bước)
+- `--feature=<feature-slug>`: Feature identifier.
+- `--task=<task-id>`: Tùy chọn; task cụ thể, ví dụ `T001`.
 
-1. **Đọc Ngữ cảnh & Cấu hình Agent**:
-   - Đọc `AGENTS.md` (Persona, Scope, Tool Permissions) và `CONSTITUTION.md` (Hard Rules).
-   - Đọc `.sdd/constraints/global.md`, `.sdd/constraints/business.md`, `.sdd/constraints/safety.md`.
-   - Đọc Task cần làm trong `.sdd/features/{feature-slug}/TASKS.md`.
+## Architecture Profile gate (BLOCKING)
 
-2. **SHADOW PLAN — Xuất kế hoạch trước khi thực thi** *(Slide 10.6.1)*:
-   Trước mỗi task, Agent BẮT BUỘC xuất Shadow Plan theo format sau và CHỜ xác nhận:
+1. Đọc `AGENTS.md`, `CONSTITUTION.md`, `CLAUDE.md`, Architecture Profile, constraints, `CONTEXT.md`, `SPEC.md`, `PLAN.md`, `TASKS.md` và review block liên quan.
+2. Xác minh profile binding bằng manifest/config/source evidence; mọi prerequisite review phải `APPROVED` cùng decision, reviewer và timestamp.
+3. Chỉ tạo/sửa adapter, package usage, migration, config, command và test đã có trong profile/Plan/Tasks approved.
+4. Task cần HTTP, persistence, validation, cache, messaging hoặc test/build/lint command chưa selected/evidenced thì dừng, lưu `PENDING HUMAN REVIEW`; không sinh adapter code hoặc chạy placeholder command.
+5. Profile/evidence mâu thuẫn hoặc task lệch Shadow Plan thì dừng, nêu conflict và yêu cầu Human Director quyết định.
 
-   ```
-   ╔══════════════════════════════════════════════════════╗
-   ║  SHADOW PLAN — Task {T00X}: {Task Title}             ║
-   ╠══════════════════════════════════════════════════════╣
-   ║  📖 FILES TO READ:                                   ║
-   ║    - {file-path-1}  (lý do đọc)                     ║
-   ║    - {file-path-2}  (lý do đọc)                     ║
-   ║                                                      ║
-   ║  ✏️  FILES TO CREATE:                                ║
-   ║    - {new-file-path}  (mục đích)                    ║
-   ║                                                      ║
-   ║  🔧 FILES TO MODIFY:                                 ║
-   ║    - {existing-file}  (thay đổi gì)                 ║
-   ║                                                      ║
-   ║  ⚡ COMMANDS TO RUN:                                  ║
-   ║    1. npm test -- --testPathPattern={spec}           ║
-   ║    2. npm run lint                                   ║
-   ║                                                      ║
-   ║  ⚠️  RISKS:                                          ║
-   ║    - {risk-1 nếu có}                                 ║
-   ╚══════════════════════════════════════════════════════╝
-   Proceed? [Human confirms before Agent executes]
-   ```
+## Quy trình
 
-   - Shadow Plan giúp Human Director kiểm soát rủi ro và tiết kiệm tokens bằng cách phát hiện sai sớm.
-   - Nếu scope thay đổi so với Shadow Plan trong khi thực thi, dừng và xuất Shadow Plan mới.
+### 1. Shadow Plan bắt buộc
 
-3. **Lập Kế hoạch Thực thi (Plan-Act-Check)**:
-   - Liệt kê các file sẽ tạo/sửa.
-   - Viết code tuân thủ Clean Architecture (`CLAUDE.md`) và thêm JSDoc tag `@ears SPEC.md#REQ-XXX`.
+Trước mỗi task, xuất Shadow Plan và chờ Human Director xác nhận execution scope:
 
-4. **Chạy AI Agent Self-Check Protocol**:
-   - Đối chiếu output với `CONSTITUTION.md` và `.sdd/constraints/`:
+```text
+SHADOW PLAN — Task {T00X}: {Task title}
 
-     - [ ] Zero hardcoded secrets? (`SEC-01`)
-     - [ ] Có Auth & Idempotency Check? (`SEC-02`, `DATA-02`)
-     - [ ] Có Soft-delete? (`DATA-01`)
-     - [ ] Đã gắn tag `@ears` vào JSDoc? (`ENG-01`)
+ARCHITECTURE PROFILE
+- Version/status: {approved profile version/status}
+- Bindings: {only relevant approved bindings}
+- Evidence: {manifest/config/human decision}
 
-5. **Kiểm thử & Verification Gate (Chạy DoD Checklist)**:
-   - Chạy lệnh test kiểm thử: `npm test` hoặc `npm run test:e2e`.
-   - Kiểm tra DoD Checklist bên dưới.
+FILES TO READ
+- {path}: {reason}
 
-6. **Xử lý Thất bại theo Nguyên tắc "Fix the Spec, NOT the Code"**:
-   - Nếu Test FAIL do thiếu thông tin nghiệp vụ hoặc trường hợp biên:
-     1. **KHÔNG** vá code trực tiếp.
-     2. Đưa đề xuất cập nhật file `.sdd/features/{feature-slug}/SPEC.md` và bump patch version spec.
-     3. Sau khi Spec mới được duyệt ➔ Re-generate Code từ Spec mới.
+FILES TO CREATE/MODIFY
+- {path}: {purpose/change}
 
----
+APPROVED COMMANDS
+1. {exact approved test command}
+2. {exact approved lint/typecheck/build or N/A reason}
 
-## 📋 CHECKPOINT CHECKLIST (Definition of Done — Pha 4 & 5)
-- [ ] 100% Unit Tests & Integration Tests báo GREEN.
-- [ ] Tỷ lệ khớp Code ↔ Spec đạt 100% (Accretion drift = 0).
-- [ ] Tất cả các lỗi phát hiện khi test đều được xử lý theo nguyên tắc **Fix the Spec, NOT the Code**.
-- [ ] AI Agent Self-Check Protocol hoàn thành 100% không vi phạm `CONSTITUTION.md`.
-- [ ] Commit message trích dẫn rõ phiên bản Spec: `feat(scope): message per spec/feature/{slug}/v1.0.0`.
+RISKS
+- {risk and mitigation}
+```
 
----
+Không tự nối test filter/option theo framework khi profile không có feature-scoped command. Yêu cầu Human Director approve command hoặc dùng exact approved general command nếu scope cho phép.
 
-## AI Recommendation & Human Final Review
+### 2. Thực thi theo boundary đã approved
 
-Before execution, read the persisted review blocks and generate a recommendation covering implementation approach, impacted files, self-check evidence, test evidence, and any Spec gap. Persist it in the feature artifact or `.sdd/reviews/<review-slug>.md` with `PENDING HUMAN REVIEW`. Do not execute when the required Context, Spec, Plan, or Tasks review is not `APPROVED`; after execution, generate a completion recommendation. The Human Director reviews the result and decides `APPROVED`, `REVISE`, or `REJECTED`; the Agent cannot mark execution complete on its own.
+- Domain: TypeScript thuần, không external dependency hoặc adapter import.
+- Usecase: business workflow và port; mọi business method có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
+- Interface: chỉ dùng approved transport/validation/authentication adapter; chỉ gọi usecase.
+- Infrastructure: chỉ dùng approved DB/ORM/cache/external adapter; tuân thủ `DATA-01`, `SEC-01`.
+- Shared: error, logging và security utility bám binding approved.
+
+### 3. Self-check và verification
+
+- [ ] Không hardcode secret (`SEC-01`).
+- [ ] Feature cần access control có identity, authorization ownership và unauthorized behavior khớp Spec (`SEC-02`).
+- [ ] Feature đổi core business data có retention, recovery, authorization, audit và deletion policy khớp Spec; soft-delete chỉ dùng khi binding/review đã xác định (`DATA-01`).
+- [ ] Dependency direction khớp `ARCH-01`; async/reliability behavior khớp `ARCH-02`.
+- [ ] Business method có `@ears`; error contract không leak sensitive detail và HTTP mapping, nếu có, khớp `ENG-02`.
+- [ ] Chỉ chạy exact approved verification command đã nêu trong Task/Shadow Plan hoặc ghi `N/A` với lý do hợp lệ (`ENG-03`).
+
+Command thiếu, không tồn tại hoặc profile mismatch là blocker. Không thay bằng `npm`, `pnpm`, `yarn` hoặc command suy đoán.
+
+### 4. Test failure và Spec gap
+
+Nếu test fail do requirement mơ hồ/thiếu edge case:
+
+1. Không vá behavior trực tiếp.
+2. Đề xuất cập nhật `SPEC.md` và SemVer phù hợp.
+3. Chờ Human review Spec; regenerate Plan/Tasks nếu bị ảnh hưởng rồi mới execution lại.
+
+## AI Recommendation và Human Final Review
+
+Trước execution, lưu canonical recommendation với profile evidence, approach, file, exact command, risk và Spec gap. Human Director phải ghi `APPROVED` trước edit. Sau execution, tạo completion recommendation; Agent không tự complete, commit hoặc push.

@@ -1,41 +1,35 @@
 ---
 name: sdd-layer-edit
-description: Chỉnh sửa đồng bộ mã nguồn qua 4 tầng kiến trúc (Domain, Usecase, Interface, Infra) đảm bảo đúng ranh giới ARCH-01 và EARS Tagging
+description: Chỉnh sửa luồng nghiệp vụ xuyên Domain, Usecase, Interface và Infra theo Architecture Profile
 user-invocable: true
 ---
 
-# Skill: SDD Cross-Layer Editor (`/sdd-layer-edit`)
+# SDD Cross-Layer Editor (`/sdd-layer-edit`)
 
-Sử dụng skill này khi cần thêm mới hoặc thay đổi một luồng nghiệp vụ đi xuyên qua 4 tầng Clean Architecture (`domain` ➔ `usecase` ➔ `interface` ➔ `infra`) mà không vi phạm quy tắc ranh giới kiến trúc.
+Dùng để thêm hoặc thay đổi business flow xuyên Clean Architecture, giữ contract: interface gọi usecase; usecase phụ thuộc domain và port; infra triển khai port.
+
+## Architecture Profile gate (BLOCKING)
+
+Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
+
+- Đọc profile, constraint, feature `SPEC.md`, `PLAN.md`, `TASKS.md` và review block trước thay đổi.
+- Domain/usecase có thể được plan bằng core-only TypeScript. Interface/infra chỉ sinh/sửa adapter khi HTTP framework, validation, database hoặc ORM/query layer tương ứng đã selected, evidenced và `APPROVED`.
+- Thiếu binding, exact test/build/lint command hoặc Human Final Review: dừng, lưu `PENDING HUMAN REVIEW`. Không sinh controller, repository, migration, DTO decorator, cache client hoặc command suy đoán.
+- Xuất Shadow Plan gồm profile evidence, file scope, exact command và risk; chờ Human Director `APPROVED` trước edit.
 
 ## Tham số
-- `--feature=<feature-slug>`: Feature slug chứa Spec tương ứng.
-- `--action=<add|modify|refactor>`: Hành động thay đổi (Thêm mới, sửa đổi hoặc refactor).
-- `--target=<name>`: Tên UseCase hoặc Entity mục tiêu (e.g., `CreateOrder`).
 
-## Quy trình Thực hiện (4 Tầng)
+- `--feature=<feature-slug>`: Feature chứa Spec tương ứng.
+- `--action=<add|modify|refactor>`: Loại thay đổi.
+- `--target=<name>`: Usecase hoặc Entity mục tiêu, ví dụ `CreateOrder`.
 
-### 1. Tầng Domain (`src/domain/`):
-- Thêm/Sửa Entity, Value Object hoặc Domain Event.
-- **Ràng buộc cứng**: Pure TypeScript, tuyệt đối KHÔNG import thư viện 3rd party hay bất kỳ layer nào khác.
+## Layer boundary
 
-### 2. Tầng Usecase (`src/usecase/`):
-- Thêm/Sửa Interactor / Application Service.
-- Định nghĩa Port Interface cho Repository và External Services.
-- **Bắt buộc**: Gắn JSDoc tag `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` cho mọi method nghiệp vụ.
+1. **Domain (`src/domain/`)**: Entity, Value Object hoặc Domain Event thuần TypeScript; không import third-party package hoặc adapter.
+2. **Usecase (`src/usecase/`)**: Interactor/Application Service và port cho repository/external service; business method có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
+3. **Interface (`src/interface/`)**: Chỉ dùng transport, validation, authentication adapter đã approved; chỉ gọi usecase, không gọi DB/repository trực tiếp.
+4. **Infra (`src/infra/`)**: Triển khai port bằng DB/cache/external client đã approved; cấm hardcode API key/password, raw `DELETE` không `WHERE` và thao tác trái safety constraint.
 
-### 3. Tầng Interface (`src/interface/`):
-- Thêm/Sửa HTTP Controller, Event Consumer, Presenter & DTO Schema validation.
-- **Bắt buộc**: Bọc Authentication Middleware cho các route thay đổi trạng thái (`SEC-02`).
-- **Cấm**: KHÔNG được import hoặc gọi trực tiếp DB Repository. Chỉ gọi Usecase Interactor.
+## AI Recommendation và Human Final Review
 
-### 4. Tầng Infra (`src/infra/`):
-- Thêm/Sửa DB Repository implementation, Redis Cache Adapter, External Client.
-- **Bắt buộc**: Sử dụng Soft-Delete (`deleted_at TIMESTAMP`) cho lệnh xóa (`DATA-01`). KHÔNG dùng `DELETE FROM`.
-- **Bắt buộc**: Không hardcode API Key hay Password (`SEC-01`).
-
----
-
-## AI Recommendation & Human Final Review
-
-Before editing any layer, generate a recommendation using `.claude/skills/_shared/ai-review-protocol.md` covering affected requirements, layer boundaries, files, risks, alternatives, and verification. Persist it in the feature review/artifact and keep `Human Final Review.Status: PENDING`. The Human Director must approve the implementation scope before edits; after edits, refresh the recommendation and do not self-approve.
+Trước edit, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm requirement, boundary, file, risk, alternative và verification. Lưu trong feature artifact/review với `Human Final Review.Status: PENDING`. Human Director phải `APPROVED` execution scope; sau edit refresh recommendation và không tự approve.

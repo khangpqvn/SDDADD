@@ -38,7 +38,7 @@ ADD dùng AI Agent làm executor dưới sự chỉ đạo của con người:
 - **Developer / QA** kiểm tra code, test, khả năng vận hành và bằng chứng thực tế.
 - **Agent** đọc artifact, phân tích, đề xuất, thực thi trong phạm vi được phép và báo evidence.
 
-Agent không được tự phê duyệt recommendation, tự suy ra approval từ câu nói trong hội thoại, tự sửa `CONSTITUTION.md`, bypass quality gate, push hoặc deploy.
+Agent không được tự phê duyệt recommendation, tự suy ra approval từ câu nói trong hội thoại, tự sửa `CONSTITUTION.md` sau khi template đã phát hành, bypass quality gate, push hoặc deploy. Chỉ một Human authorization explicit cho đúng đợt phát hành template mới là ngoại lệ; ngoại lệ không tạo quyền mặc định cho thay đổi sau này.
 
 ### 1.3 Ba nguyên tắc bắt buộc
 
@@ -54,14 +54,15 @@ Agent không được tự phê duyệt recommendation, tự suy ra approval t�
 
 | File | Vai trò | Cách con người sử dụng |
 | :--- | :--- | :--- |
-| `CONSTITUTION.md` | Hard security, architecture và engineering rules | Đọc trước khi làm; không sửa trực tiếp. Muốn đổi Layer 1/2 phải dùng RFC. |
-| `AGENTS.md` | Persona, permitted paths, tool permissions và escalation | Xác định Agent được đọc/sửa gì và khi nào phải dừng. |
-| `CLAUDE.md` | Architecture DNA, naming và anti-patterns | Cập nhật khi kiến trúc hoặc tech stack thực sự thay đổi. |
-| `.agentignore` | Context hygiene — exclude patterns cho AI agents | Thêm patterns khi thấy agent đọc file rác (build artifacts, logs). |
-| `.sdd/constraints/global.md` | Layer 1: Tech stack, approved/banned packages, naming | Đọc khi onboard agent mới hoặc thêm dependency. |
-| `.sdd/constraints/business.md` | Layer 2: Auth rules, PII masking, rate-limit, soft-delete | Đọc khi implement bất kỳ business logic nào liên quan đến auth, tiền, user data. |
-| `.sdd/constraints/safety.md` | Layer 3: DB safety, git safety, agent safety | **CRITICAL** — vi phạm làm CI/CD FAIL ngay. Đọc trước mọi migration, delete operation. |
-| `.sdd/mcp-config.yaml` | MCP tool access control per agent | Cấu hình khi dùng multi-agent; đảm bảo mỗi agent chỉ có quyền đúng scope. |
+| `CONSTITUTION.md` | Hard security, architecture và engineering rule profile-aware | Đọc trước khi làm; thay đổi Layer 1/2 sau khi phát hành phải qua RFC. |
+| `AGENTS.md` | Persona, permitted path, tool permission và escalation | Xác định Agent được đọc/sửa gì và khi nào phải dừng. |
+| `CLAUDE.md` | Human-readable Architecture DNA, naming và anti-pattern | Đồng bộ sau khi profile được duyệt; không dùng để Agent suy đoán stack. |
+| `.sdd/architecture-profile.md` | Canonical stack/architecture profile cho artifact generation | Duyệt binding HTTP/DB/ORM/validation/test command trước PLAN/TASKS/Execute. Xem `docs/architecture-profile-guide.md`. |
+| `.agentignore` | Context hygiene — exclude pattern cho AI Agent | Thêm pattern khi thấy Agent đọc build artifact hoặc log không liên quan. |
+| `.sdd/constraints/global.md` | Global tech baseline, naming và dependency rule | Đọc khi onboard Agent hoặc thêm dependency. |
+| `.sdd/constraints/business.md` | Access control, PII masking, rate limiting và data-lifecycle rule | Đọc khi feature liên quan auth, tiền hoặc user data. |
+| `.sdd/constraints/safety.md` | DB safety, Git safety, Agent safety | **CRITICAL** — vi phạm làm CI/CD `FAIL`. Đọc trước migration hoặc delete operation. |
+| `.sdd/mcp-config.yaml` | MCP tool access control theo Agent | Cấu hình khi dùng multi-agent; bảo đảm mỗi Agent chỉ có quyền đúng scope. |
 
 ### 2.2 SDD feature files
 
@@ -86,6 +87,23 @@ Mỗi feature nằm tại `.sdd/features/{feature-slug}/`:
 - **Domain skills:** `/sql-performance-tuner`, `/api-security-auditor`, `/error-handler-pattern`.
 - **Automation:** `scripts/self-heal.sh` (self-healing loop), `scripts/adopt.sh` (brownfield migration).
 - **Multi-agent:** Xem `docs/multi-agent-orchestration-guide.md` và `.sdd/mcp-config.yaml`.
+
+---
+
+### 2.4 Architecture Profile — bắt buộc trước technical planning
+
+`.sdd/architecture-profile.md` là source of truth cho mọi tài liệu hoặc code do skills sinh ra. Precedence: **approved profile → repository evidence → explicit command input → core-only baseline**.
+
+Baseline hiện tại chỉ xác nhận **TypeScript + Node.js + Clean Architecture**. Chưa xác nhận HTTP framework, database, ORM/query layer, validation library, test/build/lint commands.
+
+| Pha / Skill | Khi chưa chọn binding cần thiết |
+| :--- | :--- |
+| `/sdd-context`, `/sdd-spec` | Được tạo artifact business-neutral; ghi unknown như planning blocker. |
+| `/sdd-plan`, `/sdd-tasks` | **Dừng**; request Human Director chọn binding + command chính xác. |
+| `/add-execute`, `/sdd-layer-edit` | **Dừng**; không tạo adapter code hoặc chạy placeholder command. |
+| Technical skills | Chỉ audit framework-neutral rules; trả `CONFIGURATION GAP` cho adapter-specific check. |
+
+Hướng dẫn đủ 5 kịch bản (greenfield, partial stack, brownfield, first plan, stack migration): [`architecture-profile-guide.md`](./architecture-profile-guide.md).
 
 ---
 
@@ -287,7 +305,7 @@ Con người kiểm tra:
 
 - Mỗi requirement có `REQ-XXX` duy nhất và dùng EARS.
 - Có happy path, invalid input, unauthorized, timeout, duplicate và edge case phù hợp.
-- BDD có thể chuyển thành test; error table có error code/status/mitigation.
+- BDD có thể chuyển thành test; error table có error code, behavior và mitigation; transport-specific status chỉ thêm khi binding đã được chọn.
 - NFR có ngưỡng đo được; `Out of Scope` chặn Agent thêm tính năng ngoài yêu cầu.
 - SemVer và changelog phản ánh đúng mức độ thay đổi.
 
@@ -307,10 +325,10 @@ Sau khi review đủ bằng chứng, gọi `/sdd-review --target=.sdd/features/f
 
 Con người đối chiếu:
 
-- Dependency đi đúng hướng `infra -> interface -> usecase -> domain`.
+- Dependency direction đúng: interface gọi usecase; usecase phụ thuộc domain và port; infra triển khai port; domain không phụ thuộc adapter.
 - Controller không truy cập DB trực tiếp.
 - Mỗi requirement có component xử lý và file boundary rõ.
-- Data flow có request, validation, usecase, persistence/external service và response.
+- Data flow có input/event, validation khi binding yêu cầu, usecase, persistence/external service khi feature dùng và output/error contract phù hợp transport.
 - Rủi ro security, race condition, performance, migration và rollback có mitigation.
 - `Questions for Human` đã được trả lời hoặc được chấp thuận thành assumption.
 
@@ -339,17 +357,26 @@ Con người kiểm tra từng task:
 
 Trước khi thực thi mỗi task, Agent BẮT BUỘC xuất **Shadow Plan** (Slide 10.6.1) theo format:
 
-```
-╔══════════════════════════════════════════════════════╗
-║  SHADOW PLAN — Task T00X: {Task Title}
-╠══════════════════════════════════════════════════════╣
-║  📖 FILES TO READ:  {path} ({lý do})
-║  ✏️  FILES TO CREATE: {path} ({mục đích})
-║  🔧 FILES TO MODIFY: {path} ({thay đổi gì})
-║  ⚡ COMMANDS TO RUN: {lệnh verify}
-║  ⚠️  RISKS: {risk nếu có}
-╚══════════════════════════════════════════════════════╝
-Proceed? [Human confirms before Agent executes]
+```text
+SHADOW PLAN — Task {T00X}: {Task title}
+
+ARCHITECTURE PROFILE
+- Version/status: {approved profile version/status}
+- Bindings: {only relevant approved bindings}
+- Evidence: {manifest/config/human decision}
+
+FILES TO READ
+- {path}: {reason}
+
+FILES TO CREATE/MODIFY
+- {path}: {purpose/change}
+
+APPROVED COMMANDS
+1. {exact approved test command}
+2. {exact approved lint/typecheck/build or N/A reason}
+
+RISKS
+- {risk and mitigation}
 ```
 
 Human Director xác nhận Shadow Plan trước khi Agent thực thi. Nếu scope thay đổi trong khi thực thi, Agent dừng và xuất Shadow Plan mới.
@@ -359,7 +386,7 @@ Agent phải đọc `AGENTS.md`, `CONSTITUTION.md`, `.sdd/constraints/` (global,
 1. Có sửa đúng task và file boundary không?
 2. Có thay đổi behavior nào không nằm trong Spec không?
 3. Có secret, PII, auth, hard-delete hoặc vi phạm Clean Architecture không?
-4. Business methods và tests có `@ears` trace không?
+4. Business method có `@ears` trace không; test có evidence kiểm chứng requirement không?
 5. Test output có thật sự pass; failure nào bị che hoặc đổi thành warning không?
 6. Requirement nào chưa có code/test hoặc code nào mồ côi?
 
@@ -467,10 +494,10 @@ Phải ghi migration plan, rollback plan và risk. Tech Lead/Human Director ph�
 ```bash
 git clone <template-url> my-project
 cd my-project
-/sdd-init --project-name="my-project" --stack="Node.js + TypeScript + PostgreSQL"
+/sdd-init --project-name="my-project" --stack="Node.js + TypeScript"
 ```
 
-Sau đó đọc `CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`, xác nhận stack/test command và chạy `/sdd-context` cho feature đầu tiên.
+Sau đó đọc `CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`, xác nhận binding và exact verification command cần thiết trong Architecture Profile, rồi chạy `/sdd-context` cho feature đầu tiên. HTTP framework, database, ORM/query layer và validation chỉ được thêm vào profile khi có evidence hoặc Human decision.
 
 ### 8.2 Brownfield — tích hợp repo có sẵn
 
@@ -521,7 +548,7 @@ Tech Lead/Human Director ghi motivation, proposed change, risk và migration pla
 /sdd-rfc --approve=<rfc-number>
 ```
 
-Lệnh `--approve` chỉ dành cho Tech Lead theo contract của `/sdd-rfc`. Trước khi chạy, reviewer phải kiểm tra RFC đã có recommendation, review block, decision, identity và timestamp; không dùng lệnh này để thay thế Human Final Review. Không sửa trực tiếp `CONSTITUTION.md`. Git Operator sẽ block thay đổi Constitution không có RFC approved.
+Lệnh `--approve` chỉ dành cho Tech Lead theo contract của `/sdd-rfc`. Trước khi chạy, reviewer phải kiểm tra RFC đã có recommendation, review block, decision, identity và timestamp; không dùng lệnh này để thay thế Human Final Review. Sau khi template phát hành, không sửa trực tiếp `CONSTITUTION.md`; Git Operator sẽ block thay đổi Constitution không có RFC approved. Một explicit Human authorization cho đợt phát hành template chỉ là ngoại lệ đúng phạm vi, không phải quyền mặc định của Agent.
 
 ### 8.6 Thay đổi xuyên bốn tầng
 
@@ -560,111 +587,57 @@ Khi không có source behavior:
 
 Validator ghi `N/A` cho trace/test chỉ khi repository thực sự không có source/test tương ứng, kèm lý do.
 
-### 8.9 Self-Healing Loop — tự động sửa test thất bại
+### 8.9 Self-Healing Loop — tự động hóa test thất bại có kiểm soát
 
-Khi CI fail hoặc cần tự động hóa vòng lặp test → fix → re-test:
+Dùng khi đã có exact test command trong Architecture Profile và cần vòng lặp test → phân tích lỗi → sửa → re-test:
 
 ```bash
-# Chạy tất cả tests, tự động sửa tối đa 3 lần, auto-commit nếu pass
-./scripts/self-heal.sh
+# Bắt buộc truyền exact test command đã approved
+./scripts/self-heal.sh --test-cmd="<approved test command>"
 
-# Giới hạn scope theo feature
-./scripts/self-heal.sh --feature=feat-user-register
+# --feature chỉ thêm context vào log/report, không thay đổi test command
+./scripts/self-heal.sh --test-cmd="<approved test command>" --feature=feat-user-register
 
-# Custom test command
-./scripts/self-heal.sh --test-cmd="npm run test:unit" --max-attempts=2
+# Giới hạn số lần thử
+./scripts/self-heal.sh --test-cmd="<approved test command>" --max-attempts=2
 
-# Xem plan mà không thực thi
-./scripts/self-heal.sh --dry-run
+# Xem configuration mà không chạy test hoặc gọi Claude
+./scripts/self-heal.sh --test-cmd="<approved test command>" --dry-run
 ```
 
 **Flow tự động:**
-1. Chạy tests → nếu PASS, dừng ngay (không cần healing)
-2. Nếu FAIL, extract error summary → gọi Claude CLI phân tích + fix
-3. Re-test sau fix → nếu PASS, auto-commit với message chuẩn
-4. Lặp tối đa `--max-attempts` lần (default: 3)
-5. Nếu hết attempts → tạo incident report tại `.sdd/reviews/self-heal-incident-<timestamp>.md` và escalate lên Human Director
+1. Kiểm tra `--test-cmd`; thiếu command thì block ngay.
+2. Chạy command; nếu `PASS`, dừng, không cần healing.
+3. Nếu `FAIL`, trích xuất error summary rồi gọi `claude --print` để phân tích và áp dụng sửa đổi.
+4. Chạy lại chính exact command đó, tối đa `--max-attempts` lần; mặc định là 3.
+5. Nếu pass sau khi sửa, giữ toàn bộ thay đổi **uncommitted** để Human review.
+6. Nếu cạn số lần thử, tạo incident report tại `.sdd/reviews/self-heal-incident-<timestamp>.md` và escalate Human Director.
 
-**Khi nào KHÔNG dùng self-heal:**
-- Khi failure là do Spec gap (business logic chưa rõ) — phải `/sdd-update` Spec trước
-- Khi failure ảnh hưởng DB schema — phải có Human review
-- Production environment — tuyệt đối không auto-commit lên main/production
+**Không dùng self-heal khi:**
+- Failure là Spec gap; phải `/sdd-update` Spec và review trước.
+- Failure ảnh hưởng DB schema hoặc migration; cần Human Final Review trước execution.
+- Không có approved test command hoặc command/profile evidence không khớp.
+- Đang ở production; script không phải cơ chế deploy hoặc bypass review.
 
-**Yêu cầu:** `claude` CLI phải được cài và authenticated. Xem `.sdd/constraints/safety.md` → `AGT-S-01..05` trước khi dùng.
+**Yêu cầu:** `claude` CLI phải được cài và authenticated. `self-heal.sh` không tự commit, không tự thêm test filter theo framework và không thay thế `/add-execute` hoặc Human Final Review. Xem `.sdd/constraints/safety.md` → `AGT-S-01..05` trước khi dùng.
 
 ### 8.10 Multi-Agent — orchestrate parallel sub-agents
 
-Khi feature lớn cần nhiều agents làm song song (backend + infra + interface + tester):
+Trước khi dispatch, Lead phải đọc approved `.sdd/architecture-profile.md`, kiểm tra `TASKS.md`, và xuất Shadow Plan gồm: profile version, selected bindings/evidence, task ownership, dependency batches, exact commands, và shared files. Human Director approve Shadow Plan trước execution.
 
-**Bước 1: Lead đọc context và phân tích dependency**
-```text
-/sdd-tasks --feature=feat-order-checkout
-```
-Lead đọc TASKS.md, xác định tasks nào có thể parallel (không phụ thuộc nhau).
+Mỗi sub-agent chỉ nhận task IDs, file boundary, profile binding, MCP profile, và command đã verified. Agents update `.sdd/shared_context.md`; Lead verify contracts/bindings sau từng batch. Không sub-agent nào được introduce adapter hoặc package ngoài profile.
 
-**Bước 2: Lead xuất Multi-Agent Shadow Plan**
-```
-╔══════════════════════════════════════════════════╗
-║  MULTI-AGENT SHADOW PLAN — Feature: order-checkout
-╠══════════════════════════════════════════════════╣
-║  PARALLEL BATCH 1 (no dependencies):
-║    @backend-agent   → T001 (OrderEntity), T002 (CreateOrderUsecase)
-║    @infra-agent     → T003 (OrderRepository setup)
-║
-║  SEQUENTIAL BATCH 2 (after Batch 1):
-║    @interface-agent → T004 (OrderController) — needs T002 output
-║
-║  FINAL:
-║    @tester-agent   → T005 (unit tests), T006 (integration tests)
-║
-║  SHARED FILES (Lead handles directly):
-║    src/shared/errors/base-error.ts
-╚══════════════════════════════════════════════════╝
-```
-Human Director xem và approve Shadow Plan trước khi dispatch.
-
-**Bước 3: Spawn sub-agents với file ownership rõ ràng**
-
-Mỗi sub-agent nhận:
-- Task IDs được giao
-- File boundary rõ (chỉ được write trong scope của mình)
-- Profile MCP từ `.sdd/mcp-config.yaml`
-
-Agents update `.sdd/shared_context.md` sau khi hoàn thành phần của mình.
-
-**Bước 4: Lead tổng hợp và unblock batch tiếp theo**
-
-Sau Batch 1 xong → Lead đọc `shared_context.md` → verify API contracts → dispatch Batch 2.
-
-**Bước 5: Final review**
-
-Sau khi `@tester-agent` báo DONE:
-```text
-/sdd-audit --feature=feat-order-checkout
-/sdd-trace --feature=feat-order-checkout
-/git-validate --scope=commit
-```
-
-Xem chi tiết: `docs/multi-agent-orchestration-guide.md` và `.sdd/mcp-config.yaml`.
+Sau integration: `/sdd-audit` → `/sdd-trace` → `/git-validate --scope=commit`. Xem [`multi-agent-orchestration-guide.md`](./multi-agent-orchestration-guide.md).
 
 ### 8.11 Domain Technical Skill — audit chuyên sâu
 
-Khi cần phân tích chuyên sâu trước hoặc sau implementation:
-
 ```text
-# SQL Performance — phát hiện N+1, missing indexes, slow queries
 /sql-performance-tuner --feature=feat-order-checkout --mode=audit
-
-# API Security — OWASP Top 10 audit
 /api-security-auditor --feature=feat-order-checkout
-
-# Error Handling — chuẩn hóa typed errors + unified response schema
 /error-handler-pattern --feature=feat-order-checkout --mode=audit
-# Tạo scaffolding error classes
-/error-handler-pattern --mode=scaffold
 ```
 
-Kết quả audit xuất report với CRITICAL/HIGH/WARNING. CRITICAL phải sửa trước khi `/git-validate`; HIGH nên sửa và có disposition nếu defer.
+Skills chỉ tạo adapter-specific findings khi profile đã chọn stack; nếu không, report `CONFIGURATION GAP`. Xem [`architecture-profile-guide.md`](./architecture-profile-guide.md). CRITICAL phải sửa trước `/git-validate`; HIGH cần disposition.
 
 ---
 
@@ -787,7 +760,7 @@ Requirement cần tránh từ mơ hồ như “nhanh chóng”, “linh hoạt�
 | Feature mới | `/sdd-context --feature=<slug>` |
 | Test thất bại (code bug) | `/add-execute` lại sau khi fix |
 | Test thất bại (Spec gap) | `/sdd-update --bump=patch --reason=...` |
-| CI fail, muốn tự động sửa | `./scripts/self-heal.sh --feature=<slug>` |
+| CI fail, muốn tự động sửa | `./scripts/self-heal.sh --test-cmd="<approved test command>" --feature=<slug>` |
 | Audit SQL performance | `/sql-performance-tuner --feature=<slug>` |
 | Audit API security | `/api-security-auditor --feature=<slug>` |
 | Chuẩn hóa error handling | `/error-handler-pattern --mode=scaffold` |

@@ -1,39 +1,29 @@
 ---
 name: sdd-rfc
-description: Quản lý quy trình đề xuất (RFC) để sửa đổi Hiến pháp dự án (CONSTITUTION.md) hoặc thay đổi kiến trúc lớn
+description: Quản lý RFC để sửa CONSTITUTION.md hoặc thay đổi kiến trúc lớn
 user-invocable: true
 ---
 
-# Skill: SDD RFC Manager (`/sdd-rfc`)
+# SDD RFC Manager (`/sdd-rfc`)
 
-Sử dụng skill này khi cần đề xuất thay đổi hoặc bổ sung một quy tắc trong Hiến pháp hệ thống (`CONSTITUTION.md`) ở Layer 1 (Hard Rules) hoặc Layer 2 (Architectural Constraints).
+Dùng khi cần đề xuất thay đổi/bổ sung quy tắc trong `CONSTITUTION.md` thuộc Layer 1 Hard Rules hoặc Layer 2 Architectural Constraints sau khi template đã phát hành. Một explicit Human authorization cho một đợt phát hành template không tạo quyền mặc định cho Agent sửa Constitution.
 
 ## Tham số
-- `--title=<short-title>`: Tiêu đề ngắn gọn cho RFC (e.g., `soft-delete-policy` hoặc `jwt-expiry-standard`).
-- `--approve=<rfc-number>`: (Chỉ dành cho Tech Lead) Phê duyệt RFC và tự động đồng bộ vào `CONSTITUTION.md`.
 
-## Quy trình Thực hiện (3 Bước)
+- `--title=<short-title>`: Tiêu đề ngắn, ví dụ `soft-delete-policy` hoặc `jwt-expiry-standard`.
+- `--approve=<rfc-number>`: Chỉ Tech Lead/Human Director được dùng để phê duyệt RFC và đồng bộ Constitution.
 
-### 1. Tạo File Đề xuất RFC Mới
-Nếu không truyền `--approve`, skill sẽ tạo file đề xuất tại `.sdd/rfcs/RFC-XXX-<title>.md`:
-- Đánh số RFC tăng dần (`RFC-001`, `RFC-002`, ...).
-- Trạng thái ban đầu: `PROPOSED`.
+## Quy trình
 
-### 2. Điền Nội dung theo Template chuẩn RFC
-File RFC tạo ra chứa các mục bắt buộc:
-- **Motivation**: Lý do cần thay đổi quy tắc hiện tại.
-- **Proposed Change**: Quy tắc mới (Mã hóa `SEC-XX`, `DATA-XX`, `ARCH-XX` hoặc `ENG-XX`).
-- **Risk Assessment**: Đánh giá tác động đến các feature hiện có.
-- **Migration Plan**: Kế hoạch đồng bộ code cũ theo quy tắc mới.
+1. **Tạo RFC**
+   - Không truyền `--approve`: tạo `.sdd/rfcs/RFC-XXX-<title>.md`, đánh số liên tục `RFC-001`, `RFC-002`, ... và status ban đầu `PROPOSED`.
+2. **Điền template RFC**
+   - Bắt buộc có `Motivation`, `Proposed Change`, `Risk Assessment` và `Migration Plan`.
+   - Quy tắc mới dùng code `SEC-XX`, `DATA-XX`, `ARCH-XX` hoặc `ENG-XX` khi phù hợp.
+3. **Phê duyệt và đồng bộ**
+   - Chỉ RFC đã `APPROVED` bởi Tech Lead/Human Director mới được đồng bộ vào `CONSTITUTION.md`.
+   - Bump patch/minor version của Constitution theo semantic impact.
 
-### 3. Phê duyệt & Cập nhật Hiến pháp (`--approve`)
-Khi Tech Lead duyệt RFC:
-- Chuyển trạng thái RFC sang `APPROVED`.
-- Tự động cập nhật quy tắc mới vào file `CONSTITUTION.md`.
-- Bump patch/minor version của `CONSTITUTION.md`.
+## AI Recommendation và Human Final Review
 
----
-
-## AI Recommendation & Human Final Review
-
-After drafting or evaluating an RFC, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with motivation, alternatives, security/architecture impact, migration risk, and proposed disposition. Persist it in the RFC or `.sdd/reviews/rfc-<number>.md` with `PENDING HUMAN REVIEW`. Only the authorized Tech Lead/Human Director may approve the RFC and Constitution change; the Agent must not self-approve.
+Sau khi soạn hoặc đánh giá RFC, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm motivation, alternative, security/architecture impact, migration risk và disposition đề xuất. Lưu trong RFC hoặc `.sdd/reviews/rfc-<number>.md` với `PENDING HUMAN REVIEW`. Chỉ Tech Lead/Human Director được ủy quyền có thể approve RFC và thay đổi Constitution; Agent không tự approve.

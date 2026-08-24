@@ -1,40 +1,34 @@
 ---
 name: sdd-lint
-description: Linting và kiểm định cú pháp đặc tả EARS Notation, cấu trúc SemVer và mở rộng điều kiện biên cho SPEC.md
+description: Lint và kiểm định cú pháp EARS, SemVer và điều kiện biên trong SPEC.md
 user-invocable: true
 ---
 
-# Skill: SDD Spec Linter (`/sdd-lint`)
+# SDD Spec Linter (`/sdd-lint`)
 
-Sử dụng skill này để linter và thẩm định file `.sdd/features/{feature-slug}/SPEC.md` nhằm phát hiện các câu từ mập mờ, vi phạm định dạng EARS hoặc thiếu trường hợp biên trước khi Human Director/Tech Lead xem xét khóa Spec.
+Dùng để lint và kiểm định `.sdd/features/{feature-slug}/SPEC.md`, phát hiện requirement mơ hồ, vi phạm EARS hoặc thiếu edge case trước khi Human Director hoặc Tech Lead review Spec.
 
 ## Tham số
-- `--feature=<feature-slug>`: Tên feature slug cần lint.
 
-## Quy trình Kiểm tra (4 Bước)
+- `--feature=<feature-slug>`: Feature slug cần lint.
 
-1. **Phân tích Cú pháp EARS Notation**:
-   - Kiểm tra xem 100% Functional Requirements có viết theo đúng 5 mẫu EARS không:
+## Quy trình kiểm tra
+
+1. **Cú pháp EARS**
+   - Kiểm tra mọi Functional Requirement thuộc một trong năm mẫu EARS:
      - **Ubiquitous**: `The <system> SHALL <action>`
      - **Event-driven**: `WHEN <trigger>, the <system> SHALL <action>`
      - **State-driven**: `WHILE <in state>, the <system> SHALL <action>`
      - **Optional**: `WHERE <feature is included>, the <system> SHALL <action>`
      - **Unwanted**: `IF <error/invalid condition>, THEN the <system> SHALL <action>`
-   - Cảnh báo các câu từ mập mờ (vague terms): *"nhanh chóng"*, *"giao diện đẹp"*, *"xử lý linh hoạt"*, *"nếu cần thiết"*.
+   - Cảnh báo cụm từ mơ hồ như “nhanh chóng”, “giao diện đẹp”, “xử lý linh hoạt”, “nếu cần thiết”.
+2. **Unwanted Behavior coverage**
+   - Mỗi happy path (`WHEN`) cần ít nhất một `IF ... THEN ...` cho lỗi tương ứng, như timeout, duplicate, invalid input hoặc unauthorized.
+3. **REQ và metadata**
+   - Kiểm tra `REQ-XXX` duy nhất/liên tục, header có status và SemVer hợp lệ.
+4. **Báo cáo**
+   - Liệt kê warning/error cùng dòng liên quan và đề xuất câu EARS chuẩn hóa.
 
-2. **Kiểm tra Ma trận Xử lý Lỗi (Unwanted Behavior Coverage)**:
-   - Đảm bảo mỗi happy path (`WHEN`) đều có ít nhất 1 kịch bản `IF ... THEN ...` tương ứng xử lý lỗi (Timeout, Duplicate, Invalid Input, Unauthorized).
+## AI Recommendation và Human Final Review
 
-3. **Kiểm tra Đánh số REQ & Metadata Header**:
-   - Kiểm tra mã `REQ-XXX` có duy nhất và liên tục không.
-   - Kiểm tra header chứa trạng thái (`DRAFT` / `APPROVED & LOCKED`) và phiên bản SemVer (`vX.Y.Z`).
-
-4. **Báo cáo Lỗi & Đề xuất Sửa đổi**:
-   - In ra danh sách warning/error chi tiết kèm dòng bị lỗi.
-   - Đề xuất câu EARS sửa đổi chuẩn hóa.
-
----
-
-## AI Recommendation & Human Final Review
-
-After linting, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with errors, warnings, proposed EARS corrections, edge-case gaps, and residual risk. Persist it in the feature `SPEC.md` or `.sdd/reviews/lint-<slug>.md` with `PENDING HUMAN REVIEW`. The Human Director decides whether to accept the proposed corrections; lint failures remain blocked until resolved or explicitly dispositioned. The Agent must not self-approve the Spec.
+Sau lint, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm error, warning, EARS correction đề xuất, edge-case gap và residual risk. Lưu trong feature `SPEC.md` hoặc `.sdd/reviews/lint-<slug>.md` với `PENDING HUMAN REVIEW`. Human Director quyết định có chấp thuận correction hay không; lint failure vẫn bị block đến khi được khắc phục hoặc disposition rõ ràng. Agent không tự approve Spec.

@@ -13,5 +13,5 @@ if ($Prompt) {
     $argsList += $Prompt
 }
 
-Write-Host "Starting Claude Code with Skip Permissions mode..." -ForegroundColor Green
+Write-Host "Khởi động Claude Code ở chế độ bỏ qua quyền..." -ForegroundColor Green
 claude @argsList

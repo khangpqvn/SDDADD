@@ -1,82 +1,43 @@
 ---
 name: sdd-plan
-description: Pha 2 SDD - Lập Kế hoạch Kiến trúc (.sdd/features/{feature-slug}/PLAN.md), Data Flow và Đánh giá Rủi ro kèm DoD Checklist
+description: Pha 2 SDD — tạo PLAN.md theo Clean Architecture, Architecture Profile, data flow và risk
 user-invocable: true
 ---
 
-# Skill: SDD Phase 2 — Architecture Planning (`/sdd-plan`)
+# SDD Phase 2 — Architecture Planning (`/sdd-plan`)
 
-Sử dụng skill này dựa trên `.sdd/features/{feature-slug}/SPEC.md` và `CONSTITUTION.md` để tạo ra bản thiết kế kỹ thuật `.sdd/features/{feature-slug}/PLAN.md`.
+Dùng `SPEC.md` và `CONSTITUTION.md` để tạo `.sdd/features/{feature-slug}/PLAN.md`.
 
 ## Tham số
-- `--feature=<feature-slug>`: Tên định danh feature.
 
-## Quy trình thực hiện (5 Bước)
+- `--feature=<feature-slug>`: Feature identifier.
 
-1. **Phân tích Kiến trúc (Architectural Layers)**:
-   - Tuân thủ Clean Architecture từ `CLAUDE.md`.
-   - Liệt kê các Component và File Paths tương ứng sẽ tạo/sửa.
+## Architecture Profile gate (BLOCKING)
 
-2. **Vẽ Luồng Dữ liệu (Data Flow Diagram)**:
-   - Vẽ tương tác: Client ➔ Controller ➔ Usecase ➔ Repository/Cache ➔ DB.
+Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
 
-3. **Đánh giá Rủi ro & Giải pháp (Risk Assessment)**:
-   - Liệt kê ít nhất 3 rủi ro kỹ thuật (Race condition, Security, Performance) và cách giảm thiểu.
+1. Đọc profile, governance và repository evidence.
+2. Chỉ dùng layout đã chọn: `domain/` → `usecase/` → `interface/` / `infra/` adapter.
+3. Feature cần HTTP, persistence, validation, cache, async messaging hoặc runnable test/build command chưa `APPROVED` thì dừng; không sinh Plan adapter-specific.
+4. Lưu `PENDING HUMAN REVIEW` recommendation nêu binding thiếu, evidence và exact follow-up.
+5. Profile/evidence mâu thuẫn thì Human Director phải quyết định trước Plan.
 
-4. **Trích xuất Questions for Human**:
-   - Liệt kê tất cả các thắc mắc về technical implementation mà Spec chưa chỉ định.
+## Các bước
 
-5. **Đối chiếu Checklist Definition of Done (DoD) & Xuất File**:
-   - Chạy DoD Checklist bên dưới trước khi trình Human Lead phê duyệt.
-   - Ghi file `.sdd/features/{feature-slug}/PLAN.md`.
+1. Ghi Architecture Profile Reference, binding, evidence và command đã verified.
+2. Xác định component, ownership và file path theo Clean Architecture.
+3. Vẽ data flow: Client → approved interface adapter → usecase → port → approved infra adapter → store/service.
+4. Đánh giá risk về security, concurrency, performance, migration và rollback.
+5. Nêu Questions for Human Director, kiểm tra DoD và tạo recommendation.
 
----
+## DoD
 
-## 📋 CHECKPOINT CHECKLIST (Definition of Done — Pha 2)
-- [ ] Phác thảo rõ ràng cách tiếp cận kiến trúc (Clean Architecture / Pattern).
-- [ ] Danh sách các Components có đủ tên, trách nhiệm và file paths tương ứng.
-- [ ] Luồng dữ liệu (Data Flow Diagram) thể hiện đầy đủ từ HTTP Request đến DB Storage & Response.
-- [ ] Phân tích ít nhất 3 rủi ro kỹ thuật kèm phương án giảm thiểu (Mitigation Strategy).
-- [ ] Mục `Questions for Human` đã trích xuất các giả định ẩn hoặc được Human Director phê duyệt.
+- [ ] Boundary và dependency direction rõ ràng.
+- [ ] Component có trách nhiệm, layer và path cụ thể.
+- [ ] Data flow chỉ dùng approved adapter.
+- [ ] Có ít nhất ba risk và mitigation.
+- [ ] Technical question/assumption được nêu hoặc đã approved.
 
----
+## AI Recommendation và Human Final Review
 
-## Template `.sdd/features/{feature-slug}/PLAN.md`
-
-```markdown
-# PHASE 2: TECHNICAL ARCHITECTURE PLAN (PLAN.md)
-
-# Feature: [Tên Feature]
-# Feature Slug: [feature-slug]
-# Target Spec Version: 1.0.0
-# Version: 1.0.0
-# Status: DRAFT
-# Human Final Review: PENDING
-
----
-
-## 1. Architectural Approach & Layers
-- Mô tả các tầng Clean Architecture...
-
-## 2. Component Design & Responsibilities
-| Component Name | File Path | Responsibility |
-| :--- | :--- | :--- |
-
-## 3. Data Flow Diagram
-```text
-[Client] -> [Controller] -> [Usecase] -> [Infra] -> [DB]
-```
-
-## 4. Risk Assessment & Mitigations
-| Identified Risk | Impact | Likelihood | Mitigation Strategy |
-| :--- | :--- | :--- | :--- |
-
-## 5. Questions for Human Director
-1. Question 1...
-```
-
----
-
-## AI Recommendation & Human Final Review
-
-After producing or revising `PLAN.md`, persist the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` in the artifact. Explain architecture options, dependency direction, risks, mitigations, open technical decisions, and affected requirements. Keep the human review `PENDING`; task decomposition and execution require Human Director approval. The Agent must stop instead of self-approving.
+Sau khi tạo/sửa `PLAN.md`, lưu canonical recommendation gồm architecture option, dependency direction, risk, mitigation, decision kỹ thuật mở và requirement bị ảnh hưởng. Human review giữ `PENDING`; task decomposition/execution cần `APPROVED`. Agent phải dừng, không self-approve.

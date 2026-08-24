@@ -1,66 +1,46 @@
-# CONSTRAINT LAYER 1: GLOBAL TECH STANDARDS
+# Constraint Layer 1: Global kỹ thuật
 # Version: 1.0.0
-# Scope: All agents, all features — non-negotiable baseline
-# Reference: Slide 10.4 — 3-Layer Constraint Hierarchy
+# Phạm vi: Mọi Agent, mọi feature — baseline không thể tự suy đoán
+# Tham chiếu: Slide 10.4 — 3-Layer Constraint Hierarchy
 
 ---
 
-## 1. Approved Tech Stack
+## 1. Tech stack và package
 
-| Category        | Approved                              | Banned                            |
-| :-------------- | :------------------------------------ | :-------------------------------- |
-| Runtime         | Node.js ≥ 20 LTS, TypeScript ≥ 5.0   | Deno (requires RFC)               |
-| Framework       | NestJS, Express, Fastify              | Bun HTTP (requires RFC)           |
-| ORM / DB Client | TypeORM, Prisma, pg (raw)             | Sequelize (legacy, banned)        |
-| Cache           | Redis (ioredis), in-memory Map        | Memcached                         |
-| Testing         | Jest, Vitest, Supertest               | Mocha (legacy, banned)            |
-| Message Queue   | Bull/BullMQ, RabbitMQ                 | Redis Pub/Sub for durable queues  |
-| Auth            | passport-jwt, better-auth             | Session cookies for APIs          |
+`.sdd/architecture-profile.md` là nguồn sự thật duy nhất cho runtime, HTTP framework, database, ORM/query layer, cache, message broker, validation, test framework và runnable command.
+
+- Agent chỉ dùng binding có `APPROVED` và evidence trong Architecture Profile.
+- Không suy đoán stack từ tên thư mục, convention hay package quen thuộc.
+- Package mới cần phù hợp binding đã approved và Human approval trước khi thêm dependency.
+- `eval` và `Function()` constructor bị cấm vì rủi ro bảo mật.
+- Không dùng package deprecated khi có native platform API phù hợp, trừ khi Architecture Profile hoặc RFC đã approved nêu rõ lý do.
 
 ---
 
-## 2. Approved / Banned Packages
+## 2. Quy ước tên
 
-### Approved (pre-vetted, no consent needed)
-- `zod` — schema validation
-- `dayjs` — date manipulation (NOT `moment.js`)
-- `pino` / `winston` — logging
-- `dotenv` — env loading
-- `uuid` — ID generation
-- `bcrypt` / `argon2` — password hashing
-
-### Banned (requires RFC + Tech Lead approval to unban)
-- `moment.js` — deprecated, heavy; use `dayjs`
-- `lodash` — prefer native ES2022+ methods
-- `request` / `node-fetch@2` — use native `fetch` (Node 18+)
-- `eval`, `Function()` constructor — security risk
+| Loại | Quy ước | Ví dụ |
+| :--- | :--- | :--- |
+| Source file | kebab-case | `order-repository.ts` |
+| Class / type | PascalCase | `OrderRepository` |
+| Constant | SCREAMING_SNAKE_CASE | `MAX_RETRY_COUNT` |
+| Environment variable | SCREAMING_SNAKE_CASE | `DATABASE_URL` |
+| Test file | Theo test framework đã approved | `order-service.spec.ts` |
+| SDD artifact | UPPERCASE.md | `SPEC.md`, `PLAN.md` |
+| Script | kebab-case | `self-heal.sh` |
 
 ---
 
-## 3. File Naming Conventions
+## 3. Giới hạn kích thước code
 
-| Type             | Convention          | Example                       |
-| :--------------- | :------------------ | :---------------------------- |
-| Source files     | kebab-case          | `order-repository.ts`         |
-| Classes/Types    | PascalCase          | `OrderRepository`             |
-| Constants        | SCREAMING_SNAKE     | `MAX_RETRY_COUNT`             |
-| Environment vars | SCREAMING_SNAKE     | `DATABASE_URL`                |
-| Test files       | `*.spec.ts`         | `order-service.spec.ts`       |
-| SDD artifacts    | UPPERCASE.md        | `SPEC.md`, `PLAN.md`          |
-| Scripts          | kebab-case          | `self-heal.sh`                |
+- Source file tối đa **200 dòng**; tách module khi vượt ngưỡng.
+- SDD artifact `SPEC.md` và `PLAN.md` tối đa **300 dòng**.
+- Function/method body tối đa **50 dòng**; tách helper nếu cần.
 
 ---
 
-## 4. Code Size Limits (Context Hygiene)
+## 4. Secret và runtime configuration
 
-- Max lines per source file: **200 lines** — split into modules if exceeded
-- Max lines per SDD artifact (SPEC, PLAN): **300 lines**
-- Max function/method body: **50 lines** — extract helpers otherwise
-
----
-
-## 5. Environment Variables Protocol
-
-- ALL secrets loaded via `process.env.VAR_NAME` — no inline values
-- Required vars documented in `.env.example` — never `.env` committed to git
-- Validation at boot: throw `ConfigurationError` if required var missing
+- Secret chỉ dùng qua secret/configuration mechanism đã được Architecture Profile hoặc operations policy chấp thuận; không ghi inline.
+- Khi project chọn environment variable, mô tả biến bắt buộc trong `.env.example`; không commit `.env`.
+- Khi runtime bootstrap implementation đã được chọn, validate configuration bắt buộc và trả về application error phù hợp; không tự áp class hoặc API chưa có trong binding.

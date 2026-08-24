@@ -1,137 +1,58 @@
 ---
 name: api-security-auditor
-description: Audit API endpoints theo OWASP Top 10 — auth bypass, injection, rate limit, input validation, sensitive data exposure
+description: Audit API theo OWASP, Clean Architecture và Architecture Profile
 user-invocable: true
 ---
 
-# Skill: API Security Auditor (`/api-security-auditor`)
+# API Security Auditor (`/api-security-auditor`)
 
-Sử dụng skill này để audit bảo mật toàn bộ API layer theo OWASP Top 10. Đóng gói tri thức Senior Security Engineer.
+Audit API theo OWASP, `CONSTITUTION.md` và Clean Architecture.
 
 ## Tham số
-- `--file=<path>`: Controller/route file cần audit.
-- `--feature=<slug>`: Audit toàn bộ feature (đọc từ `.sdd/features/{slug}/`).
-- `--owasp=<A01..A10>`: Chỉ kiểm tra một OWASP category cụ thể.
 
----
+- `--file=<path>`: HTTP boundary/controller/adapter cần audit.
+- `--feature=<slug>`: Audit toàn feature.
+- `--owasp=<A01..A10>`: Chỉ audit một OWASP category.
 
-## OWASP Top 10 Checklist (API Edition)
+## Architecture Profile gate
 
-### A01 — Broken Access Control
-```typescript
-// ❌ Missing ownership check
-router.get('/orders/:id', authenticate, async (req, res) => {
-  const order = await orderRepo.findById(req.params.id); // Bất kỳ user nào cũng lấy được
-});
+1. Đọc Architecture Profile, governance và evidence liên quan.
+2. Core-only check được phép: authorization ownership trong `usecase/`, domain invariant, PII masking, typed error và cấm `interface/` truy cập DB trực tiếp.
+3. HTTP middleware, route/config, validation schema, authentication package, DB/ORM remediation, dependency scan command và framework-specific test chỉ dùng khi profile có binding `APPROVED` và evidence.
+4. Binding thiếu thì báo `CONFIGURATION GAP`; không sinh import, package name, SQL dialect, ORM API, config file hoặc command suy đoán.
 
-// ✅ Ownership validation
-router.get('/orders/:id', authenticate, async (req, res) => {
-  const order = await orderRepo.findByIdAndUser(req.params.id, req.user.id);
-  if (!order) throw new ForbiddenError('Access denied');
-});
-```
-Kiểm tra: Mọi query lấy resource phải filter theo `userId`/`tenantId`.
+## OWASP checklist theo Clean Architecture
 
-### A02 — Cryptographic Failures
-- Passwords: PHẢI dùng `bcrypt`/`argon2` (cost factor ≥ 12) — KHÔNG `md5`, `sha1`, `sha256` raw
-- JWT: Dùng `RS256` hoặc `ES256` cho production — KHÔNG `HS256` với weak secret
-- TLS: Enforce HTTPS, HSTS header, no TLS 1.0/1.1
-- Sensitive data: KHÔNG log passwords, tokens, credit cards
+- **A01 Broken Access Control:** Ownership/tenant/role check nằm trong usecase theo `SPEC.md`; interface chỉ chuyển identity đã xác thực.
+- **A02 Cryptographic Failures:** Không hardcode/log secret; crypto, token, TLS, key rotation chỉ dùng mechanism approved; mask PII.
+- **A03 Injection:** Validate input tại interface boundary; parameterize persistence call trong `src/infra/`; không dùng untrusted interpolation.
+- **A04 Insecure Design:** Domain invariant, state transition, idempotency và rate limit khớp EARS/Spec.
+- **A05 Security Misconfiguration:** Chỉ audit header, CORS, body limit, debug bypass, TLS/trust proxy sau HTTP binding.
+- **A06 Vulnerable Components:** Chỉ chạy exact dependency/security scan command đã approved/evidenced.
+- **A07 Authentication Failures:** Signature, expiry, claim, revocation, reset/MFA và brute-force behavior theo Spec/profile.
+- **A08 Integrity Failures:** Verify webhook/external payload integrity; validate external data tại boundary; cấm dynamic code execution.
+- **A09 Logging Failures:** Security event có correlation, PII masking và logger adapter approved.
+- **A10 SSRF:** Validate external URL/protocol/destination theo policy; timeout/redirect/DNS policy dùng client adapter selected.
 
-### A03 — Injection
-```typescript
-// ❌ SQL Injection
-const user = await db.query(`SELECT * FROM users WHERE email = '${email}'`);
+## Output
 
-// ✅ Parameterized query
-const user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-```
-Grep pattern: Tìm template literals trong SQL queries — `\`SELECT.*\${`
+```text
+API SECURITY AUDIT REPORT
+Feature: {slug} | Profile: v{version}
 
-### A04 — Insecure Design
-- Rate limiting: Có trên auth endpoints? (xem `.sdd/constraints/business.md`)
-- Idempotency: POST endpoints có `Idempotency-Key` support?
-- Business logic: Không thể mua hàng với số lượng âm? Không thể transfer tiền vượt balance?
-
-### A05 — Security Misconfiguration
-```typescript
-// Kiểm tra các headers bắt buộc
-app.use(helmet()); // X-Frame-Options, X-XSS-Protection, CSP, HSTS
-app.use(cors({ origin: process.env.ALLOWED_ORIGINS })); // Không dùng '*' cho production
-
-// KHÔNG expose stack trace trong production
-app.use((err, req, res, next) => {
-  const safeError = { error_code: err.code, message: err.message, request_id: req.id };
-  res.status(err.status || 500).json(safeError); // Không include err.stack
-});
+CRITICAL:
+  [A01|A03|SEC-01|SEC-02] {path}:{line} — {verified finding and evidence}
+HIGH:
+  [A02|A04-A10] {path}:{line} — {finding}
+CONFIGURATION GAP:
+  {missing binding; adapter-specific remediation omitted}
+PASSED:
+  {verified profile-compatible control}
+REMEDIATION:
+  - Binding: {approved binding or human decision required}
+  - Change: {profile-compatible action}
+  - Verification: {exact approved command or N/A with reason}
+  - Spec/Plan impact: {artifact or N/A}
 ```
 
-### A06 — Vulnerable & Outdated Components
-- Chạy `npm audit --audit-level=high` — fix HIGH/CRITICAL vulnerabilities
-- Grep `package.json` tìm banned packages (theo `.sdd/constraints/global.md`)
-
-### A07 — Identification & Authentication Failures
-- Session: Invalidate token sau logout (Redis blacklist)
-- Brute force: Rate limit + lockout sau N failures
-- Password reset: Token one-time-use, expiry ≤ 15 phút
-- 2FA bypass: Verify 2FA code server-side, không trust client claim
-
-### A08 — Software & Data Integrity Failures
-- Subresource integrity cho CDN assets
-- Verify webhook signatures (`X-Signature-256` header)
-- KHÔNG deserialize untrusted data với `eval()` hoặc `Function()`
-
-### A09 — Security Logging & Monitoring Failures
-```typescript
-// Phải log các events sau (với PII masked — xem business.md):
-logger.info('AUTH_SUCCESS', { userId, ip, userAgent });
-logger.warn('AUTH_FAILURE', { email: maskEmail(email), ip, attempt });
-logger.error('PRIVILEGE_ESCALATION_ATTEMPT', { userId, requestedRole, ip });
-```
-
-### A10 — Server-Side Request Forgery (SSRF)
-```typescript
-// ❌ SSRF risk — user controls URL
-const response = await fetch(req.body.webhookUrl);
-
-// ✅ Allowlist validation
-const ALLOWED_HOSTS = new Set(['hooks.example.com', 'api.partner.com']);
-const url = new URL(req.body.webhookUrl);
-if (!ALLOWED_HOSTS.has(url.hostname)) throw new ValidationError('URL not allowed');
-```
-
----
-
-## Output Format
-
-```
-🔒 API SECURITY AUDIT REPORT
-══════════════════════════════
-Feature: {slug} | Scope: {files audited}
-
-🔴 CRITICAL:
-  [A01] orders.controller.ts:34 — Missing ownership check on GET /orders/:id
-  [A03] user.repository.ts:89 — Potential SQL injection via template literal
-
-🟡 HIGH:
-  [A07] auth.controller.ts:120 — No brute-force protection on /auth/login
-  [A02] user.service.ts:45 — Password hashed with SHA256 (should use bcrypt)
-
-🟢 PASSED:
-  ✓ A05: helmet() và CORS configured correctly
-  ✓ A09: Auth events đều có structured logging
-
-📋 REMEDIATION PLAN:
-  Priority 1: Fix A01 ownership check (30 min)
-  Priority 2: Replace SHA256 with bcrypt (1h + migration)
-  Priority 3: Add rate limiting middleware (2h)
-```
-
----
-
-## Integration với SDD
-
-Nếu audit phát hiện design-level security gap:
-1. Tạo RFC trong `.sdd/rfcs/` đề xuất thay đổi `CONSTITUTION.md`
-2. Cập nhật `.sdd/constraints/business.md` hoặc `safety.md` với rule mới
-3. Fix the Spec trước, sau đó re-generate code
+Nếu finding đổi business behavior, cập nhật `SPEC.md` trước code. Governance change cần RFC. Binding gap phải lưu `PENDING HUMAN REVIEW`; không remediation framework-specific.

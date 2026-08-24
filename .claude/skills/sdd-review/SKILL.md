@@ -4,7 +4,7 @@ description: Ghi nhận Human Final Review bền vững cho SDD/ADD artifact và
 user-invocable: true
 ---
 
-# Skill: Human Review State Manager (`/sdd-review`)
+# Human Review State Manager (`/sdd-review`)
 
 Dùng skill này sau khi Human Director, Tech Lead hoặc reviewer được ủy quyền đã đọc recommendation và bằng chứng. Skill cập nhật đúng `Human Final Review` block trong artifact; Agent không được tự chọn quyết định thay cho Human.
 
@@ -21,7 +21,7 @@ Dùng skill này sau khi Human Director, Tech Lead hoặc reviewer được ủy
   - `.sdd/rfcs/RFC-001-soft-delete-policy.md`
 - Hoặc dùng cặp `--feature=<feature-slug> --artifact=<context|spec|plan|tasks>`.
 
-Không dùng đồng thời `--target` với `--feature`/`--artifact`. Không nhận absolute path, path ngoài repository, `.env`, secret, private key, `node_modules/`, `dist/`, `.git/` hoặc `CONSTITUTION.md`.
+Không dùng đồng thời `--target` với `--feature`/`--artifact`. Không nhận absolute path, path ngoài repository, `.env`, secret, private key, `node_modules/`, `dist/`, `.git/` hoặc `CONSTITUTION.md`; Constitution chỉ được thay đổi bằng RFC đã `APPROVED` theo `/sdd-rfc`.
 
 ### Ghi quyết định của Human — bắt buộc
 

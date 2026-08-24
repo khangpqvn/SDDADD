@@ -1,6 +1,6 @@
 ---
 name: git-validate
-description: Repository validation gate that MUST pass before commit, push, or Pull Request
+Validation gate của repository, bắt buộc đạt trước commit, push hoặc Pull Request
 user-invocable: true
 ---
 
@@ -31,7 +31,7 @@ Dùng skill này trước mọi commit, push hoặc Pull Request. Đây là sing
 
 ### 1. Xác định repository và nguồn diff
 
-Đọc `AGENTS.md`, `CLAUDE.md`, `CONSTITUTION.md` trước khi kiểm tra.
+Đọc `AGENTS.md`, `CLAUDE.md`, `CONSTITUTION.md` và `.sdd/architecture-profile.md` theo [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md) trước khi kiểm tra. Profile xác định command test/lint/typecheck/build; manifest/CI là evidence để xác minh command đó, không phải nguồn suy đoán replacement command.
 
 #### Commit scope
 
@@ -60,7 +60,7 @@ git diff --stat "origin/<base>...origin/<head>"
 git status --short
 ```
 
-- Block detached HEAD, missing remote, missing base/head, unresolved Git operation, dirty worktree, base branch as head, and empty remote diff.
+- Block detached HEAD, remote hoặc base/head thiếu, Git operation chưa xử lý, dirty worktree, base branch là head hoặc remote diff rỗng.
 - Block khi local `HEAD` khác `origin/<head>`; PR phải phản ánh commit đã push.
 - Nếu branch chưa có trên remote, không kết luận PR ready. `/git-pr` phải push khi người dùng yêu cầu, rồi chạy lại gate.
 - Dùng `origin/<base>...origin/<head>` cho mọi kết luận về PR. Không dùng `git diff main...HEAD`.
@@ -113,18 +113,12 @@ Quy tắc kết quả:
 
 ### 4. Test và quality gate
 
-Đọc `package.json` nếu tồn tại. Chạy các script có liên quan, theo thứ tự:
+Đọc approved `.sdd/architecture-profile.md`, manifest và CI evidence. Chạy theo thứ tự các **exact commands** đã approved trong profile: test, lint, typecheck, build. Không thay bằng package-manager command hoặc script name suy đoán.
 
-```bash
-npm test
-npm run lint
-npm run typecheck
-npm run build
-```
-
-- Chỉ chạy script thực sự tồn tại; ghi command và exit result.
-- Nếu source behavior tồn tại mà không có test script hoặc test files phù hợp: `FAIL`.
-- Nếu repository không có source/test/package manifest: `N/A (repository template has no executable project)`.
+- Chỉ chạy command vừa `APPROVED` trong profile vừa tồn tại theo evidence; ghi command và exit result.
+- Nếu source behavior tồn tại nhưng profile thiếu command test hoặc test files phù hợp: `FAIL`.
+- Nếu repository là core-only template, không có source/test behavior executable và profile chưa chọn command: `N/A (core-only template; verification command intentionally unselected)`.
+- Nếu profile command không khớp manifest/CI evidence: `FAIL`; yêu cầu cập nhật profile và Human Final Review.
 - Không nuốt output hoặc đổi failure thành warning.
 - Test fail, lint fail, typecheck fail hoặc build fail: `FAIL`.
 

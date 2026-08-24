@@ -1,136 +1,114 @@
-# .sdd/mcp-config.yaml — MCP Tool Access Control per Agent
+# .sdd/mcp-config.yaml — MCP access control theo Agent
 # Version: 1.0.0
-# Reference: Slide 11.6 — MCP Access Control & Tool Borrowing
+# Tham chiếu: Slide 11.6 — MCP Access Control và Tool Borrowing
 #
-# Cấu hình này định nghĩa MCP tools nào mỗi agent được phép dùng.
-# Nguyên tắc: Principle of Least Privilege — chỉ cấp quyền đúng với scope của agent.
-#
-# HOW TO USE:
-#   Khi spawn sub-agent qua Claude Code /ck:team hoặc Agent tool,
-#   reference profile tương ứng để inject tool permissions.
+# Cấu hình định nghĩa MCP tool mỗi Agent được phép dùng.
+# Nguyên tắc: Principle of Least Privilege — chỉ cấp quyền đúng scope.
+# Khi spawn sub-agent qua Claude Code, /ck:team hoặc Agent tool,
+# dùng profile phù hợp để inject tool permission.
 
 version: "1.0"
 
-# ─── Agent Profiles ───────────────────────────────────────────────────────────
-
 agents:
-
   lead-architect:
-    description: "Orchestrator — reads all, writes SDD artifacts, coordinates"
+    description: "Điều phối, đọc toàn bộ context, ghi SDD artifact"
     mcp_tools:
       allowed:
-        - filesystem:read       # Read any file for orchestration context
-        - filesystem:write      # Write to .sdd/, CLAUDE.md only
-        - bash:read_only        # git status, git log, ls — no mutations
-        - task:create           # Create/update tasks in TASKS.md
+        - filesystem:read       # Đọc tệp cho orchestration context
+        - filesystem:write      # Chỉ ghi .sdd/ và CLAUDE.md
+        - bash:read_only        # git status, git log, ls; không mutate
+        - task:create           # Tạo/cập nhật task trong TASKS.md
         - task:update
         - task:list
-        - send_message          # Coordinate with sub-agents
+        - send_message          # Điều phối sub-agent
       denied:
-        - bash:execute          # No direct code execution — delegates to agents
-        - database:write        # No DB mutations
-        - git:commit            # No direct commits — review gate required
-        - git:push              # Absolutely forbidden
+        - bash:execute          # Không trực tiếp execution; giao cho Agent phù hợp
+        - database:write        # Không mutate DB
+        - git:commit            # Cần review gate
+        - git:push              # Cấm tuyệt đối
 
   backend-agent:
-    description: "Domain & Usecase developer — pure business logic, no infra"
+    description: "Developer domain/usecase; business logic thuần, không infra"
     mcp_tools:
       allowed:
-        - filesystem:read       # Read context files, specs
-        - filesystem:write      # Write src/domain/, src/usecase/ only
-        - bash:execute          # npm test, npm run lint within scope
-        - send_message          # Report to lead
-        - task:update           # Mark own tasks done
+        - filesystem:read       # Đọc context và Spec
+        - filesystem:write      # Chỉ ghi src/domain/, src/usecase/
+        - bash:execute          # Exact approved test/lint command trong Architecture Profile
+        - send_message          # Báo Lead
+        - task:update           # Cập nhật task được giao
       denied:
-        - database:read         # No direct DB access — domain layer is pure
+        - database:read         # Domain layer thuần, không truy cập DB trực tiếp
         - database:write
-        - filesystem:write_infra  # Cannot touch src/infra/
+        - filesystem:write_infra
         - git:push
 
   infra-agent:
-    description: "DB, cache, external integrations"
+    description: "DB, cache và external integration"
     mcp_tools:
       allowed:
         - filesystem:read
-        - filesystem:write      # Write src/infra/, tests/integration/
-        - database:read         # Read schema for repository implementation
-        - database:write        # Run migrations (requires human gate for production)
-        - bash:execute          # npm test, migration scripts
+        - filesystem:write      # Chỉ ghi src/infra/, tests/integration/
+        - database:read         # Đọc schema phục vụ repository implementation
+        - database:write        # Migration cần Human gate khi production
+        - bash:execute          # Exact approved migration/test command
         - send_message
         - task:update
       denied:
-        - database:drop         # Hard block — DROP TABLE, TRUNCATE
-        - database:delete_no_where  # Hard block — DELETE without WHERE
+        - database:drop         # Hard block: DROP TABLE, TRUNCATE
+        - database:delete_no_where # Hard block: DELETE không WHERE
         - git:push
-        - filesystem:write_domain   # Cannot touch src/domain/
+        - filesystem:write_domain
 
   interface-agent:
-    description: "HTTP Controllers, middleware, DTOs, API contracts"
+    description: "HTTP controller, middleware, DTO và API contract"
     mcp_tools:
       allowed:
         - filesystem:read
-        - filesystem:write      # Write src/interface/ only
-        - bash:execute          # npm test
+        - filesystem:write      # Chỉ ghi src/interface/
+        - bash:execute          # Exact approved test command
         - send_message
         - task:update
       denied:
-        - database:read         # No direct DB — use repositories
+        - database:read         # Không direct DB; dùng repository qua usecase/port
         - database:write
         - git:push
 
   tester-agent:
-    description: "Verification only — reads implementation, writes tests"
+    description: "Chỉ verification; đọc implementation, ghi test"
     mcp_tools:
       allowed:
-        - filesystem:read       # Read ALL source files for test writing
-        - filesystem:write      # Write tests/unit/, tests/e2e/ ONLY
-        - bash:execute          # npm test, npm run test:coverage
+        - filesystem:read       # Đọc toàn bộ source để viết test
+        - filesystem:write      # Chỉ ghi tests/unit/, tests/e2e/
+        - bash:execute          # Exact approved test/coverage command
         - send_message
         - task:update
       denied:
-        - filesystem:write_src  # Cannot modify src/ — read-only
+        - filesystem:write_src  # Không sửa src/
         - database:write
-        - git:commit            # No commits — lead handles
+        - git:commit
         - git:push
-
-# ─── Global Denied (All Agents) ───────────────────────────────────────────────
 
 global_denied:
   - filesystem:read_secrets     # .env, *.pem, *.key, secrets/
-  - bash:rm_force               # rm -rf without confirmation
-  - git:push_force              # force push any branch
-  - git:push_main               # direct push to main/master/production
-  - network:external_post       # No unauthorized external API calls
-  - eval_execution              # No eval(), Function() constructor
+  - bash:rm_force               # rm -rf chưa có confirmation
+  - git:push_force              # Force push mọi branch
+  - git:push_main               # Push trực tiếp main/master/production
+  - network:external_post       # External API call chưa được ủy quyền
+  - eval_execution              # eval(), Function() constructor
 
-# ─── Tool Borrowing Protocol (Slide 11.5) ─────────────────────────────────────
-#
-# Khi sub-agent cần tool ngoài profile của mình:
-#
-# 1. Sub-agent gửi request lên Lead qua send_message:
-#    "REQUEST_TOOL_BORROW: database:read for performance analysis on task T003"
-#
-# 2. Lead đánh giá: có thuộc global_denied không? Có lý do hợp lệ không?
-#
-# 3. Nếu hợp lệ: Lead thực hiện operation thay mặt sub-agent và trả kết quả
-#    (tool borrowing = Lead executes, not granting permanent access)
-#
-# 4. Nếu yêu cầu là global_denied: Lead escalate lên Human Director
-#
-# Nguyên tắc: Tool borrowing là ONE-TIME, không phải permanent grant.
-
+# Tool borrowing protocol: sub-agent gửi request cho Lead; Lead kiểm tra
+# global_denied và justification. Nếu hợp lệ, Lead tự thực hiện thao tác một lần,
+# không cấp permanent access. Yêu cầu global_denied phải escalate Human Director.
 tool_borrowing:
   process: "request_via_lead"
   max_borrow_duration: "single_task"
   requires_justification: true
   global_denied_override: "human_director_only"
 
-# ─── Audit Logging ────────────────────────────────────────────────────────────
-
 audit:
   log_path: ".sdd/reviews/mcp-audit-{date}.log"
   log_events:
-    - tool_denied          # When an agent attempts a denied tool
-    - tool_borrowed        # When lead executes on behalf of sub-agent
-    - global_denied_attempt # Critical — always alert human
+    - tool_denied          # Agent thử dùng tool bị cấm
+    - tool_borrowed        # Lead thực hiện thay mặt sub-agent
+    - global_denied_attempt # Critical; luôn báo Human
   alert_on: "global_denied_attempt"

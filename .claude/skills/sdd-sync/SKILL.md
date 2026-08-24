@@ -1,31 +1,33 @@
 ---
 name: sdd-sync
-description: Tự động đồng bộ Master Feature Registry (.sdd/README.md) và Shared API Contracts (.sdd/shared_context.md)
+description: Đồng bộ Master Feature Registry và shared contract trong .sdd
 user-invocable: true
 ---
 
-# Skill: SDD Registry Sync (`/sdd-sync`)
+# SDD Registry Sync (`/sdd-sync`)
 
-Sử dụng skill này để quét và tự động cập nhật Master Feature Registry (`.sdd/README.md`) cũng như Shared API/State Contracts (`.sdd/shared_context.md`) sau khi các feature thay đổi.
+Dùng để quét và cập nhật Master Feature Registry (`.sdd/README.md`) cùng shared API/state contract (`.sdd/shared_context.md`) sau khi feature thay đổi.
+
+## Architecture Profile reference
+
+Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
+
+- Đọc `.sdd/architecture-profile.md` trước khi trích xuất/cập nhật shared contract.
+- Chỉ ghi HTTP route, event schema, DTO validator, persistence identifier và command khi profile binding/evidence tương ứng đã `APPROVED`.
+- Binding chưa chọn: ghi behavior và data shape technology-neutral; không thêm framework route syntax, decorator, ORM schema hoặc command suy đoán.
+- Artifact feature mâu thuẫn profile `APPROVED`: giữ evidence, báo `CONFIGURATION GAP` và yêu cầu Human Director disposition; không tự rewrite contract.
 
 ## Tham số
-- Không yêu cầu tham số bắt buộc.
 
-## Quy trình Thực hiện (3 Bước)
+Không có tham số bắt buộc.
 
-1. **Quét Danh mục Feature trong `.sdd/features/`**:
-   - Quét tất cả thư mục feature trong `.sdd/features/`.
-   - Đọc header của từng `SPEC.md` để lấy thông tin: Status (`DRAFT` / `APPROVED & LOCKED`), SemVer Version, Số lượng `REQ-XXX`.
+## Quy trình
 
-2. **Cập nhật Master Feature Registry (`.sdd/README.md`)**:
-   - Tự động dựng bảng danh mục toàn bộ features kèm đường dẫn, phiên bản hiện tại và trạng thái.
+1. Quét thư mục `.sdd/features/`; đọc header từng `SPEC.md` để lấy status, SemVer và số `REQ-XXX`.
+2. Cập nhật `.sdd/README.md` với feature path, version và status hiện tại.
+3. Tổng hợp data contract, transport/event contract và state definition được evidence xác nhận; chỉ dùng adapter syntax đã approved.
+4. Cập nhật `.sdd/shared_context.md` mà không làm đứt shared contract; ghi profile reference khi binding unresolved.
 
-3. **Tổng hợp Shared Contracts (`.sdd/shared_context.md`)**:
-   - Trích xuất các DTOs, API Endpoints, Event Schemas và State Definitions dùng chung giữa các feature.
-   - Cập nhật vào `.sdd/shared_context.md` để các feature khác tham chiếu mà không gây đứt gãy hợp đồng tích hợp.
+## AI Recommendation và Human Final Review
 
----
-
-## AI Recommendation & Human Final Review
-
-After registry and contract synchronization, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with changed features, contract impact, drift evidence, and residual integration risk. Persist it in `.sdd/reviews/sync.md` with `PENDING HUMAN REVIEW`. The Human Director reviews the synchronization before downstream delivery; the Agent must not claim the registry or contracts are approved by itself.
+Sau synchronization, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm changed feature, contract impact, drift evidence và residual integration risk. Lưu tại `.sdd/reviews/sync.md` với `PENDING HUMAN REVIEW`. Human Director review synchronization trước delivery downstream; Agent không tự kết luận registry hoặc contract đã `APPROVED`.

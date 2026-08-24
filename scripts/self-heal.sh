@@ -1,54 +1,56 @@
 #!/usr/bin/env bash
-# self-heal.sh — Self-Healing Loop cho SDD+ADD workflow
-# Reference: Slide 11.4 — Automated Self-Healing Loop
+# self-heal.sh — Self-Healing Loop cho workflow SDD + ADD.
+# Tham chiếu: Slide 11.4 — Automated Self-Healing Loop.
 #
-# Flow: run tests → capture errors → invoke Claude to fix → re-test → auto commit if pass
-# Safety: max 3 fix attempts; escalates to human on failure
+# Luồng: chạy approved test → lấy lỗi → gọi Claude sửa → chạy lại test → Human review.
+# An toàn: tối đa ba lần sửa; cạn lần thử thì escalate Human Director.
 #
-# Usage:
-#   ./scripts/self-heal.sh                    # Run all tests
-#   ./scripts/self-heal.sh --test-cmd "npm run test:unit"
-#   ./scripts/self-heal.sh --feature=auth     # Scope to feature tests
-#   ./scripts/self-heal.sh --max-attempts=2   # Override retry limit
-#   ./scripts/self-heal.sh --dry-run          # Show plan without executing
+# Cách dùng:
+#   ./scripts/self-heal.sh --test-cmd "<approved test command>"
+#   ./scripts/self-heal.sh --test-cmd "<approved test command>" --feature=auth
+#   ./scripts/self-heal.sh --test-cmd "<approved test command>" --max-attempts=2
+#   ./scripts/self-heal.sh --test-cmd "<approved test command>" --dry-run
+#
+# Command phải khớp approved test command trong .sdd/architecture-profile.md.
+# Script không tự commit; Human Director kiểm soát delivery.
 
 set -euo pipefail
 
-# ─── Config ───────────────────────────────────────────────────────────────────
+# Cấu hình
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-3}"
-TEST_CMD="${TEST_CMD:-npm test}"
+TEST_CMD="${TEST_CMD:-}"
 FEATURE_SLUG=""
 DRY_RUN=false
 LOG_DIR=".sdd/reviews"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 LOG_FILE="${LOG_DIR}/self-heal-${TIMESTAMP}.log"
 
-# Colors
+# Màu terminal
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m' # Không màu
 
-# ─── Arg Parsing ──────────────────────────────────────────────────────────────
+# Phân tích tham số
 for arg in "$@"; do
   case $arg in
-    --test-cmd=*)   TEST_CMD="${arg#*=}" ;;
-    --feature=*)    FEATURE_SLUG="${arg#*=}" ;;
+    --test-cmd=*) TEST_CMD="${arg#*=}" ;;
+    --feature=*) FEATURE_SLUG="${arg#*=}" ;;
     --max-attempts=*) MAX_ATTEMPTS="${arg#*=}" ;;
-    --dry-run)      DRY_RUN=true ;;
-    *)              echo "Unknown arg: $arg"; exit 1 ;;
+    --dry-run) DRY_RUN=true ;;
+    *) echo "Tham số không hợp lệ: $arg"; exit 1 ;;
   esac
 done
 
-# Scope test command to feature if provided
-if [[ -n "$FEATURE_SLUG" ]]; then
-  TEST_CMD="$TEST_CMD -- --testPathPattern=$FEATURE_SLUG"
+# Kiểm tra an toàn
+if [[ -z "$TEST_CMD" ]]; then
+  echo "[ERROR] Bắt buộc có --test-cmd. Hãy chọn và approve exact test command trong .sdd/architecture-profile.md trước."
+  exit 1
 fi
 
-# ─── Safety checks ────────────────────────────────────────────────────────────
 if [[ "$DRY_RUN" == "true" ]]; then
-  echo -e "${BLUE}[DRY RUN] Self-Heal config:${NC}"
+  echo -e "${BLUE}[DRY RUN] Cấu hình Self-Heal:${NC}"
   echo "  Test command : $TEST_CMD"
   echo "  Max attempts : $MAX_ATTEMPTS"
   echo "  Feature scope: ${FEATURE_SLUG:-all}"
@@ -56,16 +58,15 @@ if [[ "$DRY_RUN" == "true" ]]; then
   exit 0
 fi
 
-# Ensure .sdd/reviews directory exists
+# Bảo đảm thư mục review tồn tại.
 mkdir -p "$LOG_DIR"
 
-# Verify we're in a git repo with clean working state (except uncommitted fixes)
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo -e "${RED}[ERROR] Not in a git repository. Aborting.${NC}"
+  echo -e "${RED}[ERROR] Không ở trong Git repository. Dừng.${NC}"
   exit 1
 fi
 
-# ─── Logging helpers ──────────────────────────────────────────────────────────
+# Hàm ghi log
 log() { echo -e "$1" | tee -a "$LOG_FILE"; }
 
 log_section() {
@@ -75,117 +76,93 @@ log_section() {
   log "${BLUE}══════════════════════════════════════════${NC}"
 }
 
-# ─── Test runner ──────────────────────────────────────────────────────────────
+# Chạy exact test command đã approved.
 run_tests() {
   local output
   local exit_code=0
   output=$(eval "$TEST_CMD" 2>&1) || exit_code=$?
   echo "$output" >> "$LOG_FILE"
   echo "$output"
-  return $exit_code
+  return "$exit_code"
 }
 
-# ─── Error extractor ──────────────────────────────────────────────────────────
-# Extracts failed test names and error messages for Claude context
+# Trích xuất tên test lỗi và error message cho Claude.
 extract_errors() {
   local test_output="$1"
   echo "$test_output" | grep -E "(FAIL|✗|×|Error:|expect\(|●)" | head -50
 }
 
-# ─── Claude fix invocation ────────────────────────────────────────────────────
-# Calls Claude CLI to analyze errors and suggest fixes
-# NOTE: Requires `claude` CLI installed and authenticated
+# Gọi Claude CLI để phân tích và áp dụng sửa đổi.
 invoke_claude_fix() {
   local error_summary="$1"
   local attempt="$2"
 
-  log "${YELLOW}[ATTEMPT $attempt/$MAX_ATTEMPTS] Invoking Claude to analyze errors...${NC}"
+  log "${YELLOW}[ATTEMPT $attempt/$MAX_ATTEMPTS] Gọi Claude để phân tích lỗi...${NC}"
 
-  # Check if claude CLI is available
   if ! command -v claude &> /dev/null; then
-    log "${YELLOW}[WARN] claude CLI not found. Skipping auto-fix.${NC}"
-    log "${YELLOW}       Install: https://claude.ai/code${NC}"
+    log "${YELLOW}[WARN] Không tìm thấy Claude CLI. Bỏ qua tự động sửa.${NC}"
+    log "${YELLOW}       Cài đặt: https://claude.ai/code${NC}"
     return 1
   fi
 
   local prompt
   prompt=$(cat <<EOF
-You are a Senior Engineer fixing test failures.
-Analyze these test errors and fix the code:
+Bạn là Senior Engineer đang sửa test failure.
+Phân tích các lỗi test sau và sửa code:
 
-FAILED TESTS:
+TEST THẤT BẠI:
 $error_summary
 
-RULES:
-1. Follow Fix the Spec NOT the Code — if business logic is wrong, update .sdd/features/*/SPEC.md
-2. Follow CONSTITUTION.md constraints
-3. No hardcoded secrets, no raw DELETE without WHERE
-4. Fix root cause, not symptoms
-5. Keep changes minimal and focused
+QUY TẮC:
+1. Tuân thủ Fix the Spec, not the Code — nếu business logic sai, cập nhật .sdd/features/*/SPEC.md.
+2. Tuân thủ constraint trong CONSTITUTION.md.
+3. Không hardcode secret, không dùng raw DELETE không có WHERE.
+4. Sửa root cause, không chỉ sửa symptom.
+5. Giữ thay đổi tối thiểu và đúng scope.
 
-Apply fixes now.
+Áp dụng sửa đổi ngay.
 EOF
 )
 
-  # Invoke Claude with auto-approve for safe operations
   claude --print "$prompt" 2>> "$LOG_FILE" || return 1
 }
 
-# ─── Auto commit ──────────────────────────────────────────────────────────────
-auto_commit() {
-  local attempt="$1"
-  local feature_ref="${FEATURE_SLUG:+($FEATURE_SLUG)}"
-
-  # Only commit if there are changes
-  if git diff --quiet && git diff --cached --quiet; then
-    log "${YELLOW}[COMMIT] No changes to commit.${NC}"
-    return 0
-  fi
-
-  # Stage all modified tracked files (not new untracked files — human decides those)
-  git add -u
-
-  local commit_msg="fix${feature_ref}: self-heal pass after ${attempt} attempt(s) — all tests green"
-  git commit -m "$commit_msg" >> "$LOG_FILE" 2>&1
-
-  log "${GREEN}[COMMIT] Auto-committed: $commit_msg${NC}"
-}
-
-# ─── Escalation ───────────────────────────────────────────────────────────────
+# Tạo incident report để Human Director xử lý.
 escalate_to_human() {
   local error_summary="$1"
   local incident_file="${LOG_DIR}/self-heal-incident-${TIMESTAMP}.md"
 
   cat > "$incident_file" <<EOF
-# Self-Heal Incident Report
+# Báo cáo sự cố Self-Heal
 
-**Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
+**Ngày:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
 **Status:** ESCALATED — Requires Human Review
 **Feature:** ${FEATURE_SLUG:-all}
-**Attempts:** $MAX_ATTEMPTS (exhausted)
+**Số lần thử:** $MAX_ATTEMPTS (đã cạn)
 
-## Failed Test Errors
+## Lỗi test thất bại
 
 \`\`\`
 $error_summary
 \`\`\`
 
-## Next Steps for Human Director
+## Bước tiếp theo cho Human Director
 
-1. Review errors above
-2. Check if Spec needs updating: \`.sdd/features/${FEATURE_SLUG:-*}/SPEC.md\`
-3. Apply manual fix
-4. Re-run: \`./scripts/self-heal.sh ${FEATURE_SLUG:+--feature=$FEATURE_SLUG}\`
+1. Review lỗi bên trên.
+2. Kiểm tra Spec có cần cập nhật không: \`.sdd/features/${FEATURE_SLUG:-*}/SPEC.md\`.
+3. Áp dụng sửa đổi thủ công.
+4. Chạy lại: \`./scripts/self-heal.sh --test-cmd "<approved test command>" ${FEATURE_SLUG:+--feature=$FEATURE_SLUG}\`.
 
-## Log File
+## Log file
+
 \`$LOG_FILE\`
 EOF
 
   log ""
   log "${RED}╔══════════════════════════════════════════╗${NC}"
-  log "${RED}║  ⚠️  ESCALATION REQUIRED                   ║${NC}"
-  log "${RED}║  Max attempts ($MAX_ATTEMPTS) exhausted      ║${NC}"
-  log "${RED}║  Incident: $incident_file  ║${NC}"
+  log "${RED}║  ⚠️  CẦN ESCALATE                         ║${NC}"
+  log "${RED}║  Đã cạn $MAX_ATTEMPTS lần thử                     ║${NC}"
+  log "${RED}║  Incident: $incident_file${NC}"
   log "${RED}╚══════════════════════════════════════════╝${NC}"
   log ""
   log "AI RECOMMENDATION: PENDING HUMAN REVIEW"
@@ -193,63 +170,52 @@ EOF
   log "NEXT STEP: Human Director reviews $incident_file"
 }
 
-# ─── Main Loop ────────────────────────────────────────────────────────────────
 main() {
-  log_section "Self-Healing Loop Started — $(date)"
-  log "Config: cmd='$TEST_CMD' | max_attempts=$MAX_ATTEMPTS | feature=${FEATURE_SLUG:-all}"
+  log_section "Bắt đầu Self-Healing Loop — $(date)"
+  log "Cấu hình: cmd='$TEST_CMD' | max_attempts=$MAX_ATTEMPTS | feature=${FEATURE_SLUG:-all}"
 
   local attempt=0
   local test_output
   local errors
 
-  # Initial test run
-  log_section "Initial Test Run"
+  log_section "Lần chạy test đầu tiên"
   if test_output=$(run_tests 2>&1); then
-    log "${GREEN}✅ All tests PASS on initial run. No healing needed.${NC}"
+    log "${GREEN}✅ Tất cả test PASS ngay từ đầu. Không cần self-heal.${NC}"
     exit 0
   fi
 
   errors=$(extract_errors "$test_output")
-  log "${RED}❌ Tests FAILED. Starting heal loop...${NC}"
-  log "Errors detected:"
+  log "${RED}❌ Test FAILED. Bắt đầu self-heal loop...${NC}"
+  log "Lỗi phát hiện:"
   log "$errors"
 
-  # Heal loop — max 3 attempts
-  while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
+  while [[ "$attempt" -lt "$MAX_ATTEMPTS" ]]; do
     attempt=$((attempt + 1))
-    log_section "Heal Attempt $attempt / $MAX_ATTEMPTS"
+    log_section "Lần self-heal $attempt / $MAX_ATTEMPTS"
 
-    # Invoke Claude to fix
     if ! invoke_claude_fix "$errors" "$attempt"; then
-      log "${YELLOW}[WARN] Claude fix invocation failed or skipped on attempt $attempt.${NC}"
+      log "${YELLOW}[WARN] Claude không sửa được hoặc bỏ qua lần $attempt.${NC}"
     fi
 
-    # Re-run tests
-    log "Re-running tests after fix attempt $attempt..."
+    log "Chạy lại test sau lần sửa $attempt..."
     if test_output=$(run_tests 2>&1); then
       log ""
       log "${GREEN}╔══════════════════════════════════════════╗${NC}"
-      log "${GREEN}║  ✅ ALL TESTS PASS after attempt $attempt    ║${NC}"
+      log "${GREEN}║  ✅ TẤT CẢ TEST PASS sau lần $attempt             ║${NC}"
       log "${GREEN}╚══════════════════════════════════════════╝${NC}"
-
-      # Auto commit the fix
-      auto_commit "$attempt"
-
       log ""
-      log "${GREEN}Self-Heal COMPLETE. Log: $LOG_FILE${NC}"
+      log "${GREEN}Self-Heal hoàn tất. Thay đổi vẫn uncommitted để Human review. Log: $LOG_FILE${NC}"
       exit 0
     fi
 
-    # Extract new errors for next attempt
     errors=$(extract_errors "$test_output")
-    log "${RED}Tests still failing after attempt $attempt.${NC}"
+    log "${RED}Test vẫn thất bại sau lần $attempt.${NC}"
 
-    if [[ $attempt -lt $MAX_ATTEMPTS ]]; then
-      log "Retrying with updated error context..."
+    if [[ "$attempt" -lt "$MAX_ATTEMPTS" ]]; then
+      log "Thử lại với error context đã cập nhật..."
     fi
   done
 
-  # All attempts exhausted
   escalate_to_human "$errors"
   exit 1
 }

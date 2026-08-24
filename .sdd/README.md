@@ -1,26 +1,34 @@
-# SDD Lifecycle & Multi-Feature Registry
+# Vòng đời SDD và Multi-Feature Registry
 
-Trạng thái các Features & Specifications trong hệ thống:
+Trạng thái feature và đặc tả của hệ thống.
 
-## 1. Global Governance (Layer 1)
-- [`CONSTITUTION.md`](../CONSTITUTION.md) — Hard Quality Gates & Security Rules (Lock)
-- [`AGENTS.md`](../AGENTS.md) — Agent Constitution, Scope & Tool Permissions
-- [`CLAUDE.md`](../CLAUDE.md) — Project Memory & Architecture DNA
-- [`shared_context.md`](./shared_context.md) — Active API Contracts & State Synchronization
+## 1. Global governance
+
+- [`CONSTITUTION.md`](../CONSTITUTION.md) — Hard quality gate và security rule.
+- [`AGENTS.md`](../AGENTS.md) — Constitution, phạm vi và quyền tool của Agent.
+- [`CLAUDE.md`](../CLAUDE.md) — Bộ nhớ kiến trúc dành cho con người.
+- [`architecture-profile.md`](./architecture-profile.md) — Binding tech stack/kiến trúc, evidence và artifact gate canonical.
+- [`shared_context.md`](./shared_context.md) — API contract và trạng thái dùng chung.
+- [`constraints/`](./constraints/) — Global, business và safety constraints.
+- [`mcp-config.yaml`](./mcp-config.yaml) — MCP access control theo Agent.
 
 ---
 
-## 2. Feature Registry (Layer 3)
+## 2. Feature Registry
 
-| Feature Slug | Feature Name | Owner | Status | Paths |
+| Feature slug | Tên feature | Owner | Status | Path |
 | :--- | :--- | :--- | :--- | :--- |
-| *(Chưa có feature)* | Chạy `/sdd-context --feature=<slug>` để khởi tạo | - | - | `.sdd/features/` |
+| *(Chưa có feature)* | Chạy `/sdd-context --feature=<slug>` để khởi tạo. | — | — | `.sdd/features/` |
 
 ---
 
-## 3. Standard Feature Structure
-Mỗi feature mới khi tạo sẽ nằm trong thư mục `.sdd/features/{feature-slug}/` gồm 4 file:
-- `CONTEXT.md` (Pha 0 - Context Discovery)
-- `SPEC.md` (Pha 1 - Executable Specification)
-- `PLAN.md` (Pha 2 - Architecture Plan)
-- `TASKS.md` (Pha 3 - Atomic Tasks Breakdown)
+## 3. Cấu trúc feature chuẩn
+
+Mỗi feature nằm trong `.sdd/features/{feature-slug}/` và có bốn artifact:
+
+- `CONTEXT.md` — Pha 0: Context Discovery.
+- `SPEC.md` — Pha 1: Executable Specification.
+- `PLAN.md` — Pha 2: Architecture Plan.
+- `TASKS.md` — Pha 3: Atomic Tasks Breakdown.
+
+`CONTEXT.md` và `SPEC.md` có thể dùng core-only baseline. `PLAN.md` và `TASKS.md` cần binding/command liên quan trong Architecture Profile đã approved.

@@ -1,40 +1,26 @@
 ---
 name: sdd-claude-edit
-description: Quản lý và cập nhật file CLAUDE.md (Project Memory & Architecture DNA) một cách an toàn và có kiểm soát
+description: Cập nhật CLAUDE.md an toàn theo Architecture Profile và repository evidence
 user-invocable: true
 ---
 
-# Skill: SDD Project Memory Editor (`/sdd-claude-edit`)
+# SDD Project Memory Editor (`/sdd-claude-edit`)
 
-Sử dụng skill này khi cần cập nhật `CLAUDE.md` — nơi lưu trữ Bộ nhớ dự án (Project Memory), Kiến trúc cốt lõi (Architecture DNA), Tech Stack hoặc Quy chuẩn Naming Conventions.
+Dùng khi cập nhật `CLAUDE.md`, là bộ nhớ kiến trúc cho người đọc và phải phản chiếu Architecture Profile đã approved.
 
 ## Tham số
-- `--section=<tên-mục>`: (Tùy chọn) Section cần sửa (e.g. `tech-stack`, `naming-conventions`, `directory-anatomy`, `architecture-dna`).
-- `--reason=<lý-do>`: Lý do cập nhật thông tin kiến trúc/bộ nhớ dự án.
 
-## Quy trình Thực hiện (4 Bước)
+- `--section=<tên-mục>`: Tùy chọn; mục cần sửa, ví dụ `tech-stack`, `naming-conventions`, `directory-anatomy`, `architecture-dna`.
+- `--reason=<lý-do>`: Lý do cập nhật kiến trúc hoặc project memory.
 
-1. **Đọc & Đánh giá `CLAUDE.md` hiện tại**:
-   - Đọc phiên bản hiện tại của `CLAUDE.md`.
-   - Kiểm tra xem thay đổi có vi phạm các quy tắc cứng trong `CONSTITUTION.md` không.
+## Quy trình
 
-2. **Cập nhật Nội dung Kiến trúc / Bộ nhớ**:
-   - Thêm/Sửa thông tin Tech Stack, Naming Conventions, hoặc sơ đồ thư mục Clean Architecture.
-   - Giữ nguyên cấu trúc chuẩn hóa gồm 4 phần chính:
-     1. TL;DR & Purpose
-     2. Architecture & Directory Anatomy
-     3. Core Architectural Principles
-     4. Engineering Conventions & Anti-Patterns
+1. Đọc `CLAUDE.md`, `CONSTITUTION.md`, `.sdd/architecture-profile.md`, constraint và evidence repository.
+2. Tech stack/architecture binding chỉ được cập nhật trong profile theo [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md); không suy đoán framework, database, ORM/query layer, validation hoặc command từ prose.
+3. Profile thay đổi: invalidate recommendation/Plan/Tasks bị ảnh hưởng, tạo `PENDING HUMAN REVIEW`, rồi chỉ phản chiếu binding đã `APPROVED` vào `CLAUDE.md`.
+4. Không áp đặt section, version hoặc changelog không tồn tại. Giữ cấu trúc hiện hữu trừ khi Human-approved scope yêu cầu thay đổi.
+5. Kiểm tra nội dung `CLAUDE.md` khớp source layout, skill và profile hiện tại.
 
-3. **Bump Version & Cập nhật Changelog**:
-   - Bump version `CLAUDE.md` (e.g. `v1.0.0` ➔ `v1.0.1` hoặc `v1.1.0`).
-   - Cập nhật mục Changelog ở cuối file với lý do thay đổi và người thực hiện.
+## AI Recommendation và Human Final Review
 
-4. **Kiểm tra Tính Đồng bộ**:
-   - Đảm bảo các chỉ dẫn trong `CLAUDE.md` khớp với thực tế thư mục `src/` và các file skill trong `.claude/skills/`.
-
----
-
-## AI Recommendation & Human Final Review
-
-Before changing `CLAUDE.md`, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` covering architecture evidence, proposed memory change, alternatives, drift risk, and affected skills. Persist it in `.sdd/reviews/claude-edit.md` with `PENDING HUMAN REVIEW`. The Human Director/Tech Lead must approve before the edit; after editing, refresh the recommendation and do not self-approve the updated architecture memory.
+Trước khi sửa `CLAUDE.md`, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm architecture evidence, memory change đề xuất, alternative, drift risk và affected skill. Lưu tại `.sdd/reviews/claude-edit.md` với `PENDING HUMAN REVIEW`. Human Director/Tech Lead phải `APPROVED` trước edit; sau edit refresh recommendation và không tự approve project memory mới.

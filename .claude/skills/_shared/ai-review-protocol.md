@@ -1,12 +1,12 @@
-# AI Recommendation & Human Final Review Protocol
+# AI Recommendation và Human Final Review Protocol
 
-## Purpose
+## Mục đích
 
-Every SDD/ADD skill may analyze, propose, generate, update, or report. The Agent supplies evidence and a recommendation; the Human Director owns the final decision. No Agent may approve its own recommendation.
+Mọi SDD/ADD skill có thể phân tích, đề xuất, sinh, cập nhật hoặc báo cáo. Agent cung cấp evidence và recommendation; Human Director sở hữu quyết định cuối cùng. Không Agent nào được approve recommendation của chính mình.
 
-## Canonical blocks
+## Canonical block
 
-Feature artifacts (`CONTEXT.md`, `SPEC.md`, `PLAN.md`, and `TASKS.md`) and any generated review report use these blocks:
+Feature artifact (`CONTEXT.md`, `SPEC.md`, `PLAN.md`, `TASKS.md`) và review report sinh ra dùng block sau:
 
 ```markdown
 ## AI Agent Recommendation
@@ -26,44 +26,44 @@ Feature artifacts (`CONTEXT.md`, `SPEC.md`, `PLAN.md`, and `TASKS.md`) and any g
 - Follow-up: <required changes or next command>
 ```
 
-For non-feature work, persist the same blocks in `.sdd/reviews/<review-slug>.md`. Do not create a fake feature only to store a review.
+Với công việc không thuộc feature, lưu cùng block trong `.sdd/reviews/<review-slug>.md`. Không tạo feature giả chỉ để lưu review.
 
-## State transitions
+## State transition
 
-- The Agent may create or refresh a recommendation only with `Status: PENDING HUMAN REVIEW`.
-- A human reviewer may set `Human Final Review.Status` to `APPROVED`, `REJECTED`, or `REVISE` and must provide decision, identity, and timestamp.
-- `APPROVED` is valid only when all required fields are populated. Conversation text alone is not durable approval.
-- `REJECTED` and `REVISE` block downstream work until the Agent produces a new recommendation and a human reviews it.
-- Any artifact change after approval invalidates the prior review. The Agent must reset it to `PENDING` and record the changed scope as evidence.
-- Downstream skills must read the persisted review block before treating an artifact as implementation-ready, locked, complete, or eligible for execution.
+- Agent chỉ tạo hoặc refresh recommendation với `Status: PENDING HUMAN REVIEW`.
+- Human reviewer có thể đặt `Human Final Review.Status` thành `APPROVED`, `REJECTED` hoặc `REVISE`; phải cung cấp decision, identity và timestamp.
+- `APPROVED` chỉ hợp lệ khi đủ field bắt buộc. Hội thoại không phải durable approval.
+- `REJECTED` và `REVISE` block downstream đến khi Agent tạo recommendation mới và Human review.
+- Artifact thay đổi sau approval làm review cũ mất hiệu lực. Agent phải đặt lại `PENDING` và ghi changed scope làm evidence.
+- Downstream skill phải đọc persisted review block trước khi coi artifact implementation-ready, locked, complete hoặc eligible for execution.
 
-## Required Agent behavior
+## Hành vi Agent bắt buộc
 
-1. Read this protocol before creating or changing an SDD artifact or review report.
-2. Generate the recommendation after analysis and before asking for approval.
-3. Stop at the human gate when approval is required; do not self-approve, infer approval, or continue from an unreviewed artifact.
-4. Report evidence, unresolved questions, risks, alternatives, and an exact next command.
-5. Preserve the human review block when it remains valid; otherwise invalidate it as specified above.
+1. Đọc protocol trước khi tạo hoặc thay đổi SDD artifact/review report.
+2. Sinh recommendation sau phân tích và trước khi yêu cầu approval.
+3. Dừng tại human gate khi cần approval; không self-approve, không suy approval và không tiếp tục từ artifact chưa review.
+4. Báo evidence, unresolved question, risk, alternative và exact next command.
+5. Giữ Human Final Review block còn hiệu lực; nếu không thì invalidate theo quy tắc trên.
 
-## Review roles
+## Vai trò review
 
-- `Human Director` is the default final reviewer for feature behavior, execution, and session continuation.
-- `Tech Lead` or `Architecture Board` may review architecture, governance, or RFC changes when the repository rules assign that authority.
-- The Agent records the reviewer identity but never supplies it on behalf of a human.
+- `Human Director` là reviewer mặc định cho feature behavior, execution và session continuation.
+- `Tech Lead` hoặc `Architecture Board` có thể review architecture, governance hoặc RFC khi repository rule giao thẩm quyền.
+- Agent ghi reviewer identity do con người cung cấp, không tự điền thay con người.
 
-## Human decision recording
+## Ghi quyết định Human
 
-Human reviewers should use `/sdd-review` to persist a decision instead of editing review fields ad hoc. The command validates the target, recommendation state, required fields, timestamp and allowed status before changing only the `Human Final Review` block.
+Human reviewer nên dùng `/sdd-review` để lưu decision thay vì sửa review field thủ công. Command xác minh target, recommendation state, required field, timestamp và status được phép trước khi chỉ sửa `Human Final Review` block.
 
-`/sdd-review` requires `Status`, `Decision`, `Reviewer`, `Reviewed at` and `Follow-up`. For `SPEC.md`, an approved review may transition the header to `Status: APPROVED & LOCKED` only after the Spec DoD checks pass. `REVISE` and `REJECTED` leave the artifact blocked. `/sdd-review` never changes `CONSTITUTION.md` and does not replace `/sdd-rfc --approve=<rfc-number>` for RFC or Constitution changes.
+`/sdd-review` yêu cầu `Status`, `Decision`, `Reviewer`, `Reviewed at` và `Follow-up`. Với `SPEC.md`, review approved chỉ chuyển header thành `Status: APPROVED & LOCKED` khi Spec DoD pass. `REVISE` và `REJECTED` giữ artifact ở trạng thái block. `/sdd-review` không sửa `CONSTITUTION.md` và không thay thế `/sdd-rfc --approve=<rfc-number>` cho RFC hoặc Constitution change.
 
 ## Skill integration contract
 
-Each skill must state:
+Mỗi skill phải nêu:
 
-- when it generates or refreshes the recommendation;
-- where it persists the blocks;
-- the exact human decision required;
-- the status required before its next action;
-- that the Agent stops instead of self-approving;
-- that Human records the decision through `/sdd-review` when the target is supported.
+- khi nào sinh hoặc refresh recommendation;
+- nơi lưu block;
+- quyết định Human cần đưa ra;
+- status bắt buộc trước hành động tiếp theo;
+- Agent phải dừng thay vì self-approve;
+- Human ghi decision qua `/sdd-review` khi target được hỗ trợ.

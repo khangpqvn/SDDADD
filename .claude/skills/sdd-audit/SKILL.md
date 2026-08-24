@@ -1,39 +1,38 @@
 ---
 name: sdd-audit
-description: Kiểm tra tuân thủ các quy tắc chất lượng 3 tầng trong CONSTITUTION.md (Hard Rules, Arch Constraints, Eng Standards)
+description: Kiểm định Constitution, Clean Architecture, EARS trace và binding theo Architecture Profile
 user-invocable: true
 ---
 
-# Skill: SDD Audit (`/sdd-audit`)
+# SDD Audit (`/sdd-audit`)
 
-Sử dụng skill này để kiểm định toàn bộ mã nguồn và đặc tả đối chiếu với Hiến pháp dự án (`CONSTITUTION.md`) trước khi commit hoặc tạo Pull Request.
+Dùng để kiểm định source và artifact theo `CONSTITUTION.md` trước commit hoặc Pull Request.
 
 ## Tham số
-- `--feature=<feature-slug>`: (Tùy chọn) Kiểm tra phạm vi 1 feature. Nếu không truyền, kiểm tra toàn bộ repository.
 
-## Quy trình Kiểm định 3 Tầng (3-Layer Quality Audit)
+- `--feature=<feature-slug>`: Tùy chọn; giới hạn một feature. Không có thì audit toàn repository.
 
-### Tầng 1: Hard Rules Verification (Bắt Buộc PASS 100%)
-- **SEC-01 (Secrets Check)**: Quét toàn bộ `src/`, `config/`, `.env` tìm API keys (`sk-*`), private keys, passwords hoặc plaintext credentials.
-- **SEC-02 (Auth Check)**: Kiểm tra 100% router/controller endpoints thay đổi trạng thái (POST, PUT, PATCH, DELETE) đã bọc Middleware Auth chưa.
-- **DATA-01 (Soft Delete Check)**: Quét SQL statements hoặc ORM calls trong `infra/` / `usecase/` xem có dùng câu lệnh hard-delete (`DELETE FROM`) vi phạm quy định không.
+## Architecture Profile
 
-### Tầng 2: Architectural Constraints Verification
-- **ARCH-01 (Clean Arch Boundaries)**: Kiểm tra hướng phụ thuộc dependency (`infra` -> `interface` -> `usecase` -> `domain`). Cấm `interface` gọi trực tiếp `infra` (DB), cấm `domain` import thư viện ngoài.
-- **ARCH-02 (Async Ops Check)**: Kiểm tra các tác vụ nặng/lâu có được đẩy qua Message Queue không.
+Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
 
-### Tầng 3: Engineering Standards Verification
-- **ENG-01 (EARS Tagging Traceability)**: Tính tỷ lệ phủ JSDoc tag `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` trên các method nghiệp vụ trong `src/usecase/`.
-- **ENG-02 (Unified Error Response)**: Kiểm tra các exception handler xem có trả về đúng cấu trúc JSON chuẩn `{ error_code, message, request_id, timestamp }` không.
+- Audit governance/layer boundary được phép với core-only baseline.
+- Route, authentication middleware, ORM/SQL, queue, dependency scan và test command chỉ kiểm tra khi binding tương ứng đã approved/evidenced.
+- Binding chưa chọn phải báo `CONFIGURATION GAP`, không kết luận `PASS`/`FAIL` dựa trên framework, SQL dialect, ORM method hay command suy đoán.
 
-## Đưa ra Kết quả Audit
-Xuất bảng báo cáo Compliance Report:
-- ❌ **FAILED (Blocker)**: Các lỗi vi phạm Layer 1 (Cần fix ngay lập tức).
-- ⚠️ **WARNING**: Các vi phạm Layer 2/3 (Cần giải trình hoặc giải quyết).
-- ✅ **PASSED**: Danh sách quy tắc đã tuân thủ.
+## Ba tầng audit
 
----
+1. **Hard rule:** `SEC-01` secret/PII protection; `SEC-02` identity, authorization ownership và unauthorized behavior cho feature cần access control; `DATA-01` retention, recovery, authorization, audit và deletion policy khi feature đổi core business data.
+2. **Architecture:** `ARCH-01` dependency direction và cấm direct DB access từ interface; `ARCH-02` kiểm tra async/reliability behavior theo Spec/profile.
+3. **Engineering:** `ENG-01` EARS trace trong `src/usecase/`; `ENG-02` safe error contract theo transport đã approved; `ENG-03` exact approved verification command.
 
-## AI Recommendation & Human Final Review
+## Kết quả
 
-After each audit, generate the canonical recommendation from `.claude/skills/_shared/ai-review-protocol.md` with findings, severity, evidence, remediation options, and residual risk. Persist it in the relevant feature artifact or `.sdd/reviews/audit-<slug>.md` with `PENDING HUMAN REVIEW`. The Human Director/Tech Lead approves the finding disposition; Layer 1 failures and unresolved blockers remain blocked. The Agent must not mark an audit approved by itself.
+- `FAIL`: Layer 1 violation hoặc blocker phải sửa.
+- `WARNING`: Vấn đề Layer 2/3 cần remediation hoặc rationale approved.
+- `PASS`: Check đã chạy và đạt.
+- `CONFIGURATION GAP`: Chưa đủ binding/evidence để audit adapter-specific.
+
+## AI Recommendation và Human Final Review
+
+Sau audit, tạo canonical recommendation gồm finding, severity, evidence, remediation option và residual risk. Lưu trong feature artifact hoặc `.sdd/reviews/audit-<slug>.md` với `PENDING HUMAN REVIEW`. Human Director/Tech Lead quyết định disposition; Layer 1 failure và blocker còn mở vẫn block. Agent không tự approve audit.

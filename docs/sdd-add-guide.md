@@ -1,6 +1,6 @@
 # HƯỚNG DẪN VẬN HÀNH SDD + ADD
 
-# Version: 6.0.0
+# Version: 7.0.0
 # Đối tượng: Product Owner, Human Director, Tech Lead, Developer, QA và AI Agent
 
 Đây là cẩm nang thao tác cho Starter Template SDD + ADD. Tài liệu trả lời ba câu hỏi:
@@ -40,7 +40,46 @@ ADD dùng AI Agent làm executor dưới sự chỉ đạo của con người:
 
 Agent không được tự phê duyệt recommendation, tự suy ra approval từ câu nói trong hội thoại, tự sửa `CONSTITUTION.md` sau khi template đã phát hành, bypass quality gate, push hoặc deploy. Chỉ một Human authorization explicit cho đúng đợt phát hành template mới là ngoại lệ; ngoại lệ không tạo quyền mặc định cho thay đổi sau này.
 
-### 1.3 Ba nguyên tắc bắt buộc
+### 1.3 ADD 4-phase pipeline
+
+ADD đặt Agent làm executor chính trong vòng lặp phát triển. Con người đóng vai **Director** (định hướng và phê duyệt), không phải Executor (gõ code). Human time ≈ 20% (setup + review); AI time ≈ 80% (execute).
+
+```text
+ADD PIPELINE
+
+PHA 1: CONTEXT SETUP (một lần, đầu dự án)
+  AGENTS.md + CLAUDE.md + CONSTITUTION.md + Constraint Docs
+  → Agent biết: Tôi là ai? Dự án này là gì? Giới hạn nào?
+
+PHA 2: INTENT COMMUNICATION (per-feature)
+  User Story → Prompt → Definition of Done
+  "WHAT" không phải "HOW"
+
+PHA 3: AGENTIC EXECUTION
+  Agent tự: Plan → Code → Test → Fix → Iterate
+  Human gates: Approve Plan (Shadow Plan) + Approve risky file changes
+
+PHA 4: HUMAN REVIEW & ITERATE
+  Review Plan (trước code) → Review Code → Merge/Iterate
+```
+
+**Pha 1 — Context Setup:** Đây là pha quan trọng nhất nhưng thường bị bỏ qua. Agent không có "common sense" về dự án của bạn. Mỗi phút đầu tư vào context setup tiết kiệm 10 phút debug sau.
+
+- **AGENTS.md**: Persona, scope, tool permissions, security rules, escalation — "Agent là ai?"
+- **CLAUDE.md**: TL;DR, architecture, file structure, lesson learned — "DNA của dự án"
+- Sau khi setup xong, kiểm tra bằng cách hỏi Agent: *"Describe lại dự án này cho tôi nghe."* Nếu Agent mô tả đúng architecture, stack và constraints — Pha 1 thành công.
+
+**Pha 2 — Intent Communication:** Mô tả WHAT bạn muốn đạt được + WHY + Definition of Done. Agent tự quyết HOW trong khuôn khổ constraints. Nếu đã có `SPEC.md`, intent chỉ cần là *"implement spec này"*.
+
+**Pha 3 — Agentic Execution:** Agent chạy Plan → Execute → Test loop. Hai human gates:
+1. Approve **Shadow Plan** trước khi Agent bắt đầu code (xem section 5.5).
+2. Review file changes trước khi commit.
+
+Không can thiệp giữa quá trình trừ khi thấy red flags. Interrupt bằng cách cập nhật document, không phải chat correction — chat correction không persist.
+
+**Pha 4 — Human Review:** Review xảy ra hai lần: plan trước code → code sau plan. Một plan sai được phát hiện ở pha này = 0 dòng code cần xóa.
+
+### 1.4 Ba nguyên tắc bắt buộc
 
 1. **Fix the Spec, not the Code**: Nếu failure do thiếu hoặc mơ hồ về nghiệp vụ, sửa `.sdd/features/{slug}/SPEC.md` trước.
 2. **Traceability 100%**: Business method trong `src/usecase/` phải có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.

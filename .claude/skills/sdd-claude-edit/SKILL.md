@@ -15,6 +15,19 @@ Dùng khi cập nhật `CLAUDE.md`, là bộ nhớ kiến trúc cho người đ�
 - `--section=<tên-mục>`: Tùy chọn; mục cần sửa, ví dụ `tech-stack`, `naming-conventions`, `directory-anatomy`, `architecture-dna`.
 - `--reason=<lý-do>`: Lý do cập nhật kiến trúc hoặc project memory.
 
+## Cấu trúc 4 sections cốt lõi của CLAUDE.md
+
+`CLAUDE.md` phải phản chiếu **project thực** — không dùng placeholder. Khi sửa, ưu tiên update các sections:
+
+| Section | Nội dung | Khi nào update |
+| :--- | :--- | :--- |
+| **TL;DR (30 giây)** | Loại service, giao thức chính, dependency quan trọng | Khi scope project thay đổi |
+| **Architecture** | Pattern (Clean/Hexagonal/MVC), file structure, dependency direction | Khi profile binding thay đổi |
+| **Lesson Learned** | Sự cố, root cause, fix áp dụng — format `[YYYY-MM]` | Sau incident, post-mortem |
+| **Current Sprint Focus** | Feature đang build; link đến `TASKS.md` | Đầu mỗi sprint/feature |
+
+`CLAUDE.md` là bộ nhớ kiến trúc cho **con người đọc**. Không dùng để Agent suy đoán stack; Agent đọc Architecture Profile. Không áp đặt section không tồn tại vào `CLAUDE.md` hiện hữu.
+
 ## Quy trình
 
 1. Đọc `CLAUDE.md`, `CONSTITUTION.md`, `.sdd/architecture-profile.md`, constraint và evidence repository.

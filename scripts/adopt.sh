@@ -131,6 +131,37 @@ copy_file "docs/sdd-add-guide.md" "docs/sdd-add-guide.md"
 copy_file "docs/architecture-profile-guide.md" "docs/architecture-profile-guide.md"
 copy_file "docs/multi-agent-orchestration-guide.md" "docs/multi-agent-orchestration-guide.md"
 copy_file "scripts/self-heal.sh" "scripts/self-heal.sh"
+copy_file "scripts/update.sh" "scripts/update.sh"
+
+echo -e "\n${BOLD}${BLUE}🏷️  Bước 5: Ghi template version...${NC}"
+TEMPLATE_VER="unknown"
+if [ -f "$TEMPLATE_DIR/.sdd/template-version.md" ]; then
+  TEMPLATE_VER="$(grep '^template-version:' "$TEMPLATE_DIR/.sdd/template-version.md" | awk '{print $2}')"
+fi
+ADOPTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+VERSION_FILE="$TARGET_DIR/.sdd/template-version.md"
+cat > "$VERSION_FILE" <<EOF
+# SDD + ADD Template Version
+
+template-version: $TEMPLATE_VER
+adopted-at: $ADOPTED_AT
+last-updated: $ADOPTED_AT
+template-source: $TEMPLATE_DIR
+
+---
+
+## Hướng dẫn
+
+File này được \`scripts/adopt.sh\` / \`adopt.ps1\` tạo khi áp dụng template lần đầu và được \`scripts/update.sh\` / \`update.ps1\` cập nhật sau mỗi lần update.
+
+- \`template-version\`: version template tại thời điểm adopt / update gần nhất.
+- \`adopted-at\`: timestamp lần adopt đầu tiên (ISO-8601).
+- \`last-updated\`: timestamp lần update gần nhất (ISO-8601).
+- \`template-source\`: URL hoặc path của template gốc (tuỳ chọn, để trace nguồn).
+
+Không sửa file này thủ công. Dùng \`/sdd-template-update\` để kiểm tra và cập nhật template.
+EOF
+echo -e "  ${GREEN}[✓] Đã ghi: .sdd/template-version.md (v$TEMPLATE_VER, adopted $ADOPTED_AT)${NC}"
 
 echo -e "\n${BOLD}${GREEN}🎉 Tích hợp SDD + ADD hoàn tất.${NC}"
 echo -e "${GREEN}=================================================${NC}"

@@ -132,6 +132,41 @@ Copy-FileSafely "docs\sdd-add-guide.md" "docs\sdd-add-guide.md"
 Copy-FileSafely "docs\architecture-profile-guide.md" "docs\architecture-profile-guide.md"
 Copy-FileSafely "docs\multi-agent-orchestration-guide.md" "docs\multi-agent-orchestration-guide.md"
 Copy-FileSafely "scripts\self-heal.sh" "scripts\self-heal.sh"
+Copy-FileSafely "scripts\update.ps1" "scripts\update.ps1"
+
+Write-Host ""
+Write-Host "Bước 5: Ghi template version..." -ForegroundColor Blue
+$TemplateVer = "unknown"
+$TemplateSrcVerFile = Join-Path $script:TemplateDir ".sdd\template-version.md"
+if (Test-Path $TemplateSrcVerFile) {
+    $line = (Get-Content $TemplateSrcVerFile | Where-Object { $_ -match '^template-version:' } | Select-Object -First 1)
+    if ($line) { $TemplateVer = ($line -split ':\s*')[1].Trim() }
+}
+$AdoptedAt = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
+$VersionFileDest = Join-Path $script:TargetDir ".sdd\template-version.md"
+$VersionContent = @"
+# SDD + ADD Template Version
+
+template-version: $TemplateVer
+adopted-at: $AdoptedAt
+last-updated: $AdoptedAt
+template-source: $script:TemplateDir
+
+---
+
+## Hướng dẫn
+
+File này được ``scripts/adopt.sh`` / ``adopt.ps1`` tạo khi áp dụng template lần đầu và được ``scripts/update.sh`` / ``update.ps1`` cập nhật sau mỗi lần update.
+
+- ``template-version``: version template tại thời điểm adopt / update gần nhất.
+- ``adopted-at``: timestamp lần adopt đầu tiên (ISO-8601).
+- ``last-updated``: timestamp lần update gần nhất (ISO-8601).
+- ``template-source``: URL hoặc path của template gốc (tuỳ chọn, để trace nguồn).
+
+Không sửa file này thủ công. Dùng ``/sdd-template-update`` để kiểm tra và cập nhật template.
+"@
+Set-Content -Path $VersionFileDest -Value $VersionContent -Encoding utf8
+Write-Host "  [+] Đã ghi: .sdd\template-version.md (v$TemplateVer, adopted $AdoptedAt)" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "=== Tích hợp SDD + ADD hoàn tất. ===" -ForegroundColor Green

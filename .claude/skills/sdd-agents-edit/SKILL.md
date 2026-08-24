@@ -12,15 +12,32 @@ Dùng khi cần cập nhật `AGENTS.md`: vai trò, phạm vi, quyền công c�
 
 ## Tham số
 
-- `--section=<tên-mục>`: Tùy chọn; mục cần sửa, ví dụ `persona`, `scope`, `tool-permissions`, `security`, `escalation`.
+- `--section=<tên-mục>`: Tùy chọn; tên section canonical, ví dụ `identity`, `scope`, `tool-permissions`, `security`, `communication`, `error-handling`, `escalation`, `changelog`.
 - `--reason=<lý-do>`: Lý do cập nhật quyền hoặc quy tắc Agent.
+
+## Cấu trúc 8 sections canonical của AGENTS.md
+
+`AGENTS.md` phải có đúng 8 sections theo thứ tự. Khi sửa, chỉ thay đổi đúng section liên quan — không thêm section ngoài canonical, không đổi thứ tự.
+
+| # | Section | Nội dung |
+| :--- | :--- | :--- |
+| 1 | **Identity & Persona** | Seniority, ngôn ngữ chính, philosophy, vị thế Agent |
+| 2 | **Scope & Boundaries** | Path được phép/bị cấm theo project layout thực tế |
+| 3 | **Tool Permissions** | Exact commands của stack; quyền theo loại hành động |
+| 4 | **Security Rules** | Zero secret, input sanitization, data masking |
+| 5 | **Communication Style** | Language mirroring, format báo cáo, cách đặt câu hỏi |
+| 6 | **Error Handling** | Quy trình khi test fail, Spec mơ hồ, recommendation/review |
+| 7 | **Escalation Protocol** | Khi nào dừng và báo Human Director; không escalate chung chung |
+| 8 | **Changelog** | Semantic versioning; mọi thay đổi cần peer review |
+
+Khi project adopt từ template, các sections phải được **customize theo stack thực** — persona Go ≠ TypeScript; path `cmd/internal/pkg` ≠ `src/`; tool command `make test` ≠ `npm test`. Xem `/sdd-init` hoặc `/sdd-adopt` để generate tự động.
 
 ## Quy trình
 
 1. Đọc `AGENTS.md`, `CONSTITUTION.md`, `CLAUDE.md`, Architecture Profile và constraint liên quan.
-2. Đối chiếu thay đổi với Constitution; không mở rộng quyền vượt safety boundary hoặc Technology Gate.
-3. Cập nhật role, permitted/forbidden path, tool permission, error handling hoặc escalation đúng phạm vi approved.
-4. Bump version theo SemVer và ghi lý do/người cập nhật trong `## Changelog` của `AGENTS.md`.
+2. Xác định section canonical cần sửa; đối chiếu với Constitution — không mở rộng quyền vượt safety boundary.
+3. Cập nhật đúng section trong 8-section structure; không thêm section ngoài canonical.
+4. Bump SemVer và ghi entry trong section `## 8. Changelog` kèm lý do/người cập nhật.
 5. Báo rõ permission impact, security risk, affected skill và bước escalation mới.
 
 ## AI Recommendation và Human Final Review

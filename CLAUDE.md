@@ -1,6 +1,6 @@
 # CLAUDE.md — Bộ nhớ dự án và kiến trúc
 
-# Version: 1.0.0
+# Version: 1.1.0
 # Project: Starter Template (SDD + ADD Boilerplate)
 
 ---
@@ -44,9 +44,11 @@ src/
 │   ├── architecture-profile.md # Binding công nghệ, evidence và artifact gate
 │   ├── shared_context.md   # State và API contract dùng chung
 │   ├── mcp-config.yaml     # MCP access control theo Agent
+│   ├── template-version.md # Version template đã adopt; do adopt/update scripts quản lý
 │   ├── constraints/        # Global, business và safety constraints
 │   ├── reviews/            # Report và review ngoài feature
 │   ├── rfcs/               # RFC thay đổi governance
+│   ├── updates/            # Staged governance files chờ merge (tạm thời sau update)
 │   └── features/           # Bộ CONTEXT, SPEC, PLAN, TASKS của từng feature
 ├── docs/
 │   ├── sdd-add-guide.md
@@ -54,6 +56,7 @@ src/
 │   └── multi-agent-orchestration-guide.md
 ├── scripts/
 │   ├── adopt.sh / adopt.ps1       # Tích hợp vào repository có sẵn
+│   ├── update.sh / update.ps1     # Cập nhật template từ nguồn gốc
 │   ├── self-heal.sh               # Test, sửa có giới hạn và Human review
 │   └── start-claude.sh / .ps1     # Chế độ --dangerously-skip-permissions
 ├── src/                    # Mã nguồn thực thi
@@ -68,6 +71,7 @@ src/
 - **EARS Notation:** Functional Requirement trong `SPEC.md` phải dùng EARS: Ubiquitous, Event-driven, State-driven, Optional hoặc Unwanted.
 - **Fix the Spec, not the Code:** Khi test thất bại vì requirement thiếu, bổ sung Spec rồi mới thay đổi behavior.
 - **Architecture Profile Gate:** `CONTEXT.md` và `SPEC.md` có thể core-only; `PLAN.md`, `TASKS.md`, `/add-execute` và `/sdd-layer-edit` phải dừng khi thiếu binding hoặc exact verification command cần thiết.
+- **Template Update:** Repo đã adopt theo dõi version template tại `.sdd/template-version.md`. Dùng `scripts/update.sh` (Linux/macOS) hoặc `scripts/update.ps1` (Windows) để nhận thay đổi mới từ template nguồn; dùng `/sdd-template-update --check` để xem version drift và `/sdd-template-update --review` để AI hướng dẫn merge governance files.
 
 ---
 
@@ -85,3 +89,11 @@ src/
 - Không dùng magic number inline; đưa vào constant hoặc configuration đã approved.
 - Không vá code trực tiếp khi Spec không khớp; quay lại `.sdd/features/{slug}/SPEC.md` trước.
 - Không thêm framework, ORM, package, migration hoặc command ngoài Architecture Profile đã approved.
+
+---
+
+## 5. Skill system — generate vs copy
+
+`/sdd-init` và `/sdd-adopt` **generate** governance files theo tech stack, không copy verbatim từ template. `AGENTS.md` có 8-section canonical structure (Identity, Scope, Tool Permissions, Security Rules, Communication Style, Error Handling, Escalation Protocol, Changelog). `CLAUDE.md` được điền từ project context thực tế. Xem chi tiết tại skill SKILL.md tương ứng.
+
+ADD 4-phase pipeline: Context Setup → Intent Communication → Agentic Execution → Human Review. Human time ≈ 20% (setup + review); AI time ≈ 80% (execute). Xem `docs/sdd-add-guide.md` section 1.3.

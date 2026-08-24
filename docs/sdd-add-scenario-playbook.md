@@ -1,6 +1,9 @@
 # Sổ tay kịch bản SDD + ADD
 
-Tài liệu thao tác nhanh cho người dùng Starter Template SDD + ADD. Chọn đúng kịch bản, làm theo từng bước, dừng tại các checkpoint Human Final Review.
+Tài liệu thao tác từng bước cho người dùng Starter Template SDD + ADD. Chọn đúng kịch bản, làm theo từng bước, dừng tại các checkpoint Human Final Review.
+
+> **Lần đầu?** Đọc [`sdd-add-quickstart.md`](./sdd-add-quickstart.md) trước để hiểu mental model.  
+> **Tra nhanh command?** Dùng [`sdd-add-field-guide.md`](./sdd-add-field-guide.md).
 
 Tài liệu này là lớp điều hướng thực hành. Contract đầy đủ nằm tại [sdd-add-guide.md](./sdd-add-guide.md), quyết định tech stack nằm tại [architecture-profile-guide.md](./architecture-profile-guide.md), và quy trình nhiều Agent nằm tại [multi-agent-orchestration-guide.md](./multi-agent-orchestration-guide.md).
 

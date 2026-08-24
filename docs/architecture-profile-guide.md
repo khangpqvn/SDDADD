@@ -1,6 +1,8 @@
 # Hướng dẫn Architecture Profile
-# Version: 1.0.0
+# Version: 1.1.0
 # Mục đích: Bảo đảm mọi artifact SDD/ADD khớp tech stack đã chọn và Clean Architecture.
+
+> **Chưa quen với SDD+ADD?** Đọc [`sdd-add-quickstart.md`](./sdd-add-quickstart.md) trước.
 
 ---
 

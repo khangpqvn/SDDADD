@@ -1,8 +1,12 @@
 # Cầm Tay Chỉ Việc — SDD + ADD Field Guide
-# Version: 1.0.0
+# Version: 1.1.0
 
+Thẻ thao tác nhanh — dùng khi bạn đã hiểu quy trình và chỉ cần tra command.  
 Chọn kịch bản → thực hiện từng bước → dừng tại Human Final Review.
-Tài liệu này là thẻ thao tác nhanh. Giải thích đầy đủ: [sdd-add-guide.md](./sdd-add-guide.md) · [sdd-add-scenario-playbook.md](./sdd-add-scenario-playbook.md)
+
+> **Lần đầu?** Đọc [`sdd-add-quickstart.md`](./sdd-add-quickstart.md) trước.  
+> **Cần giải thích đầy đủ?** Xem [`sdd-add-guide.md`](./sdd-add-guide.md).  
+> **Cần thao tác chi tiết từng kịch bản?** Xem [`sdd-add-scenario-playbook.md`](./sdd-add-scenario-playbook.md).
 
 ---
 

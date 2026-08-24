@@ -1,9 +1,13 @@
 # HƯỚNG DẪN VẬN HÀNH SDD + ADD
 
-# Version: 7.0.0
+# Version: 7.1.0
 # Đối tượng: Product Owner, Human Director, Tech Lead, Developer, QA và AI Agent
 
-Đây là cẩm nang thao tác cho Starter Template SDD + ADD. Tài liệu trả lời ba câu hỏi:
+> **Lần đầu tiếp cận?** Đọc [`sdd-add-quickstart.md`](./sdd-add-quickstart.md) trước — giải thích tại sao, mental model, và kịch bản bắt đầu.  
+> **Tra nhanh command?** Dùng [`sdd-add-field-guide.md`](./sdd-add-field-guide.md).  
+> **Tìm kịch bản cụ thể?** Dùng [`sdd-add-scenario-playbook.md`](./sdd-add-scenario-playbook.md).
+
+Đây là cẩm nang thao tác đầy đủ cho Starter Template SDD + ADD. Tài liệu trả lời ba câu hỏi:
 
 1. Con người phải chuẩn bị và quyết định điều gì ở từng pha?
 2. Agent được làm gì, phải dừng ở đâu và phải đưa bằng chứng nào?

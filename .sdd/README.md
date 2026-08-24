@@ -2,6 +2,8 @@
 
 Trạng thái feature và đặc tả của hệ thống.
 
+> **Lần đầu?** Đọc [`../../docs/sdd-add-quickstart.md`](../../docs/sdd-add-quickstart.md) trước.
+
 ## 1. Global governance
 
 - [`CONSTITUTION.md`](../CONSTITUTION.md) — Hard quality gate và security rule.
@@ -32,3 +34,18 @@ Mỗi feature nằm trong `.sdd/features/{feature-slug}/` và có bốn artifact
 - `TASKS.md` — Pha 3: Atomic Tasks Breakdown.
 
 `CONTEXT.md` và `SPEC.md` có thể dùng core-only baseline. `PLAN.md` và `TASKS.md` cần binding/command liên quan trong Architecture Profile đã approved.
+
+---
+
+## 4. Cập nhật artifact
+
+Dùng `/sdd-update --artifact=<spec|context|plan|tasks>` để cập nhật artifact đã approved:
+
+| Artifact | Khi dùng |
+| :--- | :--- |
+| `spec` | Sửa requirement, thêm error case, bump SemVer |
+| `context` | Thay đổi stakeholder, constraint, glossary |
+| `plan` | Sửa component, risk, data flow (Spec không đổi) |
+| `tasks` | Thêm/sửa task, dependency (Plan không đổi) |
+
+Mỗi update invalidate review cũ, tạo recommendation mới cần Human Director approve.

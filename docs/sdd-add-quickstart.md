@@ -171,13 +171,37 @@ Làm theo quy trình 7 bước ở trên.
 Thay `--artifact=context` bằng `spec`, `plan`, `tasks`, `execution` tùy pha.  
 Thay `--status=APPROVED` bằng `REVISE` hoặc `REJECTED` nếu cần sửa.
 
+## Cập nhật artifact đã approved — `/sdd-update`
+
+Khi artifact đã approved cần sửa, dùng `/sdd-update` thay vì chạy lại skill tạo:
+
+```text
+# Sửa Spec đã lock
+/sdd-update --feature=feat-user-register --artifact=spec --bump=patch \
+  --reason="[REQ-003] Add OTP rate-limit: max 5 attempts per 10 minutes"
+
+# Cập nhật Context
+/sdd-update --feature=feat-user-register --artifact=context \
+  --reason="Add GDPR constraint: user data deletable within 30 days"
+
+# Sửa Plan (Spec không đổi)
+/sdd-update --feature=feat-user-register --artifact=plan \
+  --reason="Add Redis session token risk mitigation"
+
+# Thêm Task (Plan không đổi)
+/sdd-update --feature=feat-user-register --artifact=tasks \
+  --reason="Add T009 for concurrent registration dedup check"
+```
+
+Mỗi update invalidate review cũ, tạo recommendation mới cần Human Director approve.
+
 ---
 
 ## Khi gặp lỗi, hỏi hai câu này trước
 
 **Câu 1:** Test fail vì code sai Spec hay vì Spec thiếu rule?
 - Code sai Spec → sửa code.
-- Spec thiếu rule → `/sdd-update --bump=patch --reason="..."` trước.
+- Spec thiếu rule → `/sdd-update --artifact=spec --bump=patch --reason="[REQ-XXX] ..."` trước.
 
 **Câu 2:** Agent bị block vì thiếu gì?
 - Thiếu binding → mở `.sdd/architecture-profile.md`, điền decision, `/sdd-review` approve.

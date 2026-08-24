@@ -97,3 +97,17 @@ src/
 `/sdd-init` và `/sdd-adopt` **generate** governance files theo tech stack, không copy verbatim từ template. `AGENTS.md` có 8-section canonical structure (Identity, Scope, Tool Permissions, Security Rules, Communication Style, Error Handling, Escalation Protocol, Changelog). `CLAUDE.md` được điền từ project context thực tế. Xem chi tiết tại skill SKILL.md tương ứng.
 
 ADD 4-phase pipeline: Context Setup → Intent Communication → Agentic Execution → Human Review. Human time ≈ 20% (setup + review); AI time ≈ 80% (execute). Xem `docs/sdd-add-guide.md` section 1.3.
+
+## 6. Tài liệu tham chiếu nhanh
+
+| Mục đích | File |
+| :--- | :--- |
+| **Lần đầu — bắt đầu từ đây** | `docs/sdd-add-quickstart.md` |
+| Vận hành đầy đủ, review gate | `docs/sdd-add-guide.md` |
+| Tra nhanh scenario → command | `docs/sdd-add-field-guide.md` |
+| Kịch bản chi tiết từng bước | `docs/sdd-add-scenario-playbook.md` |
+| Architecture Profile chọn stack | `docs/architecture-profile-guide.md` |
+| Multi-Agent orchestration | `docs/multi-agent-orchestration-guide.md` |
+| Hard rule, quality gate | `CONSTITUTION.md` |
+| Agent scope & tool permission | `AGENTS.md` |
+| Architecture Profile (canonical) | `.sdd/architecture-profile.md` |

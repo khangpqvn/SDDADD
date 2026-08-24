@@ -6,9 +6,14 @@ Template chuẩn để xây dựng dự án phần mềm theo **SDD** (Spec-Driv
 
 ## Tài liệu hướng dẫn
 
-- [`docs/sdd-add-guide.md`](docs/sdd-add-guide.md) — Cẩm nang vòng đời feature, review gate và các kịch bản vận hành.
-- [`docs/architecture-profile-guide.md`](docs/architecture-profile-guide.md) — Chọn, xác minh và review tech stack trước khi sinh Plan, Tasks hoặc adapter code.
-- [`docs/multi-agent-orchestration-guide.md`](docs/multi-agent-orchestration-guide.md) — Phân quyền, ownership, MCP và quy trình phối hợp Multi-Agent.
+| Mục đích | Tài liệu |
+| :--- | :--- |
+| **Lần đầu — bắt đầu từ đây** | [`docs/sdd-add-quickstart.md`](docs/sdd-add-quickstart.md) — Mental model, quy trình 7 bước, 5 điều không được làm, cách approve đúng |
+| Cẩm nang đầy đủ | [`docs/sdd-add-guide.md`](docs/sdd-add-guide.md) — Vòng đời feature, review gate, kịch bản vận hành |
+| Tra nhanh command | [`docs/sdd-add-field-guide.md`](docs/sdd-add-field-guide.md) — Thẻ thao tác nhanh, bảng scenario → command |
+| Kịch bản chi tiết từng bước | [`docs/sdd-add-scenario-playbook.md`](docs/sdd-add-scenario-playbook.md) — Greenfield, brownfield, multi-agent, audit... |
+| Tech stack & profile | [`docs/architecture-profile-guide.md`](docs/architecture-profile-guide.md) — Chọn, xác minh, review binding trước technical planning |
+| Multi-Agent orchestration | [`docs/multi-agent-orchestration-guide.md`](docs/multi-agent-orchestration-guide.md) — Phân quyền, ownership, MCP, quy trình phối hợp |
 
 ---
 
@@ -96,14 +101,15 @@ Sau đó mở repository đích và chạy:
 | Command | Mục đích |
 | :--- | :--- |
 | `/sdd-init`, `/sdd-adopt` | Khởi tạo Greenfield hoặc tích hợp Brownfield. |
-| `/sdd-context`, `/sdd-spec`, `/sdd-plan`, `/sdd-tasks` | Tạo bốn artifact SDD theo thứ tự. |
-| `/sdd-review` | Ghi Human Final Review bền vững. |
-| `/add-execute`, `/sdd-layer-edit` | Thực thi theo profile, Plan và Tasks đã duyệt. |
-| `/sdd-update`, `/sdd-lint`, `/sdd-audit`, `/sdd-trace`, `/sdd-sync` | Cập nhật, kiểm định, truy vết và đồng bộ đặc tả. |
+| `/sdd-context`, `/sdd-spec`, `/sdd-plan`, `/sdd-tasks` | Tạo 4 artifact SDD theo thứ tự (Context → Spec → Plan → Tasks). |
+| `/sdd-update --artifact=<spec\|context\|plan\|tasks>` | Cập nhật artifact đã approved: Spec (bump SemVer), Context, Plan, Tasks — invalidate review cũ, tạo recommendation mới. |
+| `/sdd-review` | Ghi Human Final Review bền vững (`APPROVED`, `REVISE`, `REJECTED`). |
+| `/add-execute`, `/sdd-layer-edit` | Thực thi theo profile, Plan, Tasks đã duyệt; Shadow Plan trước mỗi task. |
+| `/sdd-lint`, `/sdd-audit`, `/sdd-trace`, `/sdd-sync` | Kiểm định, truy vết requirement, đồng bộ registry/shared contract. |
 | `/sdd-handoff`, `/sdd-resume` | Lưu và khôi phục trạng thái phiên làm việc. |
-| `/sdd-rfc`, `/sdd-claude-edit`, `/sdd-agents-edit` | Quản lý governance. |
-| `/git-validate`, `/git-commit`, `/git-pr` | Kiểm tra và thực hiện Git delivery. |
-| `/api-security-auditor`, `/sql-performance-tuner`, `/error-handler-pattern` | Technical skill theo Architecture Profile. |
+| `/sdd-rfc`, `/sdd-claude-edit`, `/sdd-agents-edit` | Quản lý governance (RFC, CLAUDE.md, AGENTS.md). |
+| `/git-validate`, `/git-commit`, `/git-pr` | Kiểm tra và thực hiện Git delivery (`READY` gate). |
+| `/api-security-auditor`, `/sql-performance-tuner`, `/error-handler-pattern` | Technical skill (cần Architecture Profile binding đã approved). |
 
 Mỗi recommendation bắt đầu tại `PENDING HUMAN REVIEW`. Agent chỉ đề xuất; Human Director hoặc reviewer được ủy quyền ghi `APPROVED`, `REVISE` hoặc `REJECTED` bằng `/sdd-review`.
 

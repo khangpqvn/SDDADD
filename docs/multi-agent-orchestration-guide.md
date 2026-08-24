@@ -2,6 +2,8 @@
 # Version: 1.1.0
 # Tham chiếu: Slide 11.1–11.6 — Multi-Agent Architecture và MCP Access Control
 
+> **Chưa quen với SDD+ADD?** Đọc [`sdd-add-quickstart.md`](./sdd-add-quickstart.md) trước.
+
 ---
 
 ## 1. Kiến trúc tổng quan

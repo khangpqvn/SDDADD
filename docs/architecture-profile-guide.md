@@ -120,7 +120,7 @@ NEXT STEP: Record APPROVED review on the profile, then rerun /sdd-plan.
 2. Sau approval, đồng bộ `CLAUDE.md` bằng `/sdd-claude-edit`.
 3. Xác định `SPEC.md`, `PLAN.md`, `TASKS.md`, test, CI và adapter code bị ảnh hưởng.
 4. Invalidate technical recommendation cũ và sinh lại từ profile đã approved.
-5. Dùng `/sdd-update --bump=major` khi public API/data behavior bị breaking; nếu không, chọn SemVer theo behavior.
+5. Dùng `/sdd-update --artifact=spec --bump=major` khi public API/data behavior bị breaking; nếu không, chọn SemVer theo behavior. Nếu chỉ Spec không đổi nhưng Plan/Tasks cần cập nhật, dùng `/sdd-update --artifact=plan` hoặc `--artifact=tasks`.
 6. Chỉ chạy migration/test command đã approved trong profile mới.
 
 ---

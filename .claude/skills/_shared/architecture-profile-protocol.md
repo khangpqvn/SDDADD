@@ -22,6 +22,10 @@ Mọi SDD/ADD skill tạo hoặc thay đổi artifact dự án phải dùng prot
 - Generated path phải khớp Clean Architecture layout và profile binding đã approved.
 - Profile approved mất hiệu lực khi manifest/config evidence nền tảng không còn khớp. Tạo recommendation `PENDING HUMAN REVIEW` mới.
 
+## Output Language
+
+All skill output that reads this protocol must mirror the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`APPROVED`, `PENDING`, `PENDING HUMAN REVIEW`, `CONFIGURATION GAP`, `FAIL`, `PASS`), code identifiers, file paths, and CLI commands are language-invariant.
+
 ## Block message bắt buộc
 
 ```text

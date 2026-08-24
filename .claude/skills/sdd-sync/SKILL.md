@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Registry Sync (`/sdd-sync`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`, `CONFIGURATION GAP`), file paths, and CLI commands are language-invariant.
+
 Dùng để quét và cập nhật Master Feature Registry (`.sdd/README.md`) cùng shared API/state contract (`.sdd/shared_context.md`) sau khi feature thay đổi.
 
 ## Architecture Profile reference

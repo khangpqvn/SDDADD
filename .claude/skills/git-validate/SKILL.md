@@ -6,6 +6,8 @@ user-invocable: true
 
 # Git Repository Validation Gate (`/git-validate`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`GIT VALIDATION: READY`, `GIT VALIDATION: BLOCKED`, `PASS`, `FAIL`, `WARNING`, `N/A`), file paths, and CLI commands are language-invariant.
+
 Dùng skill này trước mọi commit, push hoặc Pull Request. Đây là single source of truth cho validation của Git Operator. Gate **fail closed**: chỉ trả `READY` khi mọi check bắt buộc đạt.
 
 ## Tham số

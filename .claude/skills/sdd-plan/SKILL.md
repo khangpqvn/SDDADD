@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Phase 2 — Architecture Planning (`/sdd-plan`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `PENDING`, `APPROVED`), file paths, and CLI commands are language-invariant.
+
 Dùng `SPEC.md` và `CONSTITUTION.md` để tạo `.sdd/features/{feature-slug}/PLAN.md`.
 
 ## Tham số

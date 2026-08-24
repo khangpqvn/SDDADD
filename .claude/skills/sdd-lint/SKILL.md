@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Spec Linter (`/sdd-lint`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), EARS keywords, `REQ-XXX` identifiers, file paths, and CLI commands are language-invariant.
+
 Dùng để lint và kiểm định `.sdd/features/{feature-slug}/SPEC.md`, phát hiện requirement mơ hồ, vi phạm EARS hoặc thiếu edge case trước khi Human Director hoặc Tech Lead review Spec.
 
 ## Tham số

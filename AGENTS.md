@@ -1,6 +1,6 @@
 # AGENTS.md — Constitution và quy tắc vận hành Agent
 
-# Version: 1.2.0
+# Version: 1.3.0
 # Owner: Tech Lead (@architecture-team)
 # Phạm vi: Mọi AI Agent (Claude, Roo Code, Cline, Cursor và Custom Subagent)
 
@@ -57,7 +57,8 @@
 
 ## 5. Ngôn ngữ và báo cáo
 
-- **Ngôn ngữ:** Prose, tài liệu, comment và báo cáo dùng tiếng Việt; giữ English cho code, code identifier, path, command, EARS syntax, formal status và thuật ngữ kỹ thuật chuẩn.
+- **Language mirroring:** Output language (prose, descriptions, section text, report bodies) mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output.
+- **Language-invariant:** Code identifiers, file paths, CLI commands, EARS keywords (`WHEN`, `WHILE`, `WHERE`, `IF`, `THEN`, `SHALL`), formal status tokens (`PASS`, `FAIL`, `BLOCKED`, `READY`, `PENDING`, `APPROVED`, `REJECTED`, `REVISE`, `PENDING HUMAN REVIEW`, `CONFIGURATION GAP`), rule codes (`SEC-01`, `ARCH-01`, `ENG-02`, …), and technical standard terms remain in their original form regardless of prompt language.
 - **Định dạng:** Ngắn gọn, có cấu trúc, ưu tiên evidence; không dùng câu đệm.
 - **Mẫu báo cáo:** `[STATUS]` → hành động → lý do/evidence → bước tiếp theo.
 
@@ -108,6 +109,10 @@ Escalate ngay cho Human Director khi:
 ---
 
 ## 8. Changelog
+
+### v1.3.0 (2026-08-25)
+
+- Section 5: Replace fixed-Vietnamese language rule with language-mirroring rule — output follows prompt language; canonical tokens and code identifiers remain language-invariant.
 
 ### v1.2.0 (2026-08-24)
 

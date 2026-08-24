@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Resume (`/sdd-resume`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `PENDING`, `APPROVED`, `BLOCKED`), file paths, and CLI commands are language-invariant.
+
 Dùng khi bắt đầu phiên mới để quét task dở dang và nạp lại feature context.
 
 ## Tham số

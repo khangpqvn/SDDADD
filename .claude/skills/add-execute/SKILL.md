@@ -6,6 +6,8 @@ user-invocable: true
 
 # ADD Phase 4–5 — Agentic Execution và Validation (`/add-execute`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`, `SHADOW PLAN`), rule codes, `@ears` references, file paths, and CLI commands are language-invariant.
+
 Dùng để thực thi task trong `.sdd/features/{feature-slug}/TASKS.md`, theo **Fix the Spec, not the Code**, `CONSTITUTION.md` và Architecture Profile.
 
 ## Tham số

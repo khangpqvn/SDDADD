@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Phase 0 — Context Discovery (`/sdd-context`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `PENDING`, `APPROVED`), file paths, and CLI commands are language-invariant.
+
 Dùng khi bắt đầu feature để làm rõ bài toán nghiệp vụ và tạo `CONTEXT.md`.
 
 ## Tham số

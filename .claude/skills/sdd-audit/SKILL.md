@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Audit (`/sdd-audit`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`FAIL`, `WARNING`, `PASS`, `CONFIGURATION GAP`, `PENDING HUMAN REVIEW`, `APPROVED`), rule codes (`SEC-01`, `DATA-01`, `ARCH-01`, `ENG-01`), file paths, and CLI commands are language-invariant.
+
 Dùng để kiểm định source và artifact theo `CONSTITUTION.md` trước commit hoặc Pull Request.
 
 ## Tham số

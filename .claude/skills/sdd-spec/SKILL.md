@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Phase 1 — Specification (`/sdd-spec`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `PENDING`, `APPROVED`, `APPROVED & LOCKED`, `DRAFT`), EARS keywords (`WHEN`, `WHILE`, `WHERE`, `IF`, `THEN`, `SHALL`), file paths, and CLI commands are language-invariant.
+
 Dùng `CONTEXT.md` và `CONSTITUTION.md` để tạo `.sdd/features/{feature-slug}/SPEC.md`.
 
 ## Tham số

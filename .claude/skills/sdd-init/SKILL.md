@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Initializer (`/sdd-init`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), file paths, and CLI commands are language-invariant.
+
 Dùng khi khởi tạo dự án mới hoặc bổ sung khung SDD + ADD vào dự án hiện tại.
 
 ## Tham số

@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Requirement Traceability & Impact Analysis (`/sdd-trace`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`, `COVERED`, `MISSING TEST`, `IMPL OUTDATED`), `REQ-XXX` identifiers, `@ears` references, file paths, and CLI commands are language-invariant.
+
 Dùng để truy vết một/toàn bộ requirement `REQ-XXX`, hoặc phân tích tác động khi `.sdd/features/{slug}/SPEC.md` thay đổi.
 
 ## Tham số

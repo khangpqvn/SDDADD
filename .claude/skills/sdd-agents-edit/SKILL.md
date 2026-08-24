@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Agent Constitution Editor (`/sdd-agents-edit`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), file paths, and CLI commands are language-invariant.
+
 Dùng khi cần cập nhật `AGENTS.md`: vai trò, phạm vi, quyền công cụ, quy tắc bảo mật hoặc quy trình escalation của AI Agent.
 
 ## Tham số

@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Cross-Layer Editor (`/sdd-layer-edit`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), `@ears` references, file paths, and CLI commands are language-invariant.
+
 Dùng để thêm hoặc thay đổi business flow xuyên Clean Architecture, giữ contract: interface gọi usecase; usecase phụ thuộc domain và port; infra triển khai port.
 
 ## Architecture Profile gate (BLOCKING)

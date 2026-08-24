@@ -6,6 +6,8 @@ user-invocable: true
 
 # Git Pull Request Operator (`/git-pr`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Status tokens (`READY`, `BLOCKED`), Git/GitHub output, and code identifiers are language-invariant.
+
 Dùng để tạo Pull Request. PR luôn dùng remote diff và bắt buộc qua `/git-validate --scope=pr --strict` trước `gh pr create`.
 
 ## Tham số

@@ -57,6 +57,10 @@ Human reviewer nên dùng `/sdd-review` để lưu decision thay vì sửa revie
 
 `/sdd-review` yêu cầu `Status`, `Decision`, `Reviewer`, `Reviewed at` và `Follow-up`. Với `SPEC.md`, review approved chỉ chuyển header thành `Status: APPROVED & LOCKED` khi Spec DoD pass. `REVISE` và `REJECTED` giữ artifact ở trạng thái block. `/sdd-review` không sửa `CONSTITUTION.md` và không thay thế `/sdd-rfc --approve=<rfc-number>` cho RFC hoặc Constitution change.
 
+## Output Language
+
+All skill output — section headers, status lines, descriptions, recommendations, and report bodies — must mirror the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical status tokens (`PASS`, `FAIL`, `BLOCKED`, `READY`, `PENDING`, `APPROVED`, `REJECTED`, `REVISE`, `PENDING HUMAN REVIEW`, `CONFIGURATION GAP`), code identifiers, file paths, and CLI commands are language-invariant.
+
 ## Skill integration contract
 
 Mỗi skill phải nêu:

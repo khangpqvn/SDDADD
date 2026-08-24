@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Phase 3 — Task Decomposition (`/sdd-tasks`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `PENDING`, `APPROVED`), `@ears` references, file paths, and CLI commands are language-invariant.
+
 Dùng `PLAN.md` đã approved để tạo `.sdd/features/{feature-slug}/TASKS.md`.
 
 ## Tham số

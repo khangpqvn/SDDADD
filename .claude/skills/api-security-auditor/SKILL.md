@@ -6,6 +6,8 @@ user-invocable: true
 
 # API Security Auditor (`/api-security-auditor`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`CRITICAL`, `HIGH`, `CONFIGURATION GAP`, `PASSED`, `APPROVED`, `PENDING HUMAN REVIEW`), OWASP codes, file paths, and CLI commands are language-invariant.
+
 Audit API theo OWASP, `CONSTITUTION.md` và Clean Architecture.
 
 ## Tham số

@@ -6,6 +6,8 @@ user-invocable: true
 
 # Git Commit Operator (`/git-commit`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Status tokens (`READY`, `BLOCKED`, `NO-OP`), Git output, and code identifiers are language-invariant.
+
 Dùng để tạo commit an toàn. Không chạy `git commit` trước khi `/git-validate --scope=commit` trả `READY`.
 
 ## Tham số

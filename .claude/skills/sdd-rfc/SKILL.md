@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD RFC Manager (`/sdd-rfc`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PROPOSED`, `APPROVED`, `PENDING HUMAN REVIEW`), RFC identifiers (`RFC-XXX`), rule codes, file paths, and CLI commands are language-invariant.
+
 Dùng khi cần đề xuất thay đổi/bổ sung quy tắc trong `CONSTITUTION.md` thuộc Layer 1 Hard Rules hoặc Layer 2 Architectural Constraints sau khi template đã phát hành. Một explicit Human authorization cho một đợt phát hành template không tạo quyền mặc định cho Agent sửa Constitution.
 
 ## Tham số

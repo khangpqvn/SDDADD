@@ -6,6 +6,8 @@ user-invocable: true
 
 # Human Review State Manager (`/sdd-review`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`HUMAN REVIEW: RECORDED`, `HUMAN REVIEW: BLOCKED`, `PENDING`, `APPROVED`, `REVISE`, `REJECTED`, `PENDING HUMAN REVIEW`, `APPLIED`, `NOT APPLICABLE`), file paths, and CLI commands are language-invariant.
+
 Dùng skill này sau khi Human Director, Tech Lead hoặc reviewer được ủy quyền đã đọc recommendation và bằng chứng. Skill cập nhật đúng `Human Final Review` block trong artifact; Agent không được tự chọn quyết định thay cho Human.
 
 ## Tham số

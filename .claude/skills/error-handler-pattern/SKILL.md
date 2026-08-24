@@ -6,6 +6,8 @@ user-invocable: true
 
 # Error Handler Pattern (`/error-handler-pattern`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`CRITICAL`, `WARNING`, `CONFIGURATION GAP`, `APPROVED`, `PENDING HUMAN REVIEW`), error codes, file paths, and CLI commands are language-invariant.
+
 Audit hoặc thiết kế error handling theo `CONSTITUTION.md` `ENG-02`.
 
 ## Tham số

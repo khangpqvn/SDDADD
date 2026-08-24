@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Brownfield Adoption (`/sdd-adopt`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`, `CONFIGURATION GAP`), file paths, and CLI commands are language-invariant.
+
 Dùng để áp dụng SDD + ADD vào repository có source code sẵn hoặc tạo Reverse Spec cho module legacy.
 
 ## Tham số

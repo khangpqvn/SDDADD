@@ -6,6 +6,8 @@ user-invocable: true
 
 # SDD Handoff (`/sdd-handoff`)
 
+**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), task status markers (`[x]`, `[/]`, `[ ]`), file paths, and CLI commands are language-invariant.
+
 Dùng trước khi kết thúc phiên có feature chưa hoàn thành. Skill tổng hợp tiến độ, lưu điểm dừng và tạo handoff report cho phiên tiếp theo.
 
 ## Tham số

@@ -1,0 +1,140 @@
+# .agentignore — Agent Context Hygiene Rules
+# Reference: Slide 10.6.3 — Context Pollution Prevention
+#
+# Cấu hình này hướng dẫn AI Agents (Claude Code, Cline, Cursor, Roo Code)
+# loại trừ các file/thư mục không cần thiết khỏi context window.
+#
+# Mục đích:
+# - Tiết kiệm context window tokens
+# - Tránh context pollution từ build artifacts và generated files
+# - Tăng tốc độ search/glob của agent
+#
+# Syntax: Tương tự .gitignore (glob patterns, # = comment, ! = negation)
+
+# ============================================================
+# 1. DEPENDENCY & PACKAGE DIRECTORIES
+# ============================================================
+node_modules/
+vendor/
+.pnp/
+.pnp.js
+bower_components/
+
+# ============================================================
+# 2. BUILD & COMPILED OUTPUT
+# ============================================================
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.cache/
+.turbo/
+*.js.map
+*.d.ts.map
+
+# ============================================================
+# 3. LOGS & RUNTIME FILES
+# ============================================================
+*.log
+*.log.*
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================================
+# 4. GENERATED PROTOBUF & GRPC FILES
+# ============================================================
+*.pb.go
+*.pb.ts
+*.pb.js
+*_pb.js
+*_grpc.js
+*_grpc_pb.js
+generated/
+proto-gen/
+
+# ============================================================
+# 5. BINARY & MEDIA FILES
+# ============================================================
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.mp4
+*.mp3
+*.zip
+*.tar.gz
+*.rar
+*.pdf
+# Exception: slide PDFs in slides/ are needed for reference
+!slides/*.pdf
+!slides/*.txt
+
+# ============================================================
+# 6. ENVIRONMENT & SECRETS (CRITICAL — never include)
+# ============================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+secrets/
+credentials/
+
+# ============================================================
+# 7. IDE & EDITOR ARTIFACTS
+# ============================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================================
+# 8. TEST COVERAGE & SNAPSHOTS
+# ============================================================
+coverage/
+.nyc_output/
+*.snap
+__snapshots__/
+
+# ============================================================
+# 9. DOCKER & INFRASTRUCTURE ARTIFACTS
+# ============================================================
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# ============================================================
+# 10. LOCK FILES (reference but don't analyze deeply)
+# ============================================================
+# package-lock.json    # Uncomment to exclude if context is tight
+# yarn.lock            # Uncomment to exclude if context is tight
+# pnpm-lock.yaml       # Uncomment to exclude if context is tight
+
+# ============================================================
+# AGENT TOOL CONFIGURATION NOTES
+# ============================================================
+# Claude Code: Uses .gitignore + this file for context exclusion.
+#   In CLAUDE.md, reference this file under "Context Hygiene".
+#
+# Cline / Roo Code: Add exclude patterns in settings:
+#   "cline.excludePatterns": ["node_modules/**", "dist/**", "*.log"]
+#
+# Cursor: Configure in .cursorignore (same syntax as this file).
+#   Copy relevant sections to .cursorignore.

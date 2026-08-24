@@ -33,16 +33,28 @@ src/
 ├── AGENTS.md               # Agent Constitution (Persona, Scope, Tool Permissions)
 ├── CLAUDE.md               # Project Memory & Architecture DNA (File hiện tại)
 ├── CONSTITUTION.md         # Hard Governance Rules (3-layer quality gates)
+├── .agentignore            # Context Hygiene — exclude patterns cho AI agents
 ├── .claude/
-│   └── skills/             # 22 Custom Slash Commands cho SDD+ADD và Git Operator
+│   └── skills/             # Custom Slash Commands cho SDD+ADD, Git và Domain skills
+│       ├── sql-performance-tuner/   # SQL query optimization & N+1 detection
+│       ├── api-security-auditor/    # OWASP Top 10 API security audit
+│       └── error-handler-pattern/   # Typed errors & unified response schema
 ├── .sdd/                   # Thư mục quản lý Đặc tả Kỹ thuật
 │   ├── README.md           # Master Feature Registry
 │   ├── shared_context.md   # Shared State & API Contracts giữa các feature
+│   ├── mcp-config.yaml     # MCP Tool Access Control per agent (Slide 11.6)
+│   ├── constraints/        # 3-Layer Constraint Hierarchy (Slide 10.4)
+│   │   ├── global.md       # Layer 1: Tech stack, approved packages, naming
+│   │   ├── business.md     # Layer 2: Auth rules, PII masking, rate-limit
+│   │   └── safety.md       # Layer 3: Cấm drop DB, cấm delete no-WHERE, git safety
 │   ├── rfcs/               # Đề xuất thay đổi Hiến pháp hệ thống
 │   └── features/           # Nơi chứa bộ 4 file SDD cho từng feature
 ├── docs/
-│   └── sdd-add-guide.md    # Handbook lifecycle, review gates và kịch bản vận hành
-├── scripts/                # Shell scripts hỗ trợ migration native (adopt.sh, adopt.ps1)
+│   ├── sdd-add-guide.md              # Handbook lifecycle, review gates và kịch bản vận hành
+│   └── multi-agent-orchestration-guide.md  # Multi-Agent setup, MCP access, tool borrowing
+├── scripts/                # Shell scripts hỗ trợ
+│   ├── adopt.sh / adopt.ps1          # Migration vào project mới
+│   └── self-heal.sh                  # Self-Healing Loop: test → fix → re-test → commit
 ├── src/                    # Source code thực thi
 └── tests/                  # Executable Verification Suite
 ```

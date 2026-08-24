@@ -1,0 +1,136 @@
+# .sdd/mcp-config.yaml — MCP Tool Access Control per Agent
+# Version: 1.0.0
+# Reference: Slide 11.6 — MCP Access Control & Tool Borrowing
+#
+# Cấu hình này định nghĩa MCP tools nào mỗi agent được phép dùng.
+# Nguyên tắc: Principle of Least Privilege — chỉ cấp quyền đúng với scope của agent.
+#
+# HOW TO USE:
+#   Khi spawn sub-agent qua Claude Code /ck:team hoặc Agent tool,
+#   reference profile tương ứng để inject tool permissions.
+
+version: "1.0"
+
+# ─── Agent Profiles ───────────────────────────────────────────────────────────
+
+agents:
+
+  lead-architect:
+    description: "Orchestrator — reads all, writes SDD artifacts, coordinates"
+    mcp_tools:
+      allowed:
+        - filesystem:read       # Read any file for orchestration context
+        - filesystem:write      # Write to .sdd/, CLAUDE.md only
+        - bash:read_only        # git status, git log, ls — no mutations
+        - task:create           # Create/update tasks in TASKS.md
+        - task:update
+        - task:list
+        - send_message          # Coordinate with sub-agents
+      denied:
+        - bash:execute          # No direct code execution — delegates to agents
+        - database:write        # No DB mutations
+        - git:commit            # No direct commits — review gate required
+        - git:push              # Absolutely forbidden
+
+  backend-agent:
+    description: "Domain & Usecase developer — pure business logic, no infra"
+    mcp_tools:
+      allowed:
+        - filesystem:read       # Read context files, specs
+        - filesystem:write      # Write src/domain/, src/usecase/ only
+        - bash:execute          # npm test, npm run lint within scope
+        - send_message          # Report to lead
+        - task:update           # Mark own tasks done
+      denied:
+        - database:read         # No direct DB access — domain layer is pure
+        - database:write
+        - filesystem:write_infra  # Cannot touch src/infra/
+        - git:push
+
+  infra-agent:
+    description: "DB, cache, external integrations"
+    mcp_tools:
+      allowed:
+        - filesystem:read
+        - filesystem:write      # Write src/infra/, tests/integration/
+        - database:read         # Read schema for repository implementation
+        - database:write        # Run migrations (requires human gate for production)
+        - bash:execute          # npm test, migration scripts
+        - send_message
+        - task:update
+      denied:
+        - database:drop         # Hard block — DROP TABLE, TRUNCATE
+        - database:delete_no_where  # Hard block — DELETE without WHERE
+        - git:push
+        - filesystem:write_domain   # Cannot touch src/domain/
+
+  interface-agent:
+    description: "HTTP Controllers, middleware, DTOs, API contracts"
+    mcp_tools:
+      allowed:
+        - filesystem:read
+        - filesystem:write      # Write src/interface/ only
+        - bash:execute          # npm test
+        - send_message
+        - task:update
+      denied:
+        - database:read         # No direct DB — use repositories
+        - database:write
+        - git:push
+
+  tester-agent:
+    description: "Verification only — reads implementation, writes tests"
+    mcp_tools:
+      allowed:
+        - filesystem:read       # Read ALL source files for test writing
+        - filesystem:write      # Write tests/unit/, tests/e2e/ ONLY
+        - bash:execute          # npm test, npm run test:coverage
+        - send_message
+        - task:update
+      denied:
+        - filesystem:write_src  # Cannot modify src/ — read-only
+        - database:write
+        - git:commit            # No commits — lead handles
+        - git:push
+
+# ─── Global Denied (All Agents) ───────────────────────────────────────────────
+
+global_denied:
+  - filesystem:read_secrets     # .env, *.pem, *.key, secrets/
+  - bash:rm_force               # rm -rf without confirmation
+  - git:push_force              # force push any branch
+  - git:push_main               # direct push to main/master/production
+  - network:external_post       # No unauthorized external API calls
+  - eval_execution              # No eval(), Function() constructor
+
+# ─── Tool Borrowing Protocol (Slide 11.5) ─────────────────────────────────────
+#
+# Khi sub-agent cần tool ngoài profile của mình:
+#
+# 1. Sub-agent gửi request lên Lead qua send_message:
+#    "REQUEST_TOOL_BORROW: database:read for performance analysis on task T003"
+#
+# 2. Lead đánh giá: có thuộc global_denied không? Có lý do hợp lệ không?
+#
+# 3. Nếu hợp lệ: Lead thực hiện operation thay mặt sub-agent và trả kết quả
+#    (tool borrowing = Lead executes, not granting permanent access)
+#
+# 4. Nếu yêu cầu là global_denied: Lead escalate lên Human Director
+#
+# Nguyên tắc: Tool borrowing là ONE-TIME, không phải permanent grant.
+
+tool_borrowing:
+  process: "request_via_lead"
+  max_borrow_duration: "single_task"
+  requires_justification: true
+  global_denied_override: "human_director_only"
+
+# ─── Audit Logging ────────────────────────────────────────────────────────────
+
+audit:
+  log_path: ".sdd/reviews/mcp-audit-{date}.log"
+  log_events:
+    - tool_denied          # When an agent attempts a denied tool
+    - tool_borrowed        # When lead executes on behalf of sub-agent
+    - global_denied_attempt # Critical — always alert human
+  alert_on: "global_denied_attempt"

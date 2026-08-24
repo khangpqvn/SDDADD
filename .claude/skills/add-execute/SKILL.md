@@ -12,28 +12,60 @@ Sử dụng skill này để AI Agent đọc Task từ `.sdd/features/{feature-s
 - `--feature=<feature-slug>`: Tên định danh feature.
 - `--task=<task-id>`: (Tùy chọn) Mã Task cụ thể cần thực hiện (ví dụ: `T001`).
 
-## Quy trình thực hiện (5 Bước)
+## Quy trình thực hiện (6 Bước)
 
 1. **Đọc Ngữ cảnh & Cấu hình Agent**:
    - Đọc `AGENTS.md` (Persona, Scope, Tool Permissions) và `CONSTITUTION.md` (Hard Rules).
+   - Đọc `.sdd/constraints/global.md`, `.sdd/constraints/business.md`, `.sdd/constraints/safety.md`.
    - Đọc Task cần làm trong `.sdd/features/{feature-slug}/TASKS.md`.
 
-2. **Lập Kế hoạch Thực thi (Plan-Act-Check)**:
+2. **SHADOW PLAN — Xuất kế hoạch trước khi thực thi** *(Slide 10.6.1)*:
+   Trước mỗi task, Agent BẮT BUỘC xuất Shadow Plan theo format sau và CHỜ xác nhận:
+
+   ```
+   ╔══════════════════════════════════════════════════════╗
+   ║  SHADOW PLAN — Task {T00X}: {Task Title}             ║
+   ╠══════════════════════════════════════════════════════╣
+   ║  📖 FILES TO READ:                                   ║
+   ║    - {file-path-1}  (lý do đọc)                     ║
+   ║    - {file-path-2}  (lý do đọc)                     ║
+   ║                                                      ║
+   ║  ✏️  FILES TO CREATE:                                ║
+   ║    - {new-file-path}  (mục đích)                    ║
+   ║                                                      ║
+   ║  🔧 FILES TO MODIFY:                                 ║
+   ║    - {existing-file}  (thay đổi gì)                 ║
+   ║                                                      ║
+   ║  ⚡ COMMANDS TO RUN:                                  ║
+   ║    1. npm test -- --testPathPattern={spec}           ║
+   ║    2. npm run lint                                   ║
+   ║                                                      ║
+   ║  ⚠️  RISKS:                                          ║
+   ║    - {risk-1 nếu có}                                 ║
+   ╚══════════════════════════════════════════════════════╝
+   Proceed? [Human confirms before Agent executes]
+   ```
+
+   - Shadow Plan giúp Human Director kiểm soát rủi ro và tiết kiệm tokens bằng cách phát hiện sai sớm.
+   - Nếu scope thay đổi so với Shadow Plan trong khi thực thi, dừng và xuất Shadow Plan mới.
+
+3. **Lập Kế hoạch Thực thi (Plan-Act-Check)**:
    - Liệt kê các file sẽ tạo/sửa.
    - Viết code tuân thủ Clean Architecture (`CLAUDE.md`) và thêm JSDoc tag `@ears SPEC.md#REQ-XXX`.
 
-3. **Chạy AI Agent Self-Check Protocol**:
-   - Đối chiếu output với `CONSTITUTION.md`:
+4. **Chạy AI Agent Self-Check Protocol**:
+   - Đối chiếu output với `CONSTITUTION.md` và `.sdd/constraints/`:
+
      - [ ] Zero hardcoded secrets? (`SEC-01`)
      - [ ] Có Auth & Idempotency Check? (`SEC-02`, `DATA-02`)
      - [ ] Có Soft-delete? (`DATA-01`)
      - [ ] Đã gắn tag `@ears` vào JSDoc? (`ENG-01`)
 
-4. **Kiểm thử & Verification Gate (Chạy DoD Checklist)**:
+5. **Kiểm thử & Verification Gate (Chạy DoD Checklist)**:
    - Chạy lệnh test kiểm thử: `npm test` hoặc `npm run test:e2e`.
    - Kiểm tra DoD Checklist bên dưới.
 
-5. **Xử lý Thất bại theo Nguyên tắc "Fix the Spec, NOT the Code"**:
+6. **Xử lý Thất bại theo Nguyên tắc "Fix the Spec, NOT the Code"**:
    - Nếu Test FAIL do thiếu thông tin nghiệp vụ hoặc trường hợp biên:
      1. **KHÔNG** vá code trực tiếp.
      2. Đưa đề xuất cập nhật file `.sdd/features/{feature-slug}/SPEC.md` và bump patch version spec.

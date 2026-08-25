@@ -25,15 +25,15 @@ Dùng skill này sau khi Human Director, Tech Lead hoặc reviewer được ủy
 
 Không dùng đồng thời `--target` với `--feature`/`--artifact`. Không nhận absolute path, path ngoài repository, `.env`, secret, private key, `node_modules/`, `dist/`, `.git/` hoặc `CONSTITUTION.md`; Constitution chỉ được thay đổi bằng RFC đã `APPROVED` theo `/sdd-rfc`.
 
-### Ghi quyết định của Human — bắt buộc
+### Ghi quyết định của Human
 
-- `--status=<APPROVED|REVISE|REJECTED>`
-- `--decision="<quyết định cụ thể và phạm vi đã review>"`
-- `--reviewer="<tên hoặc identity của người review>"`
-- `--reviewed-at="<ISO-8601 timestamp có timezone>"`
-- `--follow-up="<bước tiếp theo, command hoặc điều kiện đóng>"`
+- `--status=<APPROVED|REVISE|REJECTED>`: Bắt buộc.
+- `--decision="<quyết định cụ thể và phạm vi đã review>"`: Bắt buộc.
+- `--reviewer="<tên hoặc identity của người review>"`: Bắt buộc.
+- `--reviewed-at="<ISO-8601 timestamp có timezone>"`: Tùy chọn; nếu không điền mặc định lấy ISO-8601 timestamp hiện tại của hệ thống.
+- `--follow-up="<bước tiếp theo, command hoặc điều kiện đóng>"`: Bắt buộc.
 
-Không được bỏ trống bất kỳ trường nào. Dùng `--status=REVISE` khi artifact phải sửa rồi review lại; dùng `--status=REJECTED` khi hướng đề xuất không được chọn. `APPROVED`, `REVISE` và `REJECTED` đều phải có decision, reviewer, timestamp và follow-up.
+Không được bỏ trống các trường bắt buộc. Dùng `--status=REVISE` khi artifact phải sửa rồi review lại; dùng `--status=REJECTED` khi hướng đề xuất không được chọn. `APPROVED`, `REVISE` và `REJECTED` đều phải có decision, reviewer, timestamp (do user cung cấp hoặc mặc định lấy thời gian hiện tại) và follow-up.
 
 ## Quy trình thực hiện
 
@@ -50,8 +50,8 @@ Không được bỏ trống bất kỳ trường nào. Dùng `--status=REVISE` 
 
 3. **Kiểm tra dữ liệu Human**:
    - `status` phải đúng một trong ba giá trị canonical.
-   - `decision`, `reviewer`, `reviewed-at` và `follow-up` không được là placeholder như `<...>`, `TBD`, `TODO`, `PENDING` hoặc chuỗi rỗng.
-   - `reviewed-at` phải là timestamp ISO-8601 có timezone, ví dụ `2026-08-22T00:45:00+07:00`.
+   - `decision`, `reviewer` và `follow-up` không được là placeholder như `<...>`, `TBD`, `TODO`, `PENDING` hoặc chuỗi rỗng.
+   - `reviewed-at` nếu được truyền phải là timestamp ISO-8601 có timezone, ví dụ `2026-08-22T00:45:00+07:00`; nếu không truyền thì mặc định lấy ISO-8601 timestamp hiện tại có timezone của hệ thống.
    - `decision` phải nói rõ artifact/phạm vi đã duyệt và kết luận; `follow-up` phải nói bước tiếp theo hoặc lý do không có bước tiếp theo.
 
 4. **Kiểm tra trạng thái cũ**:
@@ -114,7 +114,7 @@ Nếu validation fail, không sửa file và báo `HUMAN REVIEW: BLOCKED` kèm f
 ## Điều kiện không được tự động vượt qua
 
 - Không có recommendation hoặc recommendation không ở `PENDING HUMAN REVIEW`.
-- Thiếu một trong bốn trường Human bắt buộc.
+- Thiếu một trong các trường Human bắt buộc (`status`, `decision`, `reviewer`, `follow-up`).
 - Target không nằm trong phạm vi cho phép.
 - Review cũ đã `APPROVED` nhưng chưa có evidence artifact thay đổi và recommendation mới.
 - Spec không đạt DoD tối thiểu khi cần lock.

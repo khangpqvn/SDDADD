@@ -231,7 +231,7 @@ Thực hiện theo thứ tự sau, không chỉ đọc dòng `Recommendation`:
 4. **Kiểm tra phương án:** xem `Alternatives considered`; yêu cầu Agent bổ sung nếu trade-off quan trọng bị bỏ qua.
 5. **Kiểm tra phạm vi:** đối chiếu `Out of Scope`, file boundary, security rule và các requirement bị ảnh hưởng.
 6. **Chọn một quyết định:** `APPROVED`, `REVISE` hoặc `REJECTED`. Không để `PENDING` rồi yêu cầu Agent tự đoán.
-7. **Gọi `/sdd-review`:** truyền đúng target, status, decision, reviewer, timestamp ISO-8601 có timezone và follow-up cụ thể. Skill sẽ từ chối nếu thiếu field hoặc target không hợp lệ.
+7. **Gọi `/sdd-review`:** truyền đúng target, status, decision, reviewer và follow-up cụ thể; `reviewed-at` tùy chọn, mặc định lấy thời gian hiện tại nếu không điền. Skill sẽ từ chối nếu thiếu field bắt buộc hoặc target không hợp lệ.
 8. **Kiểm tra trạng thái sau review:** nếu `REVISE`/`REJECTED`, Agent phải dừng; nếu `APPROVED`, chỉ chuyển pha khi DoD và prerequisite đều đạt.
 
 ### 4.3 Cách “lật cờ” approve đúng cách
@@ -358,7 +358,7 @@ Chạy lint trước khi lock nếu cần:
 /sdd-lint --feature=feat-user-register
 ```
 
-Sau khi review đủ bằng chứng, gọi `/sdd-review --target=.sdd/features/feat-user-register/SPEC.md --status=APPROVED` với đủ `--decision`, `--reviewer`, `--reviewed-at` và `--follow-up`. Skill sẽ lock `SPEC.md` thành `Status: APPROVED & LOCKED` nếu DoD đạt. Nếu sửa Spec sau đó, phải `/sdd-update`, review lại và lock lại.
+Sau khi review đủ bằng chứng, gọi `/sdd-review --target=.sdd/features/feat-user-register/SPEC.md --status=APPROVED` với đủ `--decision`, `--reviewer` và `--follow-up`; `--reviewed-at` tùy chọn, mặc định lấy ISO-8601 timestamp hiện tại nếu không điền. Skill sẽ lock `SPEC.md` thành `Status: APPROVED & LOCKED` nếu DoD đạt. Nếu sửa Spec sau đó, phải `/sdd-update`, review lại và lock lại.
 
 ### 5.3 Pha 2 — Plan
 

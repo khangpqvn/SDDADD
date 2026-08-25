@@ -55,7 +55,7 @@ Với công việc không thuộc feature, lưu cùng block trong `.sdd/reviews/
 
 Human reviewer nên dùng `/sdd-review` để lưu decision thay vì sửa review field thủ công. Command xác minh target, recommendation state, required field, timestamp và status được phép trước khi chỉ sửa `Human Final Review` block.
 
-`/sdd-review` yêu cầu `Status`, `Decision`, `Reviewer`, `Reviewed at` và `Follow-up`. Với `SPEC.md`, review approved chỉ chuyển header thành `Status: APPROVED & LOCKED` khi Spec DoD pass. `REVISE` và `REJECTED` giữ artifact ở trạng thái block. `/sdd-review` không sửa `CONSTITUTION.md` và không thay thế `/sdd-rfc --approve=<rfc-number>` cho RFC hoặc Constitution change.
+`/sdd-review` yêu cầu `Status`, `Decision`, `Reviewer`, `Reviewed at` (tùy chọn, mặc định lấy thời gian hiện tại) và `Follow-up`. Với `SPEC.md`, review approved chỉ chuyển header thành `Status: APPROVED & LOCKED` khi Spec DoD pass. `REVISE` và `REJECTED` giữ artifact ở trạng thái block. `/sdd-review` không sửa `CONSTITUTION.md` và không thay thế `/sdd-rfc --approve=<rfc-number>` cho RFC hoặc Constitution change.
 
 ## Output Language
 

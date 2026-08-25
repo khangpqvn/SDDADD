@@ -338,7 +338,7 @@ Flow: chạy command → pass: dừng (uncommitted) → fail: phân tích + sử
   --status=<APPROVED|REVISE|REJECTED>
   --decision="<quyết định cụ thể và phạm vi>"
   --reviewer="<tên, vai trò>"
-  --reviewed-at="<ISO-8601 có timezone>"
+  [--reviewed-at="<ISO-8601 có timezone>"]  # Tùy chọn, mặc định lấy thời gian hiện tại
   --follow-up="<command hoặc điều kiện tiếp theo>"
 
 # Ví dụ

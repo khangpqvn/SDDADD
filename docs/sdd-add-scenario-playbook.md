@@ -73,7 +73,7 @@ Sau mỗi artifact hoặc report, kiểm tra có block sau:
 - Status: APPROVED | PENDING | REVISE | REJECTED
 - Decision: <quyết định cụ thể>
 - Reviewer: <người có thẩm quyền>
-- Reviewed at: <ISO-8601 có timezone>
+- Reviewed at: <ISO-8601 có timezone> (mặc định lấy thời gian hiện tại nếu không điền)
 - Follow-up: <lệnh hoặc điều kiện tiếp theo>
 ```
 

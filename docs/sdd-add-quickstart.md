@@ -164,7 +164,7 @@ Làm theo quy trình 7 bước ở trên.
   --status=APPROVED \
   --decision="Đã duyệt problem, stakeholders, glossary và constraints; đủ cơ sở lập SPEC." \
   --reviewer="Nguyen Van A, Product Owner" \
-  --reviewed-at="2026-08-25T09:00:00+07:00" \
+  --reviewed-at="2026-08-25T09:00:00+07:00" \   # Tùy chọn, mặc định lấy thời gian hiện tại
   --follow-up="/sdd-spec --feature=feat-user-register"
 ```
 

@@ -191,7 +191,7 @@ Agent không được đổi `[ ]`/`[/]` thành `[x]` nếu chưa có evidence. 
 - `FAIL`: có lỗi; phải xử lý trước khi tiếp tục.
 - `WARNING`: có vấn đề cần giải trình hoặc xử lý; với PR strict, warning chưa được chấp thuận sẽ block.
 - `N/A (reason)`: không áp dụng, phải ghi lý do cụ thể; không được dùng để che việc chưa chạy.
-- `READY`: chỉ do `/git-validate` phát hành khi không còn `FAIL`, diff đúng scope, mọi `N/A` có lý do và PR không còn warning unresolved.
+- `READY`: chỉ do `/git-validate` phát hành khi không còn `FAIL`, diff đúng scope, mọi `N/A` có lý do. Team mode: PR không còn warning unresolved. Solo mode: WARNING là advisory, không block.
 
 ---
 
@@ -321,7 +321,7 @@ CONTEXT -> /sdd-review APPROVED -> SPEC -> /sdd-review APPROVED + LOCK
 | 5. Verify | `/sdd-lint`, `/sdd-audit`, `/sdd-trace` | Lint/audit/trace reports | Xử lý blocker hoặc ghi disposition có lý do | Không còn blocker; warning được chấp thuận nếu applicable |
 | 6. Sync | `/sdd-sync` | Registry + shared contracts | Kiểm tra feature/version/contract không drift | Review sync `APPROVED` |
 | 7. Commit | `/git-validate`, `/git-commit` | Git commit | Xác nhận intended files và commit message | Validation `READY` |
-| 8. PR | `/git-pr` | Pull Request | Xác nhận nội dung outward-facing nếu chưa ủy quyền trước | Remote validation `READY`; checks được báo đúng trạng thái |
+| 8. Push / PR | `/git-pr` | Push trực tiếp (solo) hoặc Pull Request (team) | Solo: push lên branch hiện tại. Team: xác nhận nội dung outward-facing | Remote validation `READY`; checks được báo đúng trạng thái |
 
 ### 5.1 Pha 0 — Context
 
@@ -796,9 +796,14 @@ Requirement cần tránh từ mơ hồ như “nhanh chóng”, “linh hoạt�
 | Scope | Nguồn diff | Required gate |
 | :--- | :--- | :--- |
 | Commit | `git diff --cached` | `/git-validate --scope=commit` |
-| PR | `origin/<base>...origin/<head>` | `/git-validate --scope=pr --strict` |
+| Push (solo) | `origin/<base>...origin/<head>` | `/git-validate --scope=pr --strict` |
+| PR (team) | `origin/<base>...origin/<head>` | `/git-validate --scope=pr --strict` |
 
-`READY` không được phát hành nếu diff rỗng, còn `FAIL`, PR còn warning chưa giải trình, hoặc review artifact không hợp lệ.
+**Solo mode**: Sau commit, `/git-commit` tự động push lên branch hiện tại. `/git-pr` push trực tiếp, không tạo PR. WARNING là advisory, chỉ FAIL block.
+
+**Team mode**: Sau commit, cần `/git-pr` để tạo Pull Request. `--strict` bắt buộc; WARNING convert thành FAIL.
+
+`READY` không được phát hành nếu diff rỗng, còn `FAIL`, (team) PR còn warning chưa giải trình, hoặc review artifact không hợp lệ.
 
 ### 11.3 Checklist kết thúc session
 
@@ -844,4 +849,5 @@ Requirement cần tránh từ mơ hồ như “nhanh chóng”, “linh hoạt�
 | Feature lớn cần multi-agent | Đọc `docs/multi-agent-orchestration-guide.md` |
 | Solo workflow (1 developer) | Dùng `--team-size=solo` khi init/adopt; xem `docs/multi-agent-orchestration-guide.md` section 8 |
 | Thay đổi Constitution | `/sdd-rfc --title=<change>` → approve → `/sdd-rfc --approve=<number>` |
-| Commit code | `/git-validate` → `READY` → `/git-commit` |
+| Commit code (solo) | `/git-validate` → `READY` → `/git-commit` (auto-push) |
+| Commit code (team) | `/git-validate` → `READY` → `/git-commit` → `/git-pr` |

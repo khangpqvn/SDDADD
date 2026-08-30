@@ -315,7 +315,25 @@ Flow: chạy command → pass: dừng (uncommitted) → fail: phân tích + sử
 
 ---
 
-## Kịch bản 16 — Commit và Pull Request
+## Kịch bản 16 — Commit và Push / Pull Request
+
+### Solo mode (1 developer)
+
+```text
+# Kiểm tra diff: chỉ intended files, không có secret/credential/PII
+/git-validate --scope=commit
+              → Kết quả READY
+/git-commit   --message="feat(order): add checkout flow"
+              → Tự động push lên branch hiện tại
+
+# Hoặc push trực tiếp qua git-pr
+/git-validate --scope=pr --strict
+              → Kết quả READY
+/git-pr
+              → Push trực tiếp, không tạo PR
+```
+
+### Team mode (multi-agent)
 
 ```text
 # Kiểm tra diff: chỉ intended files, không có secret/credential/PII
@@ -327,6 +345,7 @@ Flow: chạy command → pass: dừng (uncommitted) → fail: phân tích + sử
 /git-validate --scope=pr --strict
               → Kết quả READY
 /git-pr
+              → Tạo Pull Request
 ```
 
 `PASS` = kết quả một check. `READY` = quyết định delivery của `/git-validate`. Không thay thế bằng lời xác nhận miệng.

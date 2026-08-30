@@ -82,7 +82,7 @@ Thiếu một trong hai → Agent dừng và báo, không tự đoán.
 
 6. /sdd-lint, /sdd-audit, /sdd-trace, /sdd-sync → Kiểm định
 
-7. /git-validate → READY → /git-commit → /git-pr
+7. /git-validate → READY → /git-commit → Push (solo) hoặc /git-pr (team)
 ```
 
 ---

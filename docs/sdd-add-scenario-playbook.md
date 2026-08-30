@@ -444,7 +444,7 @@ Tùy chọn an toàn:
 
 **Không dùng:** production, Spec gap, DB schema/migration, profile/command chưa approved, hoặc để bypass review.
 
-## 19. Kịch bản 16 — Commit và Pull Request
+## 19. Kịch bản 16 — Commit và Push / Pull Request
 
 1. Kiểm tra diff chỉ chứa intended files, không có secret/credential/PII.
 2. Xác nhận tất cả artifact/review, test, audit, trace và sync cần thiết đã có evidence.
@@ -460,16 +460,25 @@ Tùy chọn an toàn:
    /git-commit --message="feat(order): add checkout flow"
    ```
 
-5. Trước Pull Request, validate strict theo source diff:
+   **Solo mode**: `/git-commit` tự động push sau commit, không cần thêm bước.
+
+5. **Team mode** — Trước Pull Request, validate strict theo source diff:
 
    ```text
    /git-validate --scope=pr --strict
    ```
 
-6. Khi remote validation `READY`, tạo Pull Request:
+6. **Team mode** — Khi remote validation `READY`, tạo Pull Request:
 
    ```text
    /git-pr
+   ```
+
+   **Solo mode** — Push trực tiếp, không tạo PR:
+
+   ```text
+   /git-pr
+   → Push lên branch hiện tại
    ```
 
 `PASS` là kết quả một check. `READY` là quyết định delivery của `/git-validate`; không thay thế bằng lời xác nhận miệng.

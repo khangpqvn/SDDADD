@@ -1,25 +1,81 @@
 ---
 name: git-pr
-description: Kiểm định thay đổi remote-first và tạo Pull Request chỉ khi mọi gate đạt
+description: Kiểm định thay đổi remote-first; tạo Pull Request (team) hoặc push trực tiếp (solo) khi mọi gate đạt
 user-invocable: true
 ---
 
-# Git Pull Request Operator (`/git-pr`)
+# Git Push / Pull Request Operator (`/git-pr`)
 
 **Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Status tokens (`READY`, `BLOCKED`), Git/GitHub output, and code identifiers are language-invariant.
 
-Dùng để tạo Pull Request. PR luôn dùng remote diff và bắt buộc qua `/git-validate --scope=pr --strict` trước `gh pr create`.
+Dùng để push code lên remote hoặc tạo Pull Request. **Solo mode**: push trực tiếp lên branch hiện tại, không tạo PR. **Team mode**: tạo Pull Request, luôn dùng remote diff và bắt buộc qua `/git-validate --scope=pr --strict` trước `gh pr create`.
+
+## Solo mode detection
+
+Đọc `.sdd/shared_context.md`. Nếu file chứa `## 1A. Solo Developer Context` và section 1B không active (hoặc `--team-size=solo` được truyền), dùng **solo mode**.
+
+Solo mode bỏ qua PR creation flow; thay bằng push trực tiếp và xác minh.
 
 ## Tham số
 
-- `--base=<branch>`: Target branch; mặc định là default branch của `origin`.
+- `--base=<branch>`: Target branch; mặc định là default branch của `origin`. Solo mode: bỏ qua (push lên branch hiện tại).
 - `--head=<branch>`: Source branch; mặc định branch hiện tại.
 - `--feature=<feature-slug>`: Tùy chọn, truyền tiếp cho validator.
-- `--push`: Cho phép push source branch khi user yêu cầu rõ. Không có flag thì không push.
-- `--draft`: Tạo draft PR sau khi gate `PASS`.
-- `--issue=<id>`: Tùy chọn, liên kết issue trong body.
+- `--push`: Solo mode luôn push. Team mode: chỉ push khi user yêu cầu rõ.
+- `--draft`: Tạo draft PR (team mode only). Bỏ qua trong solo mode.
+- `--issue=<id>`: Tùy chọn, liên kết issue trong body (team mode only).
+- `--team-size=solo|team`: Tùy chọn; override solo detection từ shared_context.
 
-## Quy trình remote-first
+## Quy trình — Solo mode
+
+Solo mode push trực tiếp, không tạo PR. Developer là Human Director, tự approve và tự push.
+
+1. Kiểm tra trạng thái:
+
+   ```bash
+   git status --short
+   git branch --show-current
+   git remote -v
+   ```
+
+2. Block nếu detached HEAD, dirty worktree (unstaged/uncommitted), merge/rebase/cherry-pick chưa xử lý, hoặc branch là `main`/`master`/`production`/`prod`/`release/*`.
+
+3. Fetch remote và xác minh state:
+
+   ```bash
+   git fetch --prune origin
+   ```
+
+4. Local commit chưa push: push lên branch hiện tại. Không cần `--push` flag trong solo mode.
+
+5. Chạy gate bắt buộc:
+
+   ```text
+   /git-validate --scope=pr --base=<base> --head=<head> --feature=<feature-slug> --strict
+   ```
+
+   Solo mode: `--strict` vẫn áp dụng nhưng WARNING không block (chỉ block khi có FAIL). Chỉ tiếp tục khi trả `GIT VALIDATION: READY`.
+
+6. Push trực tiếp:
+
+   ```bash
+   git push -u origin <head>
+   ```
+
+   Không force-push. Nếu push bị từ chối: dừng, đề xuất `git pull --rebase`, resolve conflict rồi validation lại.
+
+7. Xác minh sau push:
+
+   ```bash
+   git log --oneline origin/<head> -5
+   git rev-parse --verify origin/<head>
+   ```
+
+   Xác minh `HEAD == origin/<head>`.
+
+## Quy trình — Team mode
+
+Team mode tạo Pull Request. Luôn dùng remote diff và bắt buộc qua `/git-validate --scope=pr --strict` trước `gh pr create`.
 
 1. Kiểm tra quyền và trạng thái trước thao tác outward-facing:
 
@@ -67,22 +123,33 @@ Dùng để tạo Pull Request. PR luôn dùng remote diff và bắt buộc qua 
 
    Dùng `--draft` khi user yêu cầu. Không merge, close, force-push hoặc bypass check.
 
-## Xác minh sau tạo
+10. Xác minh sau tạo:
 
-```bash
-gh pr view <pr-url-or-number> --json number,url,state,baseRefName,headRefName,statusCheckRollup
-```
+    ```bash
+    gh pr view <pr-url-or-number> --json number,url,state,baseRefName,headRefName,statusCheckRollup
+    ```
 
-Báo PR URL, validation result và check pending/failing. Pending check không được báo là green.
+    Báo PR URL, validation result và check pending/failing. Pending check không được báo là green.
 
 ## Xử lý lỗi
 
 - Push bị từ chối: dừng, đề xuất `git pull --rebase`, resolve conflict rồi validation lại.
-- Validation blocked: báo blocker và lệnh khắc phục, không tạo PR.
-- `gh` auth/API failure: báo lỗi, không retry vô hạn.
+- Validation blocked: báo blocker và lệnh khắc phục, không push (solo) hoặc không tạo PR (team).
+- `gh` auth/API failure (team mode): báo lỗi, không retry vô hạn.
 - Conflict: dừng; không tự resolve hoặc force-push.
 
 ## Output
+
+### Solo mode
+
+```text
+✓ validation: READY
+✓ checks: passed | pending | failed
+✓ pushed: origin/<head> → <commit range>
+✓ commits ahead: <count>
+```
+
+### Team mode
 
 ```text
 ✓ remote diff: origin/<base>...origin/<head>

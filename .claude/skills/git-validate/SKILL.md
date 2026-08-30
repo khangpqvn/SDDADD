@@ -10,15 +10,18 @@ user-invocable: true
 
 Dùng skill này trước mọi commit, push hoặc Pull Request. Đây là single source of truth cho validation của Git Operator. Gate **fail closed**: chỉ trả `READY` khi mọi check bắt buộc đạt.
 
+**Solo mode**: Đọc `.sdd/shared_context.md`. Nếu section 1A active (hoặc `--team-size=solo`), dùng solo mode. Solo mode vẫn chạy đầy đủ gate; `--scope=pr` dùng để validate trước push trực tiếp (thay vì PR creation). Solo mode: WARNING là advisory, không block (chỉ FAIL block). Team mode: `--scope=pr` bắt buộc `--strict`, WARNING convert thành FAIL.
+
 ## Tham số
 
 - `--scope=commit|pr`: bắt buộc.
   - `commit`: kiểm tra staged diff (`git diff --cached`).
-  - `pr`: kiểm tra diff trên remote (`origin/<base>...origin/<head>`), không dùng local diff làm nguồn kết luận.
+  - `pr`: kiểm tra diff trên remote (`origin/<base>...origin/<head>`), không dùng local diff làm nguồn kết luận. Solo mode: dùng trước push trực tiếp.
 - `--feature=<feature-slug>`: tùy chọn; giới hạn SDD checks vào feature.
 - `--base=<branch>`: dùng với `pr`; mặc định branch mặc định của remote.
 - `--head=<branch>`: dùng với `pr`; mặc định branch hiện tại.
-- `--strict`: biến mọi `WARNING` thành `BLOCKED`, bắt buộc cho PR.
+- `--strict`: biến mọi `WARNING` thành `BLOCKED`. Team mode: bắt buộc cho PR. Solo mode: WARNING vẫn là advisory.
+- `--team-size=solo|team`: tùy chọn; override solo detection từ shared_context.
 
 ## Nguyên tắc bắt buộc
 
@@ -154,6 +157,6 @@ next step:
 `READY` chỉ hợp lệ khi:
 
 - Không có `FAIL`.
-- Scope `pr` không có `WARNING` unresolved; tương đương `--strict`.
+- Scope `pr` không có `WARNING` unresolved (team mode, tương đương `--strict`). Solo mode: `WARNING` là advisory, không block `READY`.
 - Mọi `N/A` có lý do hợp lệ.
 - Diff không rỗng và nguồn diff đúng scope.

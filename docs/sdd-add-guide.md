@@ -105,7 +105,7 @@ Không can thiệp giữa quá trình trừ khi thấy red flags. Interrupt bằ
 | `.sdd/constraints/global.md` | Global tech baseline, naming và dependency rule | Đọc khi onboard Agent hoặc thêm dependency. |
 | `.sdd/constraints/business.md` | Access control, PII masking, rate limiting và data-lifecycle rule | Đọc khi feature liên quan auth, tiền hoặc user data. |
 | `.sdd/constraints/safety.md` | DB safety, Git safety, Agent safety | **CRITICAL** — vi phạm làm CI/CD `FAIL`. Đọc trước migration hoặc delete operation. |
-| `.sdd/mcp-config.yaml` | MCP tool access control theo Agent | Cấu hình khi dùng multi-agent; bảo đảm mỗi Agent chỉ có quyền đúng scope. |
+| `.sdd/mcp-config.yaml` | MCP tool access control theo Agent | Cấu hình khi dùng multi-agent; solo mode: 1 entry `@developer` với toàn quyền. |
 
 ### 2.2 SDD feature files
 
@@ -129,7 +129,7 @@ Mỗi feature nằm tại `.sdd/features/{feature-slug}/`:
 - **Git delivery:** `/git-validate`, `/git-commit`, `/git-pr`.
 - **Domain skills:** `/sql-performance-tuner`, `/api-security-auditor`, `/error-handler-pattern`.
 - **Automation:** `scripts/self-heal.sh` (self-healing loop), `scripts/adopt.sh` (brownfield migration).
-- **Multi-agent:** Xem `docs/multi-agent-orchestration-guide.md` và `.sdd/mcp-config.yaml`.
+- **Multi-agent:** Xem `docs/multi-agent-orchestration-guide.md` và `.sdd/mcp-config.yaml`. Solo mode (1 developer): dùng `--team-size=solo` khi `/sdd-init` hoặc `/sdd-adopt`.
 
 ---
 
@@ -701,6 +701,8 @@ Mỗi sub-agent chỉ nhận task IDs, file boundary, profile binding, MCP profi
 
 Sau integration: `/sdd-audit` → `/sdd-trace` → `/git-validate --scope=commit`. Xem [`multi-agent-orchestration-guide.md`](./multi-agent-orchestration-guide.md).
 
+> **Solo mode:** Developer tự dispatch, tự verify, tự review. Shadow Plan đơn giản hơn — không parallel batch, không ownership boundary. Xem section 8 trong `multi-agent-orchestration-guide.md`.
+
 ### 8.11 Domain Technical Skill — audit chuyên sâu
 
 ```text
@@ -840,5 +842,6 @@ Requirement cần tránh từ mơ hồ như “nhanh chóng”, “linh hoạt�
 | Audit API security | `/api-security-auditor --feature=<slug>` |
 | Chuẩn hóa error handling | `/error-handler-pattern --mode=scaffold` |
 | Feature lớn cần multi-agent | Đọc `docs/multi-agent-orchestration-guide.md` |
+| Solo workflow (1 developer) | Dùng `--team-size=solo` khi init/adopt; xem `docs/multi-agent-orchestration-guide.md` section 8 |
 | Thay đổi Constitution | `/sdd-rfc --title=<change>` → approve → `/sdd-rfc --approve=<number>` |
 | Commit code | `/git-validate` → `READY` → `/git-commit` |

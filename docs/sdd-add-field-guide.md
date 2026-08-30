@@ -28,6 +28,7 @@ Chọn kịch bản → thực hiện từng bước → dừng tại Human Fina
 | Dự án mới, chưa chọn stack | **1** |
 | Dự án mới, đã biết một phần stack | **2** |
 | Repository có sẵn source code | **3** |
+| Solo (1 developer) | **1** hoặc **3** + `--team-size=solo` |
 | Module legacy cần mô tả trước khi sửa | **4** |
 | Feature mới, profile sẵn sàng | **5** |
 | Requirement hoặc contract thay đổi | **6** |
@@ -48,6 +49,7 @@ Chọn kịch bản → thực hiện từng bước → dừng tại Human Fina
 
 ```text
 /sdd-init --project-name="my-project"
+# Solo mode: thêm --team-size=solo
 ```
 
 → Mở `.sdd/architecture-profile.md`, xác nhận binding còn thiếu là `BLOCKED`.
@@ -197,6 +199,8 @@ Dependency direction bắt buộc:
 ---
 
 ## Kịch bản 10 — Feature lớn, nhiều Agent
+
+> **Solo mode?** Developer tự làm toàn bộ, không cần Lead→sub-agent dispatch. Vẫn dùng Shadow Plan và Human Final Review.
 
 1. Đọc [multi-agent-orchestration-guide.md](./multi-agent-orchestration-guide.md).
 2. Lead kiểm tra profile `APPROVED`, `TASKS.md`, dependency, shared files.

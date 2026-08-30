@@ -14,6 +14,7 @@ Dùng khi khởi tạo dự án mới hoặc bổ sung khung SDD + ADD vào dự
 
 - `--project-name=<name>`: Tùy chọn; tên dự án, ví dụ `order-service`.
 - `--stack=<tech-stack>`: Tùy chọn; chỉ nêu binding đã biết, ví dụ `Node.js + TypeScript + PostgreSQL`.
+- `--team-size=solo|team`: Tùy chọn; chế độ làm việc. `solo` = 1 developer vừa là Human Director vừa là Agent; `team` = multi-agent (mặc định). Xem [Solo vs Team Mode](#solo-vs-team-mode).
 
 ## Architecture Profile
 
@@ -87,6 +88,62 @@ Dùng template `.gitignore` chuẩn của ngôn ngữ/framework (gitignore.io st
 Giữ nguyên Layer 1 (Hard Rules) và Layer 2 (Architectural Constraints). Chỉ điều chỉnh:
 - `ENG-03` verification command: thay placeholder bằng exact command của stack nếu đã biết.
 - Nếu binding chưa confirmed, ghi `[PENDING HUMAN REVIEW — verification command chưa được chọn]` thay vì để trống.
+
+## Solo vs Team Mode
+
+### Solo mode (`--team-size=solo`)
+
+Dùng khi team chỉ có 1 developer. Developer vừa là Human Director vừa là sole agent.
+
+**Sinh file tối giản:**
+
+| File | Solo mode |
+| :--- | :--- |
+| `AGENTS.md` | 1 role duy nhất: `@developer` — scope full project, tool permissions đầy đủ |
+| `.sdd/shared_context.md` | Sole Developer context, không multi-agent ownership table |
+| `docs/multi-agent-orchestration-guide.md` | Vẫn tạo nhưng focus Solo Workflow; bỏ parallel batch dispatch |
+| `.sdd/mcp-config.yaml` | 1 entry `@developer` với toàn quyền |
+
+**AGENTS.md solo — generate 8 sections nhưng giản lược:**
+
+| Section | Solo adjustment |
+| :--- | :--- |
+| Identity & Persona | Sole Developer — full-stack, single reviewer |
+| Scope & Boundaries | Toàn bộ project path, không ownership boundary |
+| Tool Permissions | Tất cả lệnh của stack |
+| Security Rules | Giữ nguyên |
+| Communication Style | Mirror language; không cần multi-agent protocol |
+| Error Handling | Direct self-check, không Lead→sub-agent escalation |
+| Escalation Protocol | Dừng tại Human gate khi cần external decision |
+| Changelog | Giữ nguyên |
+
+**Shared context solo:**
+
+```markdown
+# Solo Developer Context
+
+# Version: 1.0.0
+# Last-Updated: {timestamp}
+# Sole Developer: {name}
+
+---
+
+## Active Context
+
+| Owned | Files |
+| :--- | :--- |
+| `@developer` | Toàn bộ project |
+
+## Frozen API contract
+
+*(Chưa có API contract cố định.)*
+```
+
+### Team mode (`--team-size=team`, mặc định)
+
+Multi-agent orchestration với Lead Agent và sub-agents. Xem `docs/multi-agent-orchestration-guide.md`.
+
+---
 
 ## AI Recommendation và Human Final Review
 

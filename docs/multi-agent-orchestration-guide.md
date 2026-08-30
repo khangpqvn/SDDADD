@@ -4,6 +4,8 @@
 
 > **Chưa quen với SDD+ADD?** Đọc [`sdd-add-quickstart.md`](./sdd-add-quickstart.md) trước.
 
+> **Team chỉ có 1 người?** Dùng `--team-size=solo` khi chạy `/sdd-init` hoặc `/sdd-adopt`. Xem [Solo Workflow](#8-solo-workflow-solo-mode) bên dưới.
+
 ---
 
 ## 1. Kiến trúc tổng quan
@@ -142,3 +144,65 @@ Scope thay đổi, binding đổi hoặc evidence mất hiệu lực yêu cầu 
 Sub-agent báo Lead khi có file conflict, API contract cần đổi, profile mismatch hoặc dependency block. Lead báo Human Director khi conflict không giải quyết được, cần đổi DB schema/public contract, retry cạn hoặc thiếu Human approval.
 
 Xem `.sdd/mcp-config.yaml` để áp dụng MCP access control và tool borrowing theo least privilege.
+
+---
+
+## 8. Solo Workflow *(solo mode)*
+
+Dùng khi `--team-size=solo`. Developer vừa là Human Director vừa là sole agent.
+
+### Kiến trúc
+
+```text
+Human Director / Sole Developer (@developer)
+  ├── đọc CONTEXT, SPEC, PLAN và Architecture Profile
+  ├── thực thi task theo Clean Architecture boundary
+  ├── tự verify và self-check
+  └── tự review trước khi approve
+```
+
+### Khác biệt so với team mode
+
+| Khía cạnh | Solo mode | Team mode |
+| :--- | :--- | :--- |
+| Shadow Plan | Đơn giản: files, commands, risks | Multi-agent dispatch: batch, ownership, parallel |
+| Execution | Developer tự làm toàn bộ | Lead dispatch sub-agent theo ownership |
+| Escalation | Dừng tại Human gate cần external decision | Sub-agent → Lead → Human Director |
+| Parallel | Không có | Task độc lập chạy parallel |
+| shared_context.md | Sole Developer context | Multi-agent ownership table |
+
+### Shadow Plan solo
+
+```text
+SHADOW PLAN — Task {T00X}: {Task title}
+
+ARCHITECTURE PROFILE
+- Version/status: {approved profile version/status}
+- Bindings: {relevant approved bindings}
+- Evidence: {manifest/config/human decision}
+
+FILES TO READ
+- {path}: {reason}
+
+FILES TO CREATE/MODIFY
+- {path}: {purpose/change}
+
+APPROVED COMMANDS
+1. {exact approved test command}
+2. {exact approved lint/typecheck/build or N/A reason}
+
+RISKS
+- {risk and mitigation}
+```
+
+### Human Director touch point solo
+
+| Checkpoint | Trigger | Hành động bắt buộc |
+| :--- | :--- | :--- |
+| Trước execution | Developer xuất Shadow Plan | Approve hoặc điều chỉnh scope |
+| Sau implementation | Developer self-check xong | Review code và approve |
+| Sau test | Developer chạy verification | `APPROVED`, `REVISE` hoặc `REJECTED` |
+
+### Escalation solo
+
+Developer dừng và tự quyết định khi gặp conflict, profile mismatch hoặc cần đổi public contract. Nếu cần external decision (không thuộc scope project), dừng và ghi `PENDING HUMAN REVIEW`.

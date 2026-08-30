@@ -28,7 +28,7 @@ Dùng `PLAN.md` đã approved để tạo `.sdd/features/{feature-slug}/TASKS.md
 
 1. Phân rã task theo ba tiêu chí: Atomic, Independent và Verifiable.
 2. Gắn requirement `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` cho business behavior.
-3. Cập nhật `.sdd/shared_context.md` với API contract dùng chung, chỉ dùng syntax adapter đã approved.
+3. **Solo mode** (`--team-size=solo`): Bỏ bước sync shared_context; developer tự xử lý toàn bộ. **Team mode**: Cập nhật `.sdd/shared_context.md` với API contract dùng chung, chỉ dùng syntax adapter đã approved.
 4. Ghi dependency, ownership, file boundary, command, risk và tạo recommendation.
 
 ## DoD

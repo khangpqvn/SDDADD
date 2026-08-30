@@ -27,7 +27,7 @@ Dùng để thực thi task trong `.sdd/features/{feature-slug}/TASKS.md`, theo 
 
 ### 1. Shadow Plan bắt buộc
 
-Trước mỗi task, xuất Shadow Plan và chờ Human Director xác nhận execution scope:
+Trước mỗi task, xuất Shadow Plan và chờ Human Director xác nhận execution scope. Solo mode: developer tự approve Shadow Plan của chính mình; multi-agent: Lead dispatch sub-agent theo ownership.
 
 ```text
 SHADOW PLAN — Task {T00X}: {Task title}

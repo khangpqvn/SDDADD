@@ -96,6 +96,8 @@ Dùng `/sdd-review`, không sửa thủ công nếu command có thể áp dụng
    /sdd-init --project-name="my-project"
    ```
 
+   > **Solo mode (1 developer):** Thêm `--team-size=solo` — developer vừa là Human Director vừa là Agent. Governance file được generate tối giản: 1 role `@developer`, bỏ multi-agent ownership table.
+
 3. Mở `.sdd/architecture-profile.md`. Xác nhận baseline TypeScript + Node.js + Clean Architecture; các binding chưa chọn phải là `BLOCKED` hoặc `OPTIONAL` đúng ngữ cảnh.
 4. Human Director review bootstrap tại `.sdd/reviews/init.md`.
 5. Tạo Context cho feature đầu tiên:
@@ -124,6 +126,8 @@ Dùng `/sdd-review`, không sửa thủ công nếu command có thể áp dụng
    ```text
    /sdd-init --project-name="my-project" --stack="Node.js + TypeScript + PostgreSQL"
    ```
+
+   > **Solo mode:** Thêm `--team-size=solo` để developer tự orchestrate toàn bộ workflow.
 
 2. Kiểm tra profile: input này không tự chọn HTTP framework, ORM, validation, test/build/lint command.
 3. Ghi các binding còn thiếu, evidence hoặc Human decision vào `.sdd/architecture-profile.md`.
@@ -315,6 +319,8 @@ Dùng `/sdd-review`, không sửa thủ công nếu command có thể áp dụng
 
 ## 13. Kịch bản 10 — Feature lớn, dùng nhiều Agent
 
+> **Solo mode?** Nếu team chỉ có 1 người, developer tự làm toàn bộ — không cần Lead→sub-agent dispatch. Vẫn áp dụng Shadow Plan và Human Final Review. Xem section 8 trong `multi-agent-orchestration-guide.md`.
+
 1. Đọc [multi-agent-orchestration-guide.md](./multi-agent-orchestration-guide.md).
 2. Lead kiểm tra profile `APPROVED`, `TASKS.md`, dependency và shared files.
 3. Lead xuất Multi-Agent Shadow Plan: batch parallel/sequential, ownership, MCP profile, binding evidence và exact command.
@@ -476,7 +482,7 @@ Tùy chọn an toàn:
 | Spec `DRAFT` hoặc review `PENDING` | Execute code | Hoàn thiện artifact và gọi `/sdd-review`. |
 | Test fail do edge case không có trong Spec | Vá code tạm | `/sdd-update`, review/lock Spec, cập nhật Plan/Tasks rồi execute. |
 | Test fail do code trái Spec | Đổi requirement để khớp code | Sửa code và chạy lại exact command. |
-| Task có file ownership conflict | Để nhiều Agent sửa cùng file | Lead giữ shared file hoặc tách task. |
+| Task có file ownership conflict | Để nhiều Agent sửa cùng file | Lead giữ shared file hoặc tách task. Solo mode: developer tự xử lý vì chỉ có 1 người. |
 | Cần DB migration/delete | Chạy tự động không review | Đọc `constraints/safety.md`, có plan/rollback và Human review. |
 | Có CRITICAL audit finding | Commit/PR với rationale chung chung | Remediate và audit lại. |
 | Git validation chưa `READY` | Commit/PR | Sửa failure/warning hoặc ghi disposition hợp lệ. |

@@ -153,6 +153,8 @@ Khi thiếu adapter binding, skill trả `CONFIGURATION GAP`; không sinh import
 
 Lead Agent gửi profile version, binding liên quan, evidence và exact command cho từng sub-agent. Sub-agent không được thêm dependency, adapter, path hoặc command ngoài binding được giao. Conflict quay về Lead rồi Human Director.
 
+> **Solo mode:** Developer tự đọc profile, tự dispatch, tự verify. Không cần Lead→sub-agent flow. Checklist vẫn áp dụng.
+
 - [ ] Profile `APPROVED` cho mọi binding feature dùng.
 - [ ] Evidence khớp manifest/config/source.
 - [ ] `CLAUDE.md` phản ánh profile đã approved.

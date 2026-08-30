@@ -110,6 +110,9 @@ Nói miệng "ok" hoặc tin nhắn chat không phải approval hợp lệ.
 
 # Đã biết một phần stack
 /sdd-init --project-name="my-project" --stack="Node.js + TypeScript + PostgreSQL"
+
+# Team chỉ có 1 người → solo mode (developer = Human Director = Agent)
+/sdd-init --project-name="my-project" --team-size=solo
 ```
 
 Sau đó mở `.sdd/architecture-profile.md`, điền các binding còn thiếu và review.  
@@ -127,9 +130,11 @@ Tiếp: `/sdd-context --feature=<slug>` cho feature đầu tiên.
 .\scripts\adopt.ps1 -TargetPath C:\Projects\my-existing-repo
 ```
 
-Mở repo đích, chạy `/sdd-adopt`.  
-Agent sẽ đọc manifest, CI, test config và source layout để điền Architecture Profile.  
+Mở repo đích, chạy `/sdd-adopt`.
+Agent sẽ đọc manifest, CI, test config và source layout để điền Architecture Profile.
 Bạn review và approve trước khi làm feature work.
+
+> **Solo mode?** Thêm `--team-size=solo` khi chạy `/sdd-init` hoặc `/sdd-adopt`. Agent sẽ generate governance file tối giản cho 1 developer.
 
 ---
 
@@ -215,10 +220,10 @@ Mỗi update invalidate review cũ, tạo recommendation mới cần Human Direc
 | Tôi muốn... | Đọc tài liệu này |
 | :--- | :--- |
 | Hiểu đầy đủ mọi command và quy tắc | [sdd-add-guide.md](./sdd-add-guide.md) |
-| Làm theo kịch bản cụ thể (greenfield, brownfield, multi-agent...) | [sdd-add-scenario-playbook.md](./sdd-add-scenario-playbook.md) |
+| Làm theo kịch bản cụ thể (greenfield, brownfield, solo, multi-agent...) | [sdd-add-scenario-playbook.md](./sdd-add-scenario-playbook.md) |
 | Tra nhanh command → kịch bản | [sdd-add-field-guide.md](./sdd-add-field-guide.md) |
 | Hiểu cách chọn và approve tech stack | [architecture-profile-guide.md](./architecture-profile-guide.md) |
-| Điều phối nhiều Agent song song | [multi-agent-orchestration-guide.md](./multi-agent-orchestration-guide.md) |
+| Solo workflow (1 developer) hoặc multi-agent orchestration | [multi-agent-orchestration-guide.md](./multi-agent-orchestration-guide.md) |
 | Quy tắc bất biến và security gate | [`CONSTITUTION.md`](../CONSTITUTION.md) |
 | Quyền hạn và phạm vi Agent | [`AGENTS.md`](../AGENTS.md) |
 

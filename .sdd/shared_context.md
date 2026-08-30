@@ -4,9 +4,21 @@
 # Last-Updated: 2026-08-21 14:40 UTC
 # Lead Agent: Orchestrator (@main-agent)
 
+> **Solo mode?** Khi `--team-size=solo`, dùng section 1A thay vì section 1. Developer vừa là Human Director vừa là sole agent, không có multi-agent role division.
+
 ---
 
-## 1. Active Agent và ownership boundary
+## 1A. Solo Developer Context *(solo mode)*
+
+| Owned | Files |
+| :--- | :--- |
+| `@developer` | Toàn bộ project |
+
+Developer đọc profile, tự dispatch task, tự verify. Không có Lead→sub-agent flow. Human Final Review vẫn bắt buộc trước khi approve artifact.
+
+---
+
+## 1. Active Agent và ownership boundary *(team mode)*
 
 | Tên Agent | Vai trò / chuyên môn | Ownership boundary |
 | :--- | :--- | :--- |

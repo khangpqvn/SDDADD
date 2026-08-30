@@ -32,6 +32,8 @@ Dùng khi cần cập nhật `AGENTS.md`: vai trò, phạm vi, quyền công c�
 
 Khi project adopt từ template, các sections phải được **customize theo stack thực** — persona Go ≠ TypeScript; path `cmd/internal/pkg` ≠ `src/`; tool command `make test` ≠ `npm test`. Xem `/sdd-init` hoặc `/sdd-adopt` để generate tự động.
 
+> **Solo mode** (`--team-size=solo`): AGENTS.md chỉ có 1 role `@developer` — full-stack scope, toàn bộ tool permission. Sections 1–8 vẫn đầy đủ nhưng giản lược: bỏ ownership boundary, bỏ Lead→sub-agent escalation, giữ Human gate khi cần external decision.
+
 ## Quy trình
 
 1. Đọc `AGENTS.md`, `CONSTITUTION.md`, `CLAUDE.md`, Architecture Profile và constraint liên quan.

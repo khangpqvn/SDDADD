@@ -15,6 +15,7 @@ Dùng để áp dụng SDD + ADD vào repository có source code sẵn hoặc t�
 - `--stack=<tech-stack>`: Tùy chọn; stack đã biết, ví dụ `NestJS + PostgreSQL + Prisma`.
 - `--reverse-feature=<feature-slug>`: Tùy chọn; feature cần Reverse Spec.
 - `--path=<module-path>`: Tùy chọn; path module nguồn, ví dụ `src/modules/auth`.
+- `--team-size=solo|team`: Tùy chọn; chế độ làm việc. `solo` = 1 developer vừa là Human Director vừa là Agent; `team` = multi-agent (mặc định). Xem [Solo vs Team Mode](#solo-vs-team-mode).
 
 ## Các bước
 
@@ -81,6 +82,23 @@ Khi có `--reverse-feature` và `--path`:
 - `SPEC.md` dùng EARS, bắt đầu `DRAFT`; `PLAN.md`/`TASKS.md` không tự thành `COMPLETED`.
 - Chỉ thêm `@ears` vào source sau scope approval và khi binding liên quan đã approved.
 - Reverse Spec mô tả behavior quan sát được, không chứng minh business behavior đúng.
+
+## Solo vs Team Mode
+
+### Solo mode (`--team-size=solo`)
+
+Dùng khi developer duy nhất vừa là Human Director vừa là sole agent. Governance file được generate tối giản:
+
+- `AGENTS.md`: 1 role `@developer` — full-stack scope, toàn bộ tool permission.
+- `.sdd/shared_context.md`: Sole Developer context, bỏ multi-agent ownership table.
+- `.sdd/mcp-config.yaml`: 1 entry `@developer`.
+- `docs/multi-agent-orchestration-guide.md`: Vẫn tạo, thêm section Solo Workflow.
+
+### Team mode (`--team-size=team`, mặc định)
+
+Multi-agent orchestration với Lead Agent và sub-agents. Xem `docs/multi-agent-orchestration-guide.md`.
+
+---
 
 ## AI Recommendation và Human Final Review
 

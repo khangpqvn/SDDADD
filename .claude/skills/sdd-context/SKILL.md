@@ -35,7 +35,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 
 ## DoD
 
-- [ ] Team hiểu problem, không nhầm với solution.
+- [ ] Team/Developer hiểu problem, không nhầm với solution.
 - [ ] Domain glossary rõ nghĩa.
 - [ ] Tech, business và time constraint đã ghi.
 - [ ] Có decision maker rõ ràng.

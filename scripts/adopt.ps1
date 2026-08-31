@@ -1,4 +1,4 @@
-# Script tích hợp SDD + ADD bằng Windows PowerShell.
+﻿# Script tích hợp SDD + ADD bằng Windows PowerShell.
 param (
     [Parameter(Mandatory=$false, Position=0)]
     [string]$TargetPath,
@@ -43,18 +43,16 @@ function Copy-FolderSafely {
         [string]$DestFolderRel
     )
     $SrcFolder = Join-Path $script:TemplateDir $SrcFolderRel
-    $DestFolder = Join-Path $script:TargetDir $DestFolderRel
 
     if (-not (Test-Path -Path $SrcFolder)) {
         return
     }
 
-    if (-not (Test-Path -Path $DestFolder)) {
-        New-Item -ItemType Directory -Path $DestFolder -Force | Out-Null
+    Get-ChildItem -Path $SrcFolder -Recurse -File | ForEach-Object {
+        $NestedRel = $_.FullName.Substring($SrcFolder.Length).TrimStart('\')
+        Copy-FileSafely "$SrcFolderRel\$NestedRel" "$DestFolderRel\$NestedRel"
     }
-
-    Copy-Item -Path "$SrcFolder\*" -Destination $DestFolder -Recurse -Force
-    Write-Host "  [+] Đã sao chép nội dung thư mục: $DestFolderRel\" -ForegroundColor Green
+    Write-Host ("  [+] Đã xử lý nội dung thư mục: {0}" -f $DestFolderRel) -ForegroundColor Green
 }
 
 if ($Help -or [string]::IsNullOrWhiteSpace($TargetPath)) {
@@ -128,10 +126,20 @@ Copy-FileSafely ".sdd\rfcs\.gitkeep" ".sdd\rfcs\.gitkeep"
 
 Write-Host ""
 Write-Host "Bước 4: Sao chép tài liệu và script hỗ trợ..." -ForegroundColor Blue
+Copy-FileSafely "docs\sdd-add-quickstart.md" "docs\sdd-add-quickstart.md"
 Copy-FileSafely "docs\sdd-add-guide.md" "docs\sdd-add-guide.md"
+Copy-FileSafely "docs\sdd-add-field-guide.md" "docs\sdd-add-field-guide.md"
+Copy-FileSafely "docs\sdd-add-scenario-playbook.md" "docs\sdd-add-scenario-playbook.md"
 Copy-FileSafely "docs\architecture-profile-guide.md" "docs\architecture-profile-guide.md"
 Copy-FileSafely "docs\multi-agent-orchestration-guide.md" "docs\multi-agent-orchestration-guide.md"
+Copy-FileSafely "scripts\adopt.sh" "scripts\adopt.sh"
+Copy-FileSafely "scripts\adopt.ps1" "scripts\adopt.ps1"
 Copy-FileSafely "scripts\self-heal.sh" "scripts\self-heal.sh"
+Copy-FileSafely "scripts\template-smoke.sh" "scripts\template-smoke.sh"
+Copy-FileSafely "scripts\template-smoke.ps1" "scripts\template-smoke.ps1"
+Copy-FileSafely "scripts\start-claude.sh" "scripts\start-claude.sh"
+Copy-FileSafely "scripts\start-claude.ps1" "scripts\start-claude.ps1"
+Copy-FileSafely "scripts\update.sh" "scripts\update.sh"
 Copy-FileSafely "scripts\update.ps1" "scripts\update.ps1"
 
 Write-Host ""

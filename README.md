@@ -1,127 +1,124 @@
 # SDD + ADD Starter Template
 
-Template chuẩn để xây dựng dự án phần mềm theo **SDD** (Spec-Driven Development) và **ADD** (Agent-Driven Development) với AI Coding Assistants như Claude Code, Roo Code, Cline và Cursor. Template gồm quality gate, SemVer cho đặc tả, Spec hierarchy, Architecture Profile, AI Recommendation + Human Final Review và script hỗ trợ tích hợp repository có sẵn.
+Template xây dựng dự án theo **SDD** (Spec-Driven Development) và **ADD** (Agent-Driven Development). Template giữ đặc tả, quyết định Human, evidence thực thi và contract dùng chung trong Git; Agent thực thi trong phạm vi đã duyệt.
 
----
-
-## Tài liệu hướng dẫn
+## Đọc theo nhu cầu
 
 | Mục đích | Tài liệu |
 | :--- | :--- |
-| **Lần đầu — bắt đầu từ đây** | [`docs/sdd-add-quickstart.md`](docs/sdd-add-quickstart.md) — Mental model, quy trình 7 bước, 5 điều không được làm, cách approve đúng |
-| Cẩm nang đầy đủ | [`docs/sdd-add-guide.md`](docs/sdd-add-guide.md) — Vòng đời feature, review gate, kịch bản vận hành |
-| Tra nhanh command | [`docs/sdd-add-field-guide.md`](docs/sdd-add-field-guide.md) — Thẻ thao tác nhanh, bảng scenario → command |
-| Kịch bản chi tiết từng bước | [`docs/sdd-add-scenario-playbook.md`](docs/sdd-add-scenario-playbook.md) — Greenfield, brownfield, multi-agent, audit... |
-| Tech stack & profile | [`docs/architecture-profile-guide.md`](docs/architecture-profile-guide.md) — Chọn, xác minh, review binding trước technical planning |
-| Multi-Agent orchestration | [`docs/multi-agent-orchestration-guide.md`](docs/multi-agent-orchestration-guide.md) — Phân quyền, ownership, MCP, quy trình phối hợp |
+| **Bắt đầu lần đầu** | [`docs/sdd-add-quickstart.md`](docs/sdd-add-quickstart.md) |
+| Vận hành đầy đủ | [`docs/sdd-add-guide.md`](docs/sdd-add-guide.md) |
+| Tra command nhanh | [`docs/sdd-add-field-guide.md`](docs/sdd-add-field-guide.md) |
+| Làm theo kịch bản | [`docs/sdd-add-scenario-playbook.md`](docs/sdd-add-scenario-playbook.md) |
+| Chọn stack và command | [`docs/architecture-profile-guide.md`](docs/architecture-profile-guide.md) |
+| Điều phối nhiều Agent hoặc solo | [`docs/multi-agent-orchestration-guide.md`](docs/multi-agent-orchestration-guide.md) |
 
----
+## Lifecycle
+
+```text
+CONTEXT → SPEC → PLAN → TASKS → execute → verify → sync
+```
+
+- `CONTEXT.md` giữ Intent Packet: WHAT, WHY, Definition of Done, boundaries, exclusions và decision owner.
+- `SPEC.md` giữ requirement EARS, Methodology Profile và Feature Lock cho phạm vi feature/sprint.
+- `PLAN.md` và `TASKS.md` map `REQ-XXX`, architecture/profile evidence, state-change category và verification command.
+- Mỗi task có Shadow Plan và Action Record.
+- `/sdd-trace` kiểm tra consistency; `/sdd-sync` đồng bộ registry và shared contract khi cần.
 
 ## Bắt đầu
 
-### Dự án mới (Greenfield)
+### Greenfield
 
-```bash
-# 1. Clone template
-git clone <repo-url-cua-ban> my-new-project
-cd my-new-project
-
-# 2. Khởi tạo SDD + ADD
-/sdd-init --project-name="my-new-project" --stack="Node.js + TypeScript"
-
-# 3. Tạo Context và Spec không phụ thuộc công nghệ
-/sdd-context --feature=feat-001-user-auth
-/sdd-spec --feature=feat-001-user-auth
-
-# 4. Chọn HTTP, DB, ORM/query layer, validation và exact test/build/lint commands trong
-#    .sdd/architecture-profile.md, sau đó Human Director ghi APPROVED qua /sdd-review.
-
-# 5. Chỉ tiếp tục khi profile và artifact tiền đề đã APPROVED
-/sdd-plan --feature=feat-001-user-auth
-/sdd-tasks --feature=feat-001-user-auth
-/add-execute --feature=feat-001-user-auth
+```text
+/sdd-init --project-name="my-project"
+/sdd-context --feature=feat-user-auth
+/sdd-spec --feature=feat-user-auth
 ```
 
-Baseline của template chỉ xác nhận TypeScript, Node.js và Clean Architecture. Agent không được tự suy đoán HTTP framework, database, ORM/query layer, validation library hoặc verification command.
+Sau khi Context và Spec được review, chọn binding cần thiết và exact verification commands trong `.sdd/architecture-profile.md`, rồi ghi Human Final Review `APPROVED` bằng `/sdd-review`.
 
-### Repository có sẵn (Brownfield)
+```text
+/sdd-plan --feature=feat-user-auth
+/sdd-tasks --feature=feat-user-auth
+/add-execute --feature=feat-user-auth
+/sdd-lint --feature=feat-user-auth
+/sdd-audit --feature=feat-user-auth
+/sdd-trace --feature=feat-user-auth
+/sdd-sync --feature=feat-user-auth --reason="feature delivery"
+```
+
+Baseline chỉ xác nhận TypeScript, Node.js và Clean Architecture. Agent không suy đoán HTTP framework, database, ORM/query layer, validation library, package hoặc test/build/lint command.
+
+### Brownfield
 
 ```bash
-# Linux, macOS hoặc Git Bash
+# Linux/macOS/Git Bash
 ./scripts/adopt.sh /path/to/existing-repository
-```
 
-```powershell
 # Windows PowerShell
 .\scripts\adopt.ps1 -TargetPath C:\Projects\existing-repository
 ```
 
-Script sao chép skills, governance, Architecture Profile, constraints, tài liệu và `self-heal.sh`. Script không ghi đè tệp đích trừ khi dùng `--force` hoặc `-Force`.
+Mở repository đích rồi chạy `/sdd-adopt`. Profile chỉ dùng binding tìm được có evidence; conflict giữ `PENDING HUMAN REVIEW`.
 
-Sau đó mở repository đích và chạy:
+## Checkpoint và evidence
 
-```text
-/sdd-adopt
-```
+Human Final Review là durable decision, không phải chat acknowledgement. Agent chỉ tiếp tục khi artifact prerequisite có `APPROVED` hợp lệ.
 
-`/sdd-adopt` khảo sát evidence hiện có, đề xuất Architecture Profile và chờ Human Final Review trước technical planning hoặc execution.
+Material state change cần checkpoint persisted **trước action**:
 
----
+- shared/public contract;
+- persistence schema hoặc business-data mutation;
+- permission, security, dependency hoặc runtime configuration;
+- external hoặc irreversible side effect.
 
-## Cấu trúc repository
+Read-only hoặc low-risk task vẫn cần Shadow Plan và Action Record, nhưng baseline không yêu cầu checkpoint trước task. Dùng `/add-execute --strict-checkpoint` nếu project muốn xác nhận mọi task.
+
+## Git delivery
+
+`/git-validate` phải trả `READY` trước commit. Agent chỉ commit khi Human yêu cầu và **không chạy `git push`**.
+
+- Solo: không cần Pull Request. Sau validation/commit, Human chạy `git push -u origin <head>`.
+- Team: Agent chỉ tạo Pull Request sau remote branch, strict validation và Human xác nhận nội dung outward-facing. Human vẫn push branch.
+
+## Template utilities
+
+| Utility | Purpose |
+| :--- | :--- |
+| `scripts/self-heal.sh` | Opt-in, evidence-only bounded recovery. Bắt buộc feature, task, Architecture Profile và task approval, `--max-attempts=1` và `implementation-defect`; không sửa source, commit, push hoặc deploy. |
+| `scripts/template-smoke.sh` / `.ps1` | Static release checks: files, links, policy tokens và distribution coverage. Không chạy application command hay mutate repository. |
+| `scripts/adopt.*` | Sao chép template vào brownfield repository mà không overwrite target file nếu không explicit force. |
+| `scripts/update.*` | Update safe template-owned files, stage governance files, không overwrite `NEVER` adoptee-owned artifacts. |
+
+## Repository structure
 
 ```text
 .
-├── AGENTS.md                    # Quyền hạn, phạm vi và quy tắc vận hành Agent
-├── CLAUDE.md                    # Bộ nhớ kiến trúc dành cho con người
-├── CONSTITUTION.md              # Hard rule, architecture rule và RFC process
-├── .agentignore                 # Context hygiene cho AI Agent
-├── .claude/skills/              # 25 slash commands SDD/ADD, Git và technical skills
+├── AGENTS.md
+├── CLAUDE.md
+├── CONSTITUTION.md
+├── .claude/skills/
 ├── .sdd/
-│   ├── architecture-profile.md  # Nguồn sự thật cho binding công nghệ
-│   ├── constraints/             # Global, business và safety constraints
-│   ├── mcp-config.yaml          # Quyền MCP theo vai trò Agent
-│   ├── shared_context.md        # API contract và trạng thái dùng chung
-│   ├── features/                # CONTEXT.md, SPEC.md, PLAN.md, TASKS.md
-│   ├── reviews/                 # Report và Human Final Review ngoài feature
-│   └── rfcs/                    # RFC thay đổi Constitution hoặc kiến trúc lớn
-├── docs/                        # Hướng dẫn vận hành
+│   ├── architecture-profile.md
+│   ├── shared_context.md
+│   ├── mcp-config.yaml
+│   ├── constraints/
+│   ├── features/
+│   ├── reviews/
+│   └── rfcs/
+├── docs/
 ├── scripts/
-│   ├── adopt.sh / adopt.ps1     # Tích hợp template vào repository có sẵn
-│   ├── self-heal.sh             # Test → sửa tối đa ba lần → Human review
-│   └── start-claude.*           # Khởi động Claude Code với --dangerously-skip-permissions
-├── src/                         # Mã nguồn theo Clean Architecture
-└── tests/                       # Test suite
+├── src/
+└── tests/
 ```
 
----
+## Core rules
 
-## Slash commands
+1. **Fix the Spec, not the Code.** Requirement thiếu hoặc mơ hồ phải quay lại `/sdd-update` trước khi sửa behavior.
+2. **EARS traceability.** Business method dùng `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
+3. **Architecture Profile gate.** Context/Spec có thể technology-neutral; Plan/Tasks/execute phải có binding và exact command đã approved.
+4. **Feature-scoped lock.** Feature Lock không khóa project; thay đổi qua `/sdd-update` và review lại.
+5. **No self-approval.** Agent không tự approve, push, deploy hoặc tự quyết change material/high-risk.
+6. **No secrets.** Không ghi, log hoặc commit credential, token, password hay connection string.
 
-| Command | Mục đích |
-| :--- | :--- |
-| `/sdd-init`, `/sdd-adopt` | Khởi tạo Greenfield hoặc tích hợp Brownfield. |
-| `/sdd-context`, `/sdd-spec`, `/sdd-plan`, `/sdd-tasks` | Tạo 4 artifact SDD theo thứ tự (Context → Spec → Plan → Tasks). |
-| `/sdd-update --artifact=<spec\|context\|plan\|tasks>` | Cập nhật artifact đã approved: Spec (bump SemVer), Context, Plan, Tasks — invalidate review cũ, tạo recommendation mới. |
-| `/sdd-review` | Ghi Human Final Review bền vững (`APPROVED`, `REVISE`, `REJECTED`). |
-| `/add-execute`, `/sdd-layer-edit` | Thực thi theo profile, Plan, Tasks đã duyệt; Shadow Plan trước mỗi task. |
-| `/sdd-lint`, `/sdd-audit`, `/sdd-trace`, `/sdd-sync` | Kiểm định, truy vết requirement, đồng bộ registry/shared contract. |
-| `/sdd-handoff`, `/sdd-resume` | Lưu và khôi phục trạng thái phiên làm việc. |
-| `/sdd-rfc`, `/sdd-claude-edit`, `/sdd-agents-edit` | Quản lý governance (RFC, CLAUDE.md, AGENTS.md). |
-| `/git-validate`, `/git-commit`, `/git-pr` | Kiểm tra và thực hiện Git delivery (`READY` gate). |
-| `/api-security-auditor`, `/sql-performance-tuner`, `/error-handler-pattern` | Technical skill (cần Architecture Profile binding đã approved). |
-
-Mỗi recommendation bắt đầu tại `PENDING HUMAN REVIEW`. Agent chỉ đề xuất; Human Director hoặc reviewer được ủy quyền ghi `APPROVED`, `REVISE` hoặc `REJECTED` bằng `/sdd-review`.
-
----
-
-## Quy tắc cốt lõi
-
-1. **Fix the Spec, not the Code**: Khi requirement thiếu hoặc mơ hồ, cập nhật `SPEC.md` trước khi sửa behavior.
-2. **EARS traceability**: Business method phải có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
-3. **Profile trước technical planning**: Chỉ dùng binding và exact command đã approved/evidenced.
-4. **Shadow Plan trước execution**: Human Director xác nhận phạm vi trước mỗi task.
-5. **Git delivery có gate**: `/git-validate` phải trả `READY` trước commit hoặc Pull Request.
-6. **Không có secret**: Không ghi, log hoặc commit credential, token, password hay connection string.
-
-Xem [`docs/sdd-add-guide.md`](docs/sdd-add-guide.md) để có kịch bản chi tiết.
+Chi tiết contract của từng command nằm tại `.claude/skills/`; hard rules nằm tại [`CONSTITUTION.md`](CONSTITUTION.md), quyền Agent tại [`AGENTS.md`](AGENTS.md).

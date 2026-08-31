@@ -6,100 +6,48 @@ user-invocable: true
 
 # SDD Brownfield Adoption (`/sdd-adopt`)
 
-**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`, `CONFIGURATION GAP`), file paths, and CLI commands are language-invariant.
-
-Dùng để áp dụng SDD + ADD vào repository có source code sẵn hoặc tạo Reverse Spec cho module legacy.
+Dùng để adopt SDD+ADD vào repository có source hoặc tạo Reverse Spec cho module legacy.
 
 ## Tham số
 
-- `--stack=<tech-stack>`: Tùy chọn; stack đã biết, ví dụ `NestJS + PostgreSQL + Prisma`.
-- `--reverse-feature=<feature-slug>`: Tùy chọn; feature cần Reverse Spec.
-- `--path=<module-path>`: Tùy chọn; path module nguồn, ví dụ `src/modules/auth`.
-- `--team-size=solo|team`: Tùy chọn; chế độ làm việc. `solo` = 1 developer vừa là Human Director vừa là Agent; `team` = multi-agent (mặc định). Xem [Solo vs Team Mode](#solo-vs-team-mode).
+- `--stack=<tech-stack>`: Tùy chọn; stack explicit đã biết.
+- `--reverse-feature=<feature-slug>`: Tùy chọn.
+- `--path=<module-path>`: Tùy chọn, dùng cùng `--reverse-feature`.
+- `--team-size=solo|team`: Tùy chọn; `team` là mặc định.
 
-## Các bước
+## Adoption workflow
 
-1. Kiểm tra root, manifest, lockfile, runtime/bootstrap config, DB/migration config, CI, test config và source layout.
-2. Tạo/cập nhật `.sdd/architecture-profile.md`; mỗi runtime, framework, DB, ORM, validation, test/build/lint command phải có evidence, confidence, conflict và `PENDING HUMAN REVIEW`.
-3. Resolve binding theo thứ tự: profile approved → repository evidence rõ ràng → `--stack` explicit → core-only baseline. Mâu thuẫn thì dừng; không ghi đè profile approved.
-4. **Generate governance files theo stack thực tế** (xem nguyên tắc Generate vs Copy bên dưới): `CLAUDE.md`, `AGENTS.md` phải giới hạn path/tool phù hợp repository; `CONSTITUTION.md` chỉ thay đổi qua RFC process.
-5. Khởi tạo `.sdd/`, architecture protocol và toàn bộ slash command hiện hành.
+1. Khảo sát root, manifest, lockfile, runtime/bootstrap configuration, database/migration configuration, CI, test configuration, source layout và docs.
+2. Tạo/cập nhật Architecture Profile: runtime, framework, DB, ORM/query, validation và test/build/lint command đều cần evidence, confidence và conflict state.
+3. Resolve theo precedence: approved profile → clear repository evidence → explicit `--stack` → core-only baseline.
+4. Mâu thuẫn không được tự resolve. Lưu `PENDING HUMAN REVIEW` recommendation.
+5. Context/Spec có thể business-neutral khi technical binding chưa resolved. Plan/Tasks/execution cần selected/evidenced binding và exact command.
+6. Generate/reconcile governance theo actual repository. Không overwrite approved Constitution rules; RFC controls Layer 1/2 changes.
+7. Install the full template-owned docs and support scripts listed by `/sdd-init`; distribution scripts retain staged/NEVER safety.
 
-## Generate vs Copy — Nguyên tắc quan trọng
+## Governance generation
 
-Với brownfield adoption, các governance file **phải phản chiếu repository thực** — persona, path, command và anti-pattern học được từ codebase hiện có — không phải copy verbatim từ template. Điều này đặc biệt quan trọng vì:
-- Project đã có convention riêng (naming, error handling, test patterns) → AGENTS.md phải capture những điều này
-- Build/lint/test command đã xác định từ CI → CONSTITUTION.md ENG-03 có thể điền exact command ngay
-- Lesson learned có thể seed từ PR history, commit message, incident log
+Generate `AGENTS.md`, `CLAUDE.md`, `.agentignore` and `.gitignore` from observed convention, repository paths, real commands and secret boundaries. Never copy stack-specific permissions, command names or source layout as a default.
 
-### AGENTS.md — Generate từ repository evidence
-
-Survey repository trước khi generate:
-
-1. **Identity & Persona**: Detect ngôn ngữ chính, framework, test runner. Generate persona phù hợp (Go developer ≠ TypeScript developer — philosophy, style guide, idioms khác nhau).
-2. **Scope & Boundaries**: Dùng path thực của repository. Nếu project dùng `app/`, `lib/`, `pkg/` thay vì `src/` — reflect đúng thực tế.
-3. **Tool Permissions**: Điền exact command từ CI/Makefile/package.json scripts đã verified. Ví dụ: nếu CI chạy `make test`, ghi `make test`, không ghi `npm test`.
-4. **Security Rules**: Giữ Zero Secret Policy. Thêm constraint đặc thù nếu phát hiện (ví dụ: project có `.env.vault` → ghi rõ không được commit `.env.vault`).
-5. **Communication Style**: Mirroring language rule + format báo cáo.
-6. **Error Handling**: Quy trình khi test fail, Spec mơ hồ, conflict.
-7. **Escalation Protocol**: Khi nào dừng và báo Human Director.
-8. **Changelog**: Seed với version 1.0.0 + timestamp adoption.
-
-### CLAUDE.md — Generate từ codebase thực
-
-Không dùng placeholder. Điền từ repository evidence:
-
-1. **TL;DR**: Viết mô tả ngắn dựa trên README, package.json description, module chính.
-2. **Architecture**: Detect pattern thực (thư mục `domain/`, `usecase/` → Clean Architecture; `modules/` → Modular Monolith; ...). Ghi file structure thực.
-3. **Lesson Learned**: Seed từ PR/commit history nếu có pattern nổi bật (ví dụ: nhiều commit fix N+1, deadlock, auth bug). Format `[YYYY-MM] Vấn đề — Fix đã áp dụng`.
-4. **Current Sprint Focus**: Để trống hoặc điền nếu `--reverse-feature` được cung cấp.
-
-### .agentignore — Generate theo stack thực
-
-Scan build artifact, cache directory và generated file trong repository; thêm vào pattern chuẩn theo ngôn ngữ. Ví dụ: nếu repository có `coverage/` directory → thêm. Nếu có Prisma → thêm `prisma/migrations/*.js` (generated). Không copy `.agentignore` của template.
-
-### .gitignore — Bổ sung, không ghi đè
-
-Nếu repository đã có `.gitignore`, chỉ thêm pattern liên quan SDD (`.sdd/updates/`) mà chưa có. Không xóa hoặc thay thế. Nếu chưa có `.gitignore`, generate theo stack phát hiện.
-
-### CONSTITUTION.md — Tùy chỉnh nhẹ, không ghi đè sau RFC
-
-Nếu repository chưa có `CONSTITUTION.md`:
-- Generate với 3-layer structure chuẩn
-- Điền exact verification command (ENG-03) từ CI evidence nếu có
-
-Nếu repository đã có `CONSTITUTION.md` (từ lần adopt trước hoặc manual):
-- Không ghi đè Layer 1/2 đã approved
-- Chỉ bổ sung thiếu với recommendation `PENDING HUMAN REVIEW`
-- Layer 1/2 thay đổi cần RFC theo `/sdd-rfc`
+`CLAUDE.md` reflects approved profile for human readers. `.sdd/mcp-config.yaml` is policy specification; it does not prove runtime enforcement.
 
 ## Reverse Spec
 
-Khi có `--reverse-feature` và `--path`:
+With `--reverse-feature` and `--path`:
 
-- Đọc source/test trong module.
-- Tạo `CONTEXT.md`, `SPEC.md`, `PLAN.md`, `TASKS.md` quan sát behavior hiện tại.
-- `SPEC.md` dùng EARS, bắt đầu `DRAFT`; `PLAN.md`/`TASKS.md` không tự thành `COMPLETED`.
-- Chỉ thêm `@ears` vào source sau scope approval và khi binding liên quan đã approved.
-- Reverse Spec mô tả behavior quan sát được, không chứng minh business behavior đúng.
+1. Observe source and tests; produce Context, Spec, Plan and Tasks as evidence of current behavior.
+2. Keep Spec `DRAFT`; legacy behavior is not business-approved merely because code exists.
+3. Include Intent Packet, Methodology Profile, Feature Lock/deferred-work decision, state-change classification and trace/sync implications for new or updated artifacts.
+4. Only add `@ears` or change source after explicit scope approval and relevant profile gate.
 
-## Solo vs Team Mode
+## Shared contract and dispatch
 
-### Solo mode (`--team-size=solo`)
+Adoption recognizes frozen shared contracts in `.sdd/shared_context.md`. Only owner/Lead changes contract. A future dispatch must carry task ID, frozen version, ownership boundary, selected binding/evidence, exact commands, checkpoint and audit reference.
 
-Dùng khi developer duy nhất vừa là Human Director vừa là sole agent. Governance file được generate tối giản:
+## Solo mode
 
-- `AGENTS.md`: 1 role `@developer` — full-stack scope, toàn bộ tool permission.
-- `.sdd/shared_context.md`: Sole Developer context, bỏ multi-agent ownership table.
-- `.sdd/mcp-config.yaml`: 1 entry `@developer`.
-- `docs/multi-agent-orchestration-guide.md`: Vẫn tạo, thêm section Solo Workflow.
+Solo uses one developer role but keeps the same review/profile/checkpoint requirements. It does not authorize Agent push. Human performs remote delivery.
 
-### Team mode (`--team-size=team`, mặc định)
+## AI Recommendation and Human Final Review
 
-Multi-agent orchestration với Lead Agent và sub-agents. Xem `docs/multi-agent-orchestration-guide.md`.
-
----
-
-## AI Recommendation và Human Final Review
-
-Sau adoption hoặc Reverse Spec, tạo recommendation theo `.claude/skills/_shared/ai-review-protocol.md` gồm kiến trúc phát hiện, governance assumption, migration risk, độ tin cậy Reverse Spec và alternative. Lưu tại `.sdd/reviews/adopt-<slug>.md` với `PENDING HUMAN REVIEW`. Human Director/Tech Lead approve scope trước downstream work; Agent không self-approve hoặc coi legacy behavior là business-approved.
+Create `.sdd/reviews/adopt-<slug>.md` with canonical protocol block. Include discovered evidence, unresolved/conflicting binding, governance impact, contract impact, recommendation and required Human decision. Human Director/Tech Lead approves adoption scope before downstream technical work. Agent does not self-approve or treat reverse-engineered behavior as approved business intent.

@@ -1,4 +1,4 @@
-# Script cập nhật SDD + ADD template cho repository đã adopt (Windows PowerShell).
+﻿# Script cập nhật SDD + ADD template cho repository đã adopt (Windows PowerShell).
 # Cách dùng: .\scripts\update.ps1 <template-path> [-DryRun] [-ForceGovernance]
 param (
     [Parameter(Mandatory=$false, Position=0)]
@@ -24,7 +24,7 @@ if ($Help -or [string]::IsNullOrWhiteSpace($TemplatePath)) {
     Write-Host ""
     Write-Host "Flags:" -ForegroundColor White
     Write-Host "  -DryRun           Báo cáo thay đổi, không ghi file."
-    Write-Host "  -ForceGovernance  Backup và overwrite AGENTS.md, CLAUDE.md, CONSTITUTION.md."
+    Write-Host "  -ForceGovernance  Backup và overwrite AGENTS.md, CLAUDE.md, .agentignore; CONSTITUTION.md vẫn phải stage qua RFC."
     Write-Host ""
     Write-Host "Ví dụ:" -ForegroundColor Yellow
     Write-Host "  .\scripts\update.ps1 C:\Projects\sddadd-template"
@@ -111,7 +111,7 @@ function Stage-GovernanceFile {
 
     if (-not (Test-Path $Src)) { return }
 
-    if ($ForceGovernance) {
+    if ($ForceGovernance -and $SrcRel -ne "CONSTITUTION.md") {
         if (Test-Path $Dest) {
             $Backup = "$Dest.bak-$($Timestamp -replace ':', '-')"
             if (-not $DryRun) { Copy-Item -Path $Dest -Destination $Backup -Force }
@@ -119,6 +119,10 @@ function Stage-GovernanceFile {
         }
         Overwrite-File $SrcRel
         return
+    }
+
+    if ($ForceGovernance -and $SrcRel -eq "CONSTITUTION.md") {
+        Write-Host "  [!] CONSTITUTION.md luôn stage: cần RFC đã APPROVED trước khi merge." -ForegroundColor Yellow
     }
 
     if ($DryRun) {
@@ -152,10 +156,19 @@ if (Test-Path $SkillsSource) {
 Write-Host ""
 Write-Host "Bước 2: Cập nhật docs\ và scripts hạ tầng..." -ForegroundColor Blue
 @(
+    "docs\sdd-add-quickstart.md",
     "docs\sdd-add-guide.md",
+    "docs\sdd-add-field-guide.md",
+    "docs\sdd-add-scenario-playbook.md",
     "docs\architecture-profile-guide.md",
     "docs\multi-agent-orchestration-guide.md",
+    "scripts\adopt.sh",
+    "scripts\adopt.ps1",
     "scripts\self-heal.sh",
+    "scripts\template-smoke.sh",
+    "scripts\template-smoke.ps1",
+    "scripts\start-claude.sh",
+    "scripts\start-claude.ps1",
     "scripts\update.sh",
     "scripts\update.ps1"
 ) | ForEach-Object { Overwrite-File $_ }

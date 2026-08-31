@@ -84,20 +84,23 @@ copy_file() {
   echo -e "  ${GREEN}[✓] Đã sao chép: $dest_rel${NC}"
 }
 
-# Hàm hỗ trợ sao chép nội dung thư mục đệ quy.
+# Sao chép từng tệp để vẫn tôn trọng --force trong thư mục đã có.
 copy_folder() {
   local src_rel="$1"
   local dest_rel="$2"
   local src="$TEMPLATE_DIR/$src_rel"
-  local dest="$TARGET_DIR/$dest_rel"
+  local src_file
+  local nested_rel
 
   if [ ! -d "$src" ]; then
     return
   fi
 
-  mkdir -p "$dest"
-  cp -R "$src/"* "$dest/" 2>/dev/null || true
-  echo -e "  ${GREEN}[✓] Đã sao chép nội dung thư mục: $dest_rel/${NC}"
+  while IFS= read -r -d '' src_file; do
+    nested_rel="${src_file#$src/}"
+    copy_file "$src_rel/$nested_rel" "$dest_rel/$nested_rel"
+  done < <(find "$src" -type f -print0)
+  echo -e "  ${GREEN}[✓] Đã xử lý nội dung thư mục: $dest_rel/${NC}"
 }
 
 echo -e "${BOLD}${BLUE}📦 Bước 1: Sao chép slash commands trong .claude/skills/...${NC}"
@@ -127,11 +130,21 @@ mkdir -p "$TARGET_DIR/.sdd/rfcs"
 copy_file ".sdd/rfcs/.gitkeep" ".sdd/rfcs/.gitkeep"
 
 echo -e "\n${BOLD}${BLUE}📚 Bước 4: Sao chép tài liệu và script hỗ trợ...${NC}"
+copy_file "docs/sdd-add-quickstart.md" "docs/sdd-add-quickstart.md"
 copy_file "docs/sdd-add-guide.md" "docs/sdd-add-guide.md"
+copy_file "docs/sdd-add-field-guide.md" "docs/sdd-add-field-guide.md"
+copy_file "docs/sdd-add-scenario-playbook.md" "docs/sdd-add-scenario-playbook.md"
 copy_file "docs/architecture-profile-guide.md" "docs/architecture-profile-guide.md"
 copy_file "docs/multi-agent-orchestration-guide.md" "docs/multi-agent-orchestration-guide.md"
+copy_file "scripts/adopt.sh" "scripts/adopt.sh"
+copy_file "scripts/adopt.ps1" "scripts/adopt.ps1"
 copy_file "scripts/self-heal.sh" "scripts/self-heal.sh"
+copy_file "scripts/template-smoke.sh" "scripts/template-smoke.sh"
+copy_file "scripts/template-smoke.ps1" "scripts/template-smoke.ps1"
+copy_file "scripts/start-claude.sh" "scripts/start-claude.sh"
+copy_file "scripts/start-claude.ps1" "scripts/start-claude.ps1"
 copy_file "scripts/update.sh" "scripts/update.sh"
+copy_file "scripts/update.ps1" "scripts/update.ps1"
 
 echo -e "\n${BOLD}${BLUE}🏷️  Bước 5: Ghi template version...${NC}"
 TEMPLATE_VER="unknown"

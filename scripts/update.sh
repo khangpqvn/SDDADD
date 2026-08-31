@@ -37,7 +37,7 @@ if [ "$SHOW_HELP" -eq 1 ] || [ -z "$TEMPLATE_PATH" ]; then
   echo -e "  ./scripts/update.sh <template-path> [--dry-run] [--force-governance]\n"
   echo -e "${BOLD}Flags:${NC}"
   echo -e "  --dry-run           Báo cáo thay đổi, không ghi file."
-  echo -e "  --force-governance  Backup và overwrite AGENTS.md, CLAUDE.md, CONSTITUTION.md."
+  echo -e "  --force-governance  Backup và overwrite AGENTS.md, CLAUDE.md, .agentignore; CONSTITUTION.md vẫn phải stage qua RFC."
   echo -e "\n${YELLOW}Ví dụ:${NC}"
   echo -e "  ./scripts/update.sh /path/to/sddadd-template"
   echo -e "  ./scripts/update.sh /path/to/sddadd-template --dry-run\n"
@@ -116,8 +116,8 @@ stage_governance_file() {
 
   if [ ! -f "$src" ]; then return; fi
 
-  if [ "$FORCE_GOVERNANCE" -eq 1 ]; then
-    # Backup bản hiện tại rồi overwrite.
+  if [ "$FORCE_GOVERNANCE" -eq 1 ] && [ "$src_rel" != "CONSTITUTION.md" ]; then
+    # Backup bản hiện tại rồi overwrite governance không thuộc Constitution.
     if [ -f "$dest" ]; then
       local backup="$dest.bak-$TIMESTAMP"
       [ "$DRY_RUN" -eq 0 ] && cp "$dest" "$backup"
@@ -125,6 +125,10 @@ stage_governance_file() {
     fi
     overwrite_file "$src_rel"
     return
+  fi
+
+  if [ "$FORCE_GOVERNANCE" -eq 1 ] && [ "$src_rel" = "CONSTITUTION.md" ]; then
+    echo -e "  ${YELLOW}[!] CONSTITUTION.md luôn stage: cần RFC đã APPROVED trước khi merge.${NC}"
   fi
 
   # Mặc định: stage vào .sdd/updates/ để human review.
@@ -156,10 +160,19 @@ fi
 
 echo -e "\n${BOLD}${BLUE}Bước 2: Cập nhật docs/ và scripts hạ tầng...${NC}"
 for f in \
+  "docs/sdd-add-quickstart.md" \
   "docs/sdd-add-guide.md" \
+  "docs/sdd-add-field-guide.md" \
+  "docs/sdd-add-scenario-playbook.md" \
   "docs/architecture-profile-guide.md" \
   "docs/multi-agent-orchestration-guide.md" \
+  "scripts/adopt.sh" \
+  "scripts/adopt.ps1" \
   "scripts/self-heal.sh" \
+  "scripts/template-smoke.sh" \
+  "scripts/template-smoke.ps1" \
+  "scripts/start-claude.sh" \
+  "scripts/start-claude.ps1" \
   "scripts/update.sh" \
   "scripts/update.ps1"
 do

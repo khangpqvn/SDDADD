@@ -16,6 +16,10 @@ Dùng khi bắt đầu feature để làm rõ bài toán nghiệp vụ và tạo
 
 > **Cập nhật CONTEXT.md đã approved?** Dùng `/sdd-update --artifact=context --reason="..."` thay vì chạy lại skill này. `/sdd-context` dùng để tạo Context lần đầu hoặc làm lại khi yêu cầu thay đổi hoàn toàn.
 
+## Shared methodology contract
+
+Đọc [AI Review Protocol](../_shared/ai-review-protocol.md) trước khi tạo artifact. `CONTEXT.md` mới phải dùng `Intent Packet` và `Methodology Profile` trong protocol. Intent giữ technology-neutral; solution kỹ thuật chỉ được ghi như question, constraint hoặc decision đã approved, không phải requirement mặc định.
+
 ## Architecture Profile preflight
 
 Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
@@ -28,19 +32,25 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 ## Các bước
 
 1. Tạo `.sdd/features/{feature-slug}/CONTEXT.md`.
-2. Thu thập problem, user pain và desired behavior; chưa thiết kế giải pháp kỹ thuật.
-3. Lập domain glossary, entity/state và business rule.
-4. Xác định stakeholder, decision maker, business constraint và open question.
-5. Kiểm tra DoD, ghi artifact và cập nhật `.sdd/README.md`.
+2. Ghi `## Intent Packet`: `WHAT`, `WHY`, `Definition of Done`, boundaries, exclusions và decision owner.
+3. Thu thập problem, user pain và desired behavior; chưa thiết kế giải pháp kỹ thuật.
+4. Lập domain glossary, entity/state và business rule.
+5. Xác định stakeholder, decision maker, business constraint và open question.
+6. Ghi `## Methodology Profile` với depth, rationale, risk posture, high-risk review route và unresolved-decision owner.
+7. Gán disposition cho từng open question material: resolved, approved assumption, deferred hoặc blocking decision. Nếu intent bị trộn với solution, hoặc question material chưa có disposition, dừng trước `/sdd-spec`.
+8. Kiểm tra DoD, ghi artifact và cập nhật `.sdd/README.md`.
 
 ## DoD
 
+- [ ] `Intent Packet` nêu observable WHAT, WHY, Definition of Done, boundary/exclusion và decision owner.
 - [ ] Team/Developer hiểu problem, không nhầm với solution.
 - [ ] Domain glossary rõ nghĩa.
 - [ ] Tech, business và time constraint đã ghi.
 - [ ] Có decision maker rõ ràng.
-- [ ] Open question quan trọng đã trả lời hoặc có assumption minh bạch.
+- [ ] Methodology Profile có depth, rationale, risk posture và review route khi high-risk.
+- [ ] Open question quan trọng đã trả lời, có approved assumption, deferred rõ ràng hoặc được đánh dấu blocking.
+- [ ] Không chuyển sang Spec khi intent lẫn solution hoặc có material question chưa disposition.
 
 ## AI Recommendation và Human Final Review
 
-Sau khi tạo/sửa `CONTEXT.md`, lưu canonical recommendation trong artifact, gồm business question, assumption, stakeholder, constraint và alternative. Giữ `Human Final Review.Status: PENDING`. Chỉ chuyển sang `/sdd-spec` sau `APPROVED` có decision, reviewer và timestamp. Agent phải dừng, không self-approve.
+Sau khi tạo/sửa `CONTEXT.md`, lưu canonical recommendation trong artifact, gồm Intent Packet, business question, assumption, stakeholder, constraint, exclusion, Methodology Profile và alternative. Giữ `Human Final Review.Status: PENDING`. Chỉ chuyển sang `/sdd-spec` sau `APPROVED` có decision, reviewer và timestamp. Agent phải dừng, không self-approve.

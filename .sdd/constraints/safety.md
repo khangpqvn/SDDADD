@@ -26,7 +26,7 @@
 | GIT-S-01 | Cấm commit `.env`, `.env.*` trừ `.env.example`. | `.gitignore` + hook |
 | GIT-S-02 | Cấm commit file chứa `sk-ant-`, `sk-proj-`, `-----BEGIN`. | Secret scan/hook đã được project chọn |
 | GIT-S-03 | Cấm `git push --force` lên `main`, `master` hoặc `production`. | Branch protection |
-| GIT-S-04 | Cấm commit trực tiếp lên `main`; phải qua PR + review. | Branch protection |
+| GIT-S-04 | Team mode cấm commit trực tiếp lên `main`; phải qua PR + review. Solo mode cho phép Human-owned direct delivery sau validation và durable review; Agent vẫn không được `git push`. | Branch protection hoặc Human delivery gate |
 | GIT-S-05 | Commit message phải theo Conventional Commits. | Commit-msg hook |
 
 ---
@@ -53,6 +53,8 @@ Chỉ dùng secret scan tool/command đã được Architecture Profile hoặc C
 | AGT-S-03 | Agent không được `git push`, `npm publish` hoặc deploy production tự động. |
 | AGT-S-04 | Agent không được xóa file ngoài permitted path khi chưa có Human confirmation. |
 | AGT-S-05 | Mọi DB schema change phải qua Human Final Review trước execution. |
+| AGT-S-06 | Material state change — shared/public contract, business-data mutation, security/permission/dependency/runtime configuration, external/irreversible side effect — cần Human checkpoint bền vững trước action. |
+| AGT-S-07 | Self-heal chỉ là opt-in bounded recovery cho implementation defect trong approved task/file scope; không self-approve, commit, push, deploy hoặc mutate prohibited/high-risk scope. |
 
 ---
 

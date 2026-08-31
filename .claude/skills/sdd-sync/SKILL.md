@@ -10,6 +10,11 @@ user-invocable: true
 
 Dùng để quét và cập nhật Master Feature Registry (`.sdd/README.md`) cùng shared API/state contract (`.sdd/shared_context.md`) sau khi feature thay đổi.
 
+## Tham số
+
+- `--feature=<feature-slug>`: Tùy chọn; chỉ đồng bộ feature này. Không truyền thì giữ hành vi quét mọi feature.
+- `--reason=<change-summary>`: Tùy chọn; lý do sync. Bắt buộc khi sync theo change đã biết để liên kết Action Record/change impact.
+
 ## Architecture Profile reference
 
 Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
@@ -19,17 +24,31 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 - Binding chưa chọn: ghi behavior và data shape technology-neutral; không thêm framework route syntax, decorator, ORM schema hoặc command suy đoán.
 - Artifact feature mâu thuẫn profile `APPROVED`: giữ evidence, báo `CONFIGURATION GAP` và yêu cầu Human Director disposition; không tự rewrite contract.
 
-## Tham số
-
-Không có tham số bắt buộc.
-
 ## Quy trình
 
-1. Quét thư mục `.sdd/features/`; đọc header từng `SPEC.md` để lấy status, SemVer và số `REQ-XXX`.
-2. Cập nhật `.sdd/README.md` với feature path, version và status hiện tại.
-3. Tổng hợp data contract, transport/event contract và state definition được evidence xác nhận; chỉ dùng adapter syntax đã approved.
-4. Cập nhật `.sdd/shared_context.md` mà không làm đứt shared contract; ghi profile reference khi binding unresolved.
+1. Quét `.sdd/features/` hoặc feature được chọn; đọc header từng `SPEC.md` để lấy status, SemVer và số `REQ-XXX`.
+2. Phân loại thay đổi dự kiến. Chỉ cập nhật registry không làm thay đổi contract có thể tiếp tục với Action Record. Mọi shared/public contract change là material state change.
+3. Trước shared-contract write, xác minh checkpoint persisted đã `APPROVED` cho feature/contract, cùng decision, reviewer và timestamp. Nếu thiếu, tạo recommendation `PENDING HUMAN REVIEW`, lưu tại `.sdd/reviews/sync-<slug>.md`, rồi dừng; recommendation sau action không thể hợp thức hóa write trước đó.
+4. Trước khi sửa shared contract, đọc ownership và frozen contract record trong `.sdd/shared_context.md`. Chỉ contract owner hoặc Lead được sửa; actor khác dừng và gửi change request.
+5. Sau checkpoint hợp lệ, cập nhật `.sdd/README.md`; tổng hợp contract được evidence xác nhận; ghi producer, contract ID/version/status, owner, linked `REQ-XXX`/task/review evidence, consumers, compatibility, unresolved decision, last sync và Action Record reference.
+6. Ghi hoặc đề xuất `/sdd-trace` khi contract version, requirement hoặc implementation evidence thay đổi. Action Record phải tham chiếu checkpoint đã tồn tại trước action.
+
+## Output
+
+```text
+SDD SYNC
+Feature: <slug | all>
+Reason: <summary | full registry sync>
+Contract: <ID/version/status or N/A>
+Producer: <feature>
+Owner: <role>
+Consumers: <list or none>
+Compatibility: <compatible | migration required | pending decision>
+Evidence: <REQ/task/review/action record>
+Unresolved decision: <none or decision>
+Next trace/sync step: <command or N/A>
+```
 
 ## AI Recommendation và Human Final Review
 
-Sau synchronization, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm changed feature, contract impact, drift evidence và residual integration risk. Lưu tại `.sdd/reviews/sync.md` với `PENDING HUMAN REVIEW`. Human Director review synchronization trước delivery downstream; Agent không tự kết luận registry hoặc contract đã `APPROVED`.
+Nếu sync chỉ cập nhật registry không thay đổi contract, ghi Action Record và recommendation theo protocol nếu artifact scope thay đổi. Nếu shared contract đã thay đổi, checkpoint phải tồn tại trước action; Action Record sau sync tham chiếu checkpoint đó và nêu changed producer/version/status/owner/consumer/compatibility, drift evidence, unresolved decision và residual integration risk. Agent không tự kết luận registry hoặc contract đã `APPROVED`.

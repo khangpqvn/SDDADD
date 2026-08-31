@@ -1,43 +1,42 @@
-# .sdd/mcp-config.yaml — MCP access control theo Agent
-# Version: 1.0.0
+# .sdd/mcp-config.yaml — MCP access-control policy specification
+# Version: 1.1.0
 # Tham chiếu: Slide 11.6 — MCP Access Control và Tool Borrowing
 #
-# Cấu hình định nghĩa MCP tool mỗi Agent được phép dùng.
+# Đây là policy specification cho dispatch/audit. Runtime host phải thực thi hoặc
+# map policy này theo capability của host; file không tự chứng minh host enforcement.
 # Nguyên tắc: Principle of Least Privilege — chỉ cấp quyền đúng scope.
-# Khi spawn sub-agent qua Claude Code, /ck:team hoặc Agent tool,
-# dùng profile phù hợp để inject tool permission.
 
-version: "1.0"
+version: "1.1"
 
 agents:
   lead-architect:
-    description: "Điều phối, đọc toàn bộ context, ghi SDD artifact"
+    description: "Điều phối, đọc toàn bộ context, ghi SDD artifact và sở hữu/arbitrate shared contract"
     mcp_tools:
       allowed:
-        - filesystem:read       # Đọc tệp cho orchestration context
+        - filesystem:read
         - filesystem:write      # Chỉ ghi .sdd/ và CLAUDE.md
-        - bash:read_only        # git status, git log, ls; không mutate
-        - task:create           # Tạo/cập nhật task trong TASKS.md
+        - bash:read_only
+        - task:create
         - task:update
         - task:list
-        - send_message          # Điều phối sub-agent
+        - send_message
       denied:
-        - bash:execute          # Không trực tiếp execution; giao cho Agent phù hợp
-        - database:write        # Không mutate DB
-        - git:commit            # Cần review gate
-        - git:push              # Cấm tuyệt đối
+        - bash:execute
+        - database:write
+        - git:commit
+        - git:push
 
   backend-agent:
     description: "Developer domain/usecase; business logic thuần, không infra"
     mcp_tools:
       allowed:
-        - filesystem:read       # Đọc context và Spec
+        - filesystem:read
         - filesystem:write      # Chỉ ghi src/domain/, src/usecase/
         - bash:execute          # Exact approved test/lint command trong Architecture Profile
-        - send_message          # Báo Lead
-        - task:update           # Cập nhật task được giao
+        - send_message
+        - task:update
       denied:
-        - database:read         # Domain layer thuần, không truy cập DB trực tiếp
+        - database:read
         - database:write
         - filesystem:write_infra
         - git:push
@@ -48,14 +47,14 @@ agents:
       allowed:
         - filesystem:read
         - filesystem:write      # Chỉ ghi src/infra/, tests/integration/
-        - database:read         # Đọc schema phục vụ repository implementation
-        - database:write        # Migration cần Human gate khi production
-        - bash:execute          # Exact approved migration/test command
+        - database:read
+        - database:write        # Material state-change checkpoint khi applicable
+        - bash:execute
         - send_message
         - task:update
       denied:
-        - database:drop         # Hard block: DROP TABLE, TRUNCATE
-        - database:delete_no_where # Hard block: DELETE không WHERE
+        - database:drop
+        - database:delete_no_where
         - git:push
         - filesystem:write_domain
 
@@ -65,11 +64,11 @@ agents:
       allowed:
         - filesystem:read
         - filesystem:write      # Chỉ ghi src/interface/
-        - bash:execute          # Exact approved test command
+        - bash:execute
         - send_message
         - task:update
       denied:
-        - database:read         # Không direct DB; dùng repository qua usecase/port
+        - database:read
         - database:write
         - git:push
 
@@ -77,38 +76,60 @@ agents:
     description: "Chỉ verification; đọc implementation, ghi test"
     mcp_tools:
       allowed:
-        - filesystem:read       # Đọc toàn bộ source để viết test
+        - filesystem:read
         - filesystem:write      # Chỉ ghi tests/unit/, tests/e2e/
-        - bash:execute          # Exact approved test/coverage command
+        - bash:execute
         - send_message
         - task:update
       denied:
-        - filesystem:write_src  # Không sửa src/
+        - filesystem:write_src
         - database:write
         - git:commit
         - git:push
 
 global_denied:
-  - filesystem:read_secrets     # .env, *.pem, *.key, secrets/
-  - bash:rm_force               # rm -rf chưa có confirmation
-  - git:push_force              # Force push mọi branch
-  - git:push_main               # Push trực tiếp main/master/production
-  - network:external_post       # External API call chưa được ủy quyền
-  - eval_execution              # eval(), Function() constructor
+  - filesystem:read_secrets
+  - bash:rm_force
+  - git:push
+  - git:push_force
+  - git:push_main
+  - network:external_post
+  - eval_execution
 
-# Tool borrowing protocol: sub-agent gửi request cho Lead; Lead kiểm tra
-# global_denied và justification. Nếu hợp lệ, Lead tự thực hiện thao tác một lần,
-# không cấp permanent access. Yêu cầu global_denied phải escalate Human Director.
+# Dispatch payload phải include frozen contract version, ownership/file boundary,
+# selected Architecture Profile bindings, exact commands, allowed action/checkpoint
+# và audit evidence. Lead là owner/arbitrator của shared artifact.
+dispatch:
+  required_fields:
+    - task_id
+    - frozen_contract_version
+    - ownership_and_file_boundary
+    - selected_profile_bindings
+    - exact_approved_commands
+    - allowed_action_and_checkpoint
+    - audit_evidence_reference
+
+# Tool borrowing chỉ tăng quyền tạm thời theo một task. Lead ghi task, temporary
+# scope, justification, Lead action và outcome. Global denial không được override.
 tool_borrowing:
   process: "request_via_lead"
   max_borrow_duration: "single_task"
   requires_justification: true
-  global_denied_override: "human_director_only"
+  required_audit_fields:
+    - task_id
+    - temporary_scope
+    - justification
+    - lead_action
+    - outcome
+  global_denied_override: "never"
 
 audit:
   log_path: ".sdd/reviews/mcp-audit-{date}.log"
   log_events:
-    - tool_denied          # Agent thử dùng tool bị cấm
-    - tool_borrowed        # Lead thực hiện thay mặt sub-agent
-    - global_denied_attempt # Critical; luôn báo Human
+    - dispatch_created
+    - tool_denied
+    - tool_borrowed
+    - global_denied_attempt
+    - checkpoint_missing
+    - contract_ownership_conflict
   alert_on: "global_denied_attempt"

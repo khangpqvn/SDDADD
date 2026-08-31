@@ -39,6 +39,22 @@ Dùng khi cần sửa artifact SDD đã approved mà không sinh lại từ đ�
 
 `--bump=major` bắt buộc phải ghi migration plan, rollback plan và risk trong Spec trước khi Agent được execute downstream.
 
+## Shared methodology contract
+
+Đọc [AI Review Protocol](../_shared/ai-review-protocol.md). Mọi update phải thêm `## Change Impact Record` trước recommendation:
+
+```markdown
+## Change Impact Record
+- Changed intent, requirement, architecture, or task assumption: <what changed>
+- Feature Lock boundary affected: <locked scope/deferred work/no change>
+- Material state-change classification: <none or category list>
+- Downstream artifacts invalidated: <Context/Spec/Plan/Tasks/code/tests/contracts>
+- Required trace, test, and sync actions: </sdd-trace, exact command, /sdd-sync or N/A>
+- Review follow-up: <review route and approval required>
+```
+
+Không dùng Context-only update để che behavior change. Nếu Context thay đổi intent, actor, boundary, constraint hoặc risk, record phải quyết định rõ `Spec revision required: yes | no` và evidence. Spec update phải đánh giá Plan/Tasks trước resume.
+
 ## Architecture Profile preflight
 
 Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
@@ -61,105 +77,56 @@ Dừng và chờ Human Director confirm trước khi ghi thay đổi. Nếu đư
 
 ### Khi `--artifact=spec`
 
-1. Đọc `SPEC.md` hiện tại, `CONTEXT.md`, `CONSTITUTION.md` và Architecture Profile.
+1. Đọc `SPEC.md` hiện tại, `CONTEXT.md`, `CONSTITUTION.md`, Architecture Profile, Plan và Tasks nếu tồn tại.
 2. Chạy Clarification-First; chờ confirm.
 3. Đặt header Spec về `Status: DRAFT` nếu đang ở `APPROVED & LOCKED`.
-4. Thêm/sửa requirement theo EARS; cập nhật BDD, error behavior, acceptance và Out of Scope liên quan.
-5. Bump version theo SemVer và ghi changelog entry:
-   ```markdown
-   ### vX.Y.Z (YYYY-MM-DD)
-   - <reason>: <mô tả thay đổi>, ảnh hưởng: <REQ-XXX hoặc section>
-   ```
-6. Invalidate recommendation cũ: đặt `AI Agent Recommendation.Status` về `PENDING HUMAN REVIEW` với changed scope làm evidence.
-7. Tạo recommendation mới gồm requirement gap, EARS risk, edge case, Out of Scope impact và SemVer impact.
-8. Xác định artifact bị ảnh hưởng downstream: `PLAN.md`, `TASKS.md`, `@ears` trong `src/`, test liên quan, và có cần `/sdd-sync` không.
+4. Thêm/sửa requirement theo EARS; cập nhật BDD, error behavior, acceptance, Out of Scope và Feature Lock liên quan.
+5. Bump version theo SemVer và ghi changelog entry.
+6. Đánh giá Plan/Tasks, `@ears` trong `src/`, tests và shared contract bị invalidated trước khi cho phép resume.
+7. Ghi Change Impact Record, invalidate recommendation cũ và tạo recommendation mới.
 
 ### Khi `--artifact=context`
 
 1. Đọc `CONTEXT.md` hiện tại và `SPEC.md` để hiểu phạm vi đang lock.
 2. Chạy Clarification-First cho thay đổi context.
-3. Cập nhật section bị ảnh hưởng (stakeholder, constraint, glossary, open question).
-4. Xác định Spec requirement nào cần review lại do context thay đổi; ghi rõ trong recommendation.
-5. Invalidate recommendation cũ và tạo recommendation mới.
+3. Cập nhật Intent Packet, stakeholder, constraint, glossary hoặc open question bị ảnh hưởng.
+4. Nếu intent, actor, boundary, constraint hoặc risk thay đổi, ghi rõ `Spec revision required: yes | no` và evidence trong Change Impact Record. Nếu `yes`, dừng để `/sdd-update --artifact=spec` trước downstream execution.
+5. Ghi Change Impact Record, invalidate recommendation cũ và tạo recommendation mới.
 
 ### Khi `--artifact=plan`
 
 1. Đọc `PLAN.md` hiện tại, `SPEC.md` `APPROVED & LOCKED` và Architecture Profile.
 2. Chạy Clarification-First cho thay đổi plan.
-3. Cập nhật component, data flow hoặc risk bị ảnh hưởng.
-4. Xác định task trong `TASKS.md` bị invalidated; ghi rõ trong recommendation.
-5. Invalidate recommendation cũ và tạo recommendation mới.
+3. Cập nhật component, data flow, state-change classification, consistency map, contract impact hoặc risk bị ảnh hưởng.
+4. Xác định task trong `TASKS.md` bị invalidated; ghi trace/test/sync follow-up.
+5. Ghi Change Impact Record, invalidate recommendation cũ và tạo recommendation mới.
 
 ### Khi `--artifact=tasks`
 
 1. Đọc `TASKS.md` hiện tại, `PLAN.md` `APPROVED` và `SPEC.md` `APPROVED & LOCKED`.
 2. Chạy Clarification-First cho task mới/sửa.
-3. Thêm/sửa task: đảm bảo atomic, independent hoặc có `blockedBy`, và có exact verification command.
-4. Xác định task nào cần invalidate; cập nhật dependency nếu cần.
-5. Invalidate recommendation cũ và tạo recommendation mới.
+3. Thêm/sửa task: atomic, independent hoặc có `blockedBy`, exact verification command, scope category, checkpoint và sync-back responsibility.
+4. Xác định task nào cần invalidate; cập nhật dependency và contract owner nếu cần.
+5. Ghi Change Impact Record, invalidate recommendation cũ và tạo recommendation mới.
 
 ## DoD
 
-### Spec (`--artifact=spec`)
-
 - [ ] Clarification-First đã chạy; assumption được ghi hoặc Human đã confirm.
-- [ ] SemVer bumped đúng loại thay đổi.
-- [ ] Mọi requirement mới/sửa dùng EARS.
-- [ ] Changelog entry ghi rõ, có REQ-XXX liên quan khi áp dụng.
-- [ ] `Status: DRAFT` — không còn `APPROVED & LOCKED`.
-- [ ] Recommendation mới ở `PENDING HUMAN REVIEW`.
-- [ ] Artifact bị ảnh hưởng downstream đã liệt kê.
-- [ ] Đã nhắc người dùng chạy `/sdd-sync` nếu shared contract thay đổi.
-- [ ] Đã nhắc người dùng chạy `/sdd-trace --diff` sau khi execute downstream.
-
-### Context (`--artifact=context`)
-
-- [ ] Clarification-First đã chạy.
-- [ ] Section bị ảnh hưởng đã cập nhật (stakeholder, constraint, glossary, open question).
-- [ ] Spec requirement cần review lại đã liệt kê trong recommendation.
-- [ ] Recommendation mới ở `PENDING HUMAN REVIEW`.
-
-### Plan (`--artifact=plan`)
-
-- [ ] Clarification-First đã chạy.
-- [ ] Component/data flow/risk đã cập nhật theo Spec hiện tại.
-- [ ] Task trong TASKS.md bị invalidated đã liệt kê.
-- [ ] Recommendation mới ở `PENDING HUMAN REVIEW`.
-
-### Tasks (`--artifact=tasks`)
-
-- [ ] Clarification-First đã chạy.
-- [ ] Task mới/sửa: atomic, có dependency rõ, có exact verification command.
-- [ ] Không task nào vượt Out of Scope của Spec.
-- [ ] Recommendation mới ở `PENDING HUMAN REVIEW`.
+- [ ] Change Impact Record nêu changed assumption, Feature Lock boundary, material state-change, invalidated downstream artifacts, trace/test/sync và review follow-up.
+- [ ] Context change về intent/actor/boundary/constraint/risk quyết định rõ Spec revision required.
+- [ ] Spec change đánh giá Plan/Tasks trước resume; requirement mới/sửa dùng EARS và SemVer đúng loại.
+- [ ] Plan/Tasks change giữ profile binding, exact command, state-change checkpoint và sync-back responsibility.
+- [ ] Recommendation mới ở `PENDING HUMAN REVIEW`; downstream execution dừng đến khi Human approve.
 
 ## AI Recommendation và Human Final Review
 
-Sau khi cập nhật artifact, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`. Giữ `Human Final Review.Status: PENDING`; downstream execution bị block đến khi Human Director ghi `APPROVED`. Agent không tự approve artifact đã sửa.
+Sau khi cập nhật artifact, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm Change Impact Record, invalidated scope, review route và exact next command. Giữ `Human Final Review.Status: PENDING`; downstream execution bị block đến khi Human Director ghi `APPROVED`. Agent không tự approve artifact đã sửa.
 
 ## Ví dụ
 
 ```text
-# Sửa Spec đã lock — thêm error case cho OTP
-/sdd-update --feature=feat-user-register --artifact=spec --bump=patch --reason="[REQ-003] Add OTP rate-limit: max 5 attempts per 10 minutes, return 429"
-
-# Thêm optional recovery flow vào Spec
-/sdd-update --feature=feat-user-register --artifact=spec --bump=minor --reason="Add optional account recovery flow via email"
-
-# Breaking change API contract
-/sdd-update --feature=feat-user-register --artifact=spec --bump=major --reason="Change registration response: remove token from body, use httpOnly cookie"
-
-# Cập nhật context khi stakeholder thay đổi
+/sdd-update --feature=feat-user-register --artifact=spec --bump=patch --reason="[REQ-003] Add OTP rate-limit: max 5 attempts per 10 minutes"
 /sdd-update --feature=feat-user-register --artifact=context --reason="Add compliance team as stakeholder; add GDPR constraint"
-
-# Sửa plan khi phát hiện risk mới
 /sdd-update --feature=feat-user-register --artifact=plan --reason="Add Redis session risk and mitigation after security review"
-
-# Thêm task xử lý edge case phát hiện lúc implement
 /sdd-update --feature=feat-user-register --artifact=tasks --reason="Add T009 for concurrent registration dedup check"
 ```
-
-Sau khi Human Director approve artifact mới, nếu có cascade:
-- Spec change → chạy `/sdd-plan` (nếu Plan bị ảnh hưởng) hoặc `/sdd-tasks` (nếu chỉ Tasks bị ảnh hưởng).
-- Plan change → chạy `/sdd-tasks` nếu task bị invalidated.
-- Sau execute → chạy `/sdd-trace --diff` và `/sdd-sync` nếu contract thay đổi.

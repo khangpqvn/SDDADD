@@ -2,7 +2,7 @@
 
 Trạng thái feature và đặc tả của hệ thống.
 
-> **Lần đầu?** Đọc [`../../docs/sdd-add-quickstart.md`](../../docs/sdd-add-quickstart.md) trước.
+> **Lần đầu?** Đọc [`../docs/sdd-add-quickstart.md`](../docs/sdd-add-quickstart.md) trước.
 
 ## 1. Global governance
 

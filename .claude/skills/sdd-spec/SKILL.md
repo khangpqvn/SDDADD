@@ -16,6 +16,10 @@ Dùng `CONTEXT.md` và `CONSTITUTION.md` để tạo `.sdd/features/{feature-slu
 
 > **Cập nhật Spec đã `APPROVED & LOCKED`?** Dùng `/sdd-update --artifact=spec --bump=<patch|minor|major>` thay vì chạy lại skill này. `/sdd-spec` dùng để tạo Spec lần đầu hoặc làm lại khi context thay đổi lớn.
 
+## Shared methodology contract
+
+Đọc [AI Review Protocol](../_shared/ai-review-protocol.md). Kế thừa `Intent Packet` và `Methodology Profile` từ Context, ghi depth/rationale/risk posture trong Spec header, và bổ sung `High-risk review route` khi applicable. Methodology metadata không chọn technology hoặc bypass Architecture Profile gate.
+
 ## Architecture Profile preflight
 
 Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
@@ -48,7 +52,7 @@ Dùng Risk × Complexity Matrix:
 - **Detailed**: Feature có auth, payment, state machine, concurrent access, third-party.
 - **Formal**: Core business logic, compliance-critical, data migration, irreversible operation.
 
-Nêu depth đã chọn và lý do trong Spec header.
+Nêu depth và rationale trong `Methodology Profile`. `High-risk review route` bắt buộc cho sensitive data, financial/business-critical behavior, destructive/irreversible work, compliance, authorization, cross-system consistency hoặc public/external contract. Không tự chỉ định người review; ghi route và decision owner theo Context.
 
 ## 8 Thành phần Spec bắt buộc
 
@@ -77,26 +81,41 @@ Mọi Functional Requirement phải thuộc đúng một pattern:
 
 Quy tắc: mỗi happy path (`WHEN`) cần ít nhất một `IF ... THEN ...` cho error tương ứng. Tránh từ mơ hồ: "nhanh chóng", "giao diện đẹp", "xử lý linh hoạt", "nếu cần thiết". Mọi NFR phải có giá trị đo được.
 
+## Feature Lock
+
+`SPEC.md` phải có `## Feature Lock` trước recommendation:
+
+```markdown
+- Locked scope: <behavior and contract in this feature or sprint>
+- Deferred work: <explicitly excluded future work>
+- Change path: /sdd-update --feature=<slug> --artifact=spec --bump=<...> --reason="..."
+- Lock boundary: Feature/sprint only; this does not lock unrelated project work.
+```
+
+Sau `APPROVED & LOCKED`, behavior hoặc contract chỉ thay đổi qua `/sdd-update`. Deferred work không được implement ngầm như cleanup hoặc extension.
+
 ## Các bước
 
-1. Đọc Context và Constitution.
+1. Đọc Context, Methodology Profile và Constitution.
 2. Chạy Clarification-First; chờ Human Director xác nhận trước bước tiếp theo.
-3. Xác định Spec Depth phù hợp (Sketch/Detailed/Formal).
+3. Xác định Spec Depth phù hợp (Sketch/Detailed/Formal) và high-risk review route.
 4. Ghi SemVer và `Status: DRAFT`.
 5. Viết đủ 8 thành phần theo depth đã chọn; Functional Requirement dùng EARS.
-6. Kiểm tra DoD, cập nhật changelog và tạo recommendation.
+6. Ghi Feature Lock và deferred work.
+7. Kiểm tra DoD, cập nhật changelog và tạo recommendation.
 
 ## DoD
 
 - [ ] Đã chạy Clarification-First; assumption được ghi rõ hoặc đã Human confirm.
-- [ ] Spec Depth đã chọn và lý do đã ghi.
+- [ ] Methodology Profile có depth, rationale, risk posture, review route khi high-risk và decision owner.
 - [ ] Có đủ 8 thành phần: Context, Actors, Functional, NFR, Data, Error, Acceptance, Out of Scope.
 - [ ] Mọi Functional Requirement dùng đúng EARS pattern.
 - [ ] Mỗi happy path có ít nhất một Unwanted EARS tương ứng.
 - [ ] Không có từ mơ hồ; NFR có giá trị cụ thể đo được.
 - [ ] Open question quan trọng đã resolve hoặc nêu rõ với assumption.
+- [ ] Feature Lock ghi locked scope, deferred work và `/sdd-update` path; không lock toàn dự án.
 - [ ] SemVer/changelog đúng và Human Final Review đã `APPROVED` trước lock.
 
 ## AI Recommendation và Human Final Review
 
-Sau khi tạo/sửa `SPEC.md`, lưu canonical recommendation trong artifact, gồm requirement gap, EARS risk, edge case, Out of Scope và SemVer impact. Giữ `Human Final Review.Status: PENDING`; `/sdd-plan` bị block đến khi Human Director ghi `APPROVED`. Agent không được đặt `APPROVED & LOCKED` thay con người.
+Sau khi tạo/sửa `SPEC.md`, lưu canonical recommendation trong artifact, gồm Methodology Profile, requirement gap, EARS risk, high-risk review route, edge case, Out of Scope, Feature Lock và SemVer impact. Giữ `Human Final Review.Status: PENDING`; `/sdd-plan` bị block đến khi Human Director ghi `APPROVED`. Agent không được đặt `APPROVED & LOCKED` thay con người.

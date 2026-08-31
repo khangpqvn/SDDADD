@@ -6,145 +6,51 @@ user-invocable: true
 
 # SDD Initializer (`/sdd-init`)
 
-**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), file paths, and CLI commands are language-invariant.
-
-Dùng khi khởi tạo dự án mới hoặc bổ sung khung SDD + ADD vào dự án hiện tại.
+Dùng cho greenfield hoặc bootstrap SDD+ADD trong repository hiện có.
 
 ## Tham số
 
-- `--project-name=<name>`: Tùy chọn; tên dự án, ví dụ `order-service`.
-- `--stack=<tech-stack>`: Tùy chọn; chỉ nêu binding đã biết, ví dụ `Node.js + TypeScript + PostgreSQL`.
-- `--team-size=solo|team`: Tùy chọn; chế độ làm việc. `solo` = 1 developer vừa là Human Director vừa là Agent; `team` = multi-agent (mặc định). Xem [Solo vs Team Mode](#solo-vs-team-mode).
+- `--project-name=<name>`: Tùy chọn.
+- `--stack=<tech-stack>`: Tùy chọn; chỉ nêu binding biết explicit.
+- `--team-size=solo|team`: Tùy chọn; `team` là mặc định.
 
-## Architecture Profile
+## Baseline và Architecture Profile
 
-`/sdd-init` phải tạo `.sdd/architecture-profile.md` và dùng profile này làm nguồn sự thật cho artifact sinh ra.
+1. Tạo `.sdd/architecture-profile.md` làm nguồn canonical cho artifact generation.
+2. Chỉ parse `--stack` thành binding được nêu explicit. Không suy ra HTTP framework, ORM, validation hoặc command.
+3. Không có `--stack`: seed TypeScript + Node.js + Clean Architecture core-only.
+4. Ghi evidence, unresolved binding và canonical `PENDING HUMAN REVIEW` recommendation vào profile.
+5. Context/Spec được phép business-neutral. Plan/Tasks/execute bị block đến khi relevant binding và exact command được approved.
+6. Methodology Profile chỉ quy định depth/risk/review route; không thay Architecture Profile gate.
 
-- Chỉ parse `--stack` thành binding được nêu explicit. `Node.js + TypeScript + PostgreSQL` không tự chọn HTTP framework, ORM, validation hoặc test command.
-- Không có `--stack` thì chỉ seed core-only baseline: TypeScript + Node.js + Clean Architecture.
-- Ghi evidence, binding chưa chọn và canonical block `PENDING HUMAN REVIEW` vào profile.
-- `/sdd-context` và `/sdd-spec` được tiếp tục với binding chưa chọn. `/sdd-plan`, `/sdd-tasks` và implementation bị block đến khi binding/command cần thiết được approved.
-- `CLAUDE.md` phản ánh architecture decision đã approved; skill đọc profile, không suy đoán từ prose.
+## Output
 
-## Các bước
+1. Tạo `.sdd/features/`, `.sdd/reviews/`, `.sdd/rfcs/`, `.claude/skills/`, `docs/`, `scripts/`, `src/{domain,usecase,interface,infra,shared}/` và `tests/` theo scope template.
+2. Generate `AGENTS.md`, `CLAUDE.md`, `.agentignore` và `.gitignore` theo repository/stack evidence. Không copy manifest-specific rule hay command suy đoán.
+3. Khởi tạo `.sdd/README.md`, Architecture Profile, shared context, MCP policy và constraints; ghi `# Collaboration Mode: solo|team` trong shared context theo `--team-size` (mặc định `team`).
+4. Cài toàn bộ current template-owned documentation:
+   - `docs/sdd-add-quickstart.md`
+   - `docs/sdd-add-guide.md`
+   - `docs/sdd-add-field-guide.md`
+   - `docs/sdd-add-scenario-playbook.md`
+   - `docs/architecture-profile-guide.md`
+   - `docs/multi-agent-orchestration-guide.md`
+5. Cài support scripts `self-heal.sh`, `template-smoke.sh`, `template-smoke.ps1`, `start-claude.sh`, `start-claude.ps1`, `update.sh` và `update.ps1`.
+6. Tạo `.sdd/reviews/init.md` với canonical recommendation; Human reviews bootstrap scope before feature work.
 
-1. Tạo `.sdd/features/`, `.sdd/reviews/`, `.sdd/rfcs/`, `.claude/skills/`, `docs/`, `scripts/`, `src/{domain,usecase,interface,infra,shared}/` và `tests/`.
-2. **Generate governance files theo tech stack** (xem nguyên tắc Generate vs Copy bên dưới):
-   - `CONSTITUTION.md` — giữ cấu trúc 3-layer chuẩn; tùy chỉnh Layer 3 ENG-03 với exact test/lint/build command của stack nếu đã biết.
-   - `AGENTS.md` — generate 8 sections đầy đủ phù hợp tech stack.
-   - `CLAUDE.md` — generate với TL;DR, Architecture, File Structure, Lesson Learned và Current Sprint Focus phù hợp project.
-   - `.agentignore` — generate pattern loại trừ build artifact đúng ngôn ngữ/framework.
-   - `.gitignore` — generate theo tech stack; không copy file `.gitignore` của template.
-3. Khởi tạo `.sdd/README.md`, `.sdd/architecture-profile.md`, `.sdd/shared_context.md`, `.sdd/mcp-config.yaml` và `.sdd/constraints/` (global, business, safety).
-4. Cài bộ slash command SDD/ADD, Git và technical skill từ template hiện hành.
-5. Cài `docs/sdd-add-guide.md`, `docs/architecture-profile-guide.md`, `docs/multi-agent-orchestration-guide.md` và script hỗ trợ.
-6. Hướng dẫn bắt đầu feature bằng `/sdd-context --feature=feat-001-<feature-name>`.
+## Generated governance requirements
 
-`/sdd-review` không thay thế `/sdd-rfc --approve=<rfc-number>` khi thay đổi `CONSTITUTION.md`.
+- `AGENTS.md` has eight canonical sections: Identity, Scope, Tool Permissions, Security Rules, Communication Style, Error Handling, Escalation Protocol and Changelog.
+- `CLAUDE.md` mirrors approved architecture, actual layout and durable project guidance; it does not choose stack.
+- `.agentignore` and `.gitignore` use observed stack/build patterns and protect secret files.
+- `CONSTITUTION.md` Layer 1/2 is never changed without approved RFC. If exact verification command is unknown, preserve a review blocker rather than invent one.
 
-## Generate vs Copy — Nguyên tắc quan trọng
+## Solo mode
 
-Các governance file **phải được generate theo tech stack** của dự án, không phải copy verbatim từ template. Lý do: AGENTS.md của một dự án Go/gRPC có persona, tool permissions và forbidden paths khác với TypeScript/REST; `.agentignore` của Next.js loại `.next/` nhưng Go loại `bin/`; CLAUDE.md phải phản chiếu lesson learned thực của dự án, không phải placeholder chung.
+Solo mode uses one `@developer` role and no multi-agent dispatch table. It retains Intent Packet, Methodology Profile, Feature Lock, Shadow Plan, Action Record, Architecture Profile and material-state checkpoint rules.
 
-### AGENTS.md — 8 sections bắt buộc
+Solo delivery removes PR overhead only. Agent does not `git push`; Human self-pushes after validation/commit.
 
-Generate đầy đủ 8 sections, tùy chỉnh theo stack:
+## AI Recommendation and Human Final Review
 
-1. **Identity & Persona** — Seniority level, ngôn ngữ chính, philosophy (Go: explicit > implicit; TypeScript: type safety first; Python: readability).
-2. **Scope & Boundaries** — Path đọc/ghi theo project layout thực tế; không dùng `src/` nếu project dùng cấu trúc khác.
-3. **Tool Permissions** — Exact commands của stack: Go dùng `go test`, `go vet`, `golangci-lint`; TypeScript dùng `npm test`, `eslint`, `tsc`. Chỉ điền sau khi binding đã confirmed.
-4. **Security Rules** — Zero secret policy, input validation tại boundary, data masking — giữ nguyên.
-5. **Communication Style** — Ngôn ngữ output, định dạng báo cáo, cách đặt câu hỏi khi không rõ.
-6. **Error Handling** — Quy trình khi test fail, khi Spec mơ hồ, khi gặp conflict.
-7. **Escalation Protocol** — Khi nào dừng và hỏi Human Director; khi nào tự xử lý; khi nào RFC.
-8. **Changelog** — Semantic versioning cho mọi thay đổi AGENTS.md; review required.
-
-### CLAUDE.md — 4 sections cốt lõi
-
-Generate với content phù hợp project, không placeholder:
-
-1. **TL;DR (30 giây)** — Mô tả ngắn project: loại service, giao thức chính, dependency quan trọng.
-2. **Architecture** — Pattern (Clean/Hexagonal/MVC), file structure thực, dependency direction rules.
-3. **Lesson Learned** — Để trống hoặc seed với 1–2 mục từ context `--stack`; format `[YYYY-MM]`.
-4. **Current Sprint Focus** — Để trống hoặc điền feature đầu tiên.
-
-### .agentignore — Generate theo stack
-
-| Stack | Patterns cần loại trừ |
-| :--- | :--- |
-| Node.js / TypeScript | `node_modules/`, `dist/`, `.next/`, `build/`, `coverage/`, `*.tsbuildinfo` |
-| Go | `bin/`, `vendor/` (nếu dùng), `*.test` binary, `tmp/` |
-| Python | `__pycache__/`, `*.pyc`, `.venv/`, `dist/`, `*.egg-info/` |
-| Java / Kotlin | `target/`, `build/`, `*.class`, `.gradle/` |
-| Rust | `target/` |
-| Common (luôn có) | `.env`, `.env.*`, `*.pem`, `*.key`, `secrets/`, `.git/` |
-
-### .gitignore — Generate theo stack
-
-Dùng template `.gitignore` chuẩn của ngôn ngữ/framework (gitignore.io style); không copy `.gitignore` của template SDD vốn chỉ phù hợp Node.js. Nếu project đã có `.gitignore`, chỉ bổ sung pattern `.sdd/updates/` và không xóa pattern hiện tại.
-
-### CONSTITUTION.md — Tùy chỉnh nhẹ Layer 3
-
-Giữ nguyên Layer 1 (Hard Rules) và Layer 2 (Architectural Constraints). Chỉ điều chỉnh:
-- `ENG-03` verification command: thay placeholder bằng exact command của stack nếu đã biết.
-- Nếu binding chưa confirmed, ghi `[PENDING HUMAN REVIEW — verification command chưa được chọn]` thay vì để trống.
-
-## Solo vs Team Mode
-
-### Solo mode (`--team-size=solo`)
-
-Dùng khi team chỉ có 1 developer. Developer vừa là Human Director vừa là sole agent.
-
-**Sinh file tối giản:**
-
-| File | Solo mode |
-| :--- | :--- |
-| `AGENTS.md` | 1 role duy nhất: `@developer` — scope full project, tool permissions đầy đủ |
-| `.sdd/shared_context.md` | Sole Developer context, không multi-agent ownership table |
-| `docs/multi-agent-orchestration-guide.md` | Vẫn tạo nhưng focus Solo Workflow; bỏ parallel batch dispatch |
-| `.sdd/mcp-config.yaml` | 1 entry `@developer` với toàn quyền |
-
-**AGENTS.md solo — generate 8 sections nhưng giản lược:**
-
-| Section | Solo adjustment |
-| :--- | :--- |
-| Identity & Persona | Sole Developer — full-stack, single reviewer |
-| Scope & Boundaries | Toàn bộ project path, không ownership boundary |
-| Tool Permissions | Tất cả lệnh của stack |
-| Security Rules | Giữ nguyên |
-| Communication Style | Mirror language; không cần multi-agent protocol |
-| Error Handling | Direct self-check, không Lead→sub-agent escalation |
-| Escalation Protocol | Dừng tại Human gate khi cần external decision |
-| Changelog | Giữ nguyên |
-
-**Shared context solo:**
-
-```markdown
-# Solo Developer Context
-
-# Version: 1.0.0
-# Last-Updated: {timestamp}
-# Sole Developer: {name}
-
----
-
-## Active Context
-
-| Owned | Files |
-| :--- | :--- |
-| `@developer` | Toàn bộ project |
-
-## Frozen API contract
-
-*(Chưa có API contract cố định.)*
-```
-
-### Team mode (`--team-size=team`, mặc định)
-
-Multi-agent orchestration với Lead Agent và sub-agents. Xem `docs/multi-agent-orchestration-guide.md`.
-
----
-
-## AI Recommendation và Human Final Review
-
-Sau khởi tạo hoặc thay đổi framework, tạo recommendation theo `.claude/skills/_shared/ai-review-protocol.md` gồm detected stack, governance assumption, missing setup và migration risk. Lưu tại `.sdd/reviews/init.md` với `PENDING HUMAN REVIEW`. Human Director approve bootstrap/adoption scope trước pha feature đầu tiên; Agent không self-approve hoặc tuyên bố dự án đã approved.
+Use `.claude/skills/_shared/ai-review-protocol.md`. Recommendation includes bootstrap scope, profile evidence/unknowns, selected Methodology Profile defaults, missing decisions and next command. Human Final Review remains `PENDING` until a human records a durable decision. `/sdd-review` does not replace `/sdd-rfc --approve=<rfc-number>` for Constitution changes.

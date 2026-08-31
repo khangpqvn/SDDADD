@@ -20,7 +20,7 @@ Dùng sau khi chạy `scripts/update.sh` hoặc `scripts/update.ps1` để kiể
 
 | Loại | Files | Hành động |
 | :--- | :--- | :--- |
-| **SAFE** — template-owned | `.claude/skills/**`, `docs/sdd-add-guide.md`, `docs/architecture-profile-guide.md`, `docs/multi-agent-orchestration-guide.md`, `scripts/self-heal.sh`, `scripts/update.sh`, `scripts/update.ps1` | Overwrite trực tiếp; không chứa customization của user. |
+| **SAFE** — template-owned | `.claude/skills/**`, `docs/sdd-add-quickstart.md`, `docs/sdd-add-guide.md`, `docs/sdd-add-field-guide.md`, `docs/sdd-add-scenario-playbook.md`, `docs/architecture-profile-guide.md`, `docs/multi-agent-orchestration-guide.md`, `scripts/adopt.sh`, `scripts/adopt.ps1`, `scripts/self-heal.sh`, `scripts/template-smoke.sh`, `scripts/template-smoke.ps1`, `scripts/start-claude.sh`, `scripts/start-claude.ps1`, `scripts/update.sh`, `scripts/update.ps1` | Overwrite trực tiếp; không chứa customization của user. |
 | **STAGED** — cần review | `CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`, `.agentignore` | Copy vào `.sdd/updates/`; user merge thủ công sau khi AI review diff. |
 | **NEVER** — user-owned | `.sdd/architecture-profile.md`, `.sdd/README.md`, `.sdd/shared_context.md`, `.sdd/mcp-config.yaml`, `.sdd/features/`, `.sdd/reviews/`, `.sdd/rfcs/`, `.sdd/constraints/` | Không bao giờ overwrite; chứa quyết định kiến trúc và feature work của user. |
 
@@ -55,7 +55,7 @@ Next step : {update command}
 .\scripts\update.ps1 <template-path>
 ```
 
-Thêm `--dry-run` để xem trước, `--force-governance` để overwrite governance files với backup.
+Thêm `--dry-run` để xem trước. `--force-governance` chỉ overwrite `AGENTS.md`, `CLAUDE.md` và `.agentignore` với backup; `CONSTITUTION.md` luôn stage và chỉ được merge sau RFC `APPROVED`.
 
 ### 3. `--review` — review staged governance files
 
@@ -88,7 +88,7 @@ Sau khi chạy `--review`, tạo canonical recommendation từ `.claude/skills/_
 ## Safety gates
 
 - Không bao giờ đề xuất ghi vào NEVER files.
-- `CONSTITUTION.md` thay đổi Layer 1/2 cần RFC qua `/sdd-rfc` trước khi merge.
+- `CONSTITUTION.md` luôn chỉ stage, kể cả `--force-governance`; thay đổi Layer 1/2 cần RFC qua `/sdd-rfc` trước khi merge.
 - `AGENTS.md` thay đổi permission cần Human Director approval theo `/sdd-agents-edit`.
 - Agent không tự chạy update script mà không có xác nhận explicit của Human Director.
 - Nếu `template-source` không xác định được và không có `--template`, dừng và yêu cầu Human cung cấp path.

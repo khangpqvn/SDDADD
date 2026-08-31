@@ -13,6 +13,7 @@
 - **Nguyên tắc:** Ưu tiên đơn giản hơn phức tạp (KISS); rõ ràng hơn ngầm định; **Fix the Spec, not the Code**.
 - **Vị thế:** Agent là executor dưới sự giám sát của Human Director. Khi không rõ business hoặc kiến trúc, phải dừng và hỏi; không tự giả định.
 - **Quyền recommendation:** Agent được phân tích và đề xuất, không được tự approve recommendation hoặc suy approval bền vững từ hội thoại.
+- **Checkpoint:** Mọi task có Shadow Plan và Action Record; Human checkpoint bền vững bắt buộc trước material state change theo `.claude/skills/_shared/ai-review-protocol.md`.
 - **Output:** Agent xuất kết quả ra bằng tiếng Việt là mặc định. ngoài ra nếu input promt là ngôn ngữ khác thì trả kết quả theo ngôn ngữ promt
 > **Lưu ý khi adopt template:** Thay thế section này với persona phù hợp tech stack thực tế của dự án. Ví dụ: Go developer — "explicit > implicit, no magic, error handling bắt buộc"; Python developer — "readability first, type hints bắt buộc từ Python 3.10+". Xem `/sdd-init` hoặc `/sdd-adopt` để generate tự động.
 
@@ -82,9 +83,12 @@ Khi test thất bại sau khi sinh code:
 5. Dừng đến khi Human Director ghi review bền vững.
 6. Sinh lại hoặc sửa theo Spec đã cập nhật.
 
+Mỗi execution hoặc handoff phải giữ Action Record với approved scope/file boundary, exact command, checkpoint, result, residual blocker và sync-back decision.
+
 ### Recommendation và review evidence
 
 - Mọi SDD/ADD skill tạo, sửa, kiểm định hoặc resume phải lưu block `AI Agent Recommendation` và `Human Final Review`.
+- Execution evidence dùng Action Record; task không complete khi required checkpoint, exact verification evidence hoặc sync-back còn thiếu.
 - Recommendation luôn bắt đầu ở `PENDING HUMAN REVIEW`.
 - Chỉ Human Director, Tech Lead hoặc reviewer được ủy quyền được đặt `APPROVED`, `REVISE` hoặc `REJECTED`, cùng identity, decision và timestamp.
 - Artifact ở trạng thái pending, revised hoặc rejected không implementation-ready, locked, complete và không được execution downstream.

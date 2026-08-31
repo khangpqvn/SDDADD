@@ -1,223 +1,378 @@
 #!/usr/bin/env bash
-# self-heal.sh — Self-Healing Loop cho workflow SDD + ADD.
-# Tham chiếu: Slide 11.4 — Automated Self-Healing Loop.
+# Opt-in bounded recovery evidence collector for SDD + ADD.
+# This script never edits source, approves work, commits, pushes, or deploys.
+# A Claude CLI print invocation, when enabled, analyzes output only; it does not
+# claim or request filesystem mutation.
 #
-# Luồng: chạy approved test → lấy lỗi → gọi Claude sửa → chạy lại test → Human review.
-# An toàn: tối đa ba lần sửa; cạn lần thử thì escalate Human Director.
+# Usage:
+#   ./scripts/self-heal.sh --feature=<slug> --task=<task-id> \
+#     --test-cmd="<exact approved command>" \
+#     --approved-evidence=.sdd/architecture-profile.md \
+#     --max-attempts=1 \
+#     --scope-category=implementation-defect
 #
-# Cách dùng:
-#   ./scripts/self-heal.sh --test-cmd "<approved test command>"
-#   ./scripts/self-heal.sh --test-cmd "<approved test command>" --feature=auth
-#   ./scripts/self-heal.sh --test-cmd "<approved test command>" --max-attempts=2
-#   ./scripts/self-heal.sh --test-cmd "<approved test command>" --dry-run
-#
-# Command phải khớp approved test command trong .sdd/architecture-profile.md.
-# Script không tự commit; Human Director kiểm soát delivery.
+# The command must be an approved `- Command: <exact command>` entry in the
+# approved Architecture Profile and match the feature task's exact verification
+# command. Shell operators, redirects, substitutions, quotes, and newlines are
+# rejected so this script never evaluates an untrusted command string.
 
 set -euo pipefail
 
-# Cấu hình
-MAX_ATTEMPTS="${MAX_ATTEMPTS:-3}"
-TEST_CMD="${TEST_CMD:-}"
+TEST_CMD=""
 FEATURE_SLUG=""
+TASK_ID=""
+APPROVED_EVIDENCE=""
+MAX_ATTEMPTS=""
+SCOPE_CATEGORY=""
 DRY_RUN=false
 LOG_DIR=".sdd/reviews"
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-LOG_FILE="${LOG_DIR}/self-heal-${TIMESTAMP}.log"
+TIMESTAMP="$(date -u +%Y%m%d-%H%M%SZ)"
 
-# Màu terminal
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # Không màu
+usage() {
+  cat <<'EOF'
+Usage:
+  ./scripts/self-heal.sh --feature=<slug> --task=<task-id> \
+    --test-cmd="<exact approved command>" \
+    --approved-evidence=<repo-relative-path> \
+    --max-attempts=1 \
+    --scope-category=implementation-defect [--dry-run]
 
-# Phân tích tham số
+Required scope categories:
+  implementation-defect
+  spec-gap
+  profile-config-gap
+  shared-public-contract
+  schema-business-data-mutation
+  security-permission-dependency-runtime-config
+  external-irreversible-side-effect
+
+Only implementation-defect is eligible for bounded recovery analysis. This
+script does not perform repairs. It writes structured evidence for a Human or
+an approved interactive agent session to act on.
+EOF
+}
+
 for arg in "$@"; do
-  case $arg in
-    --test-cmd=*) TEST_CMD="${arg#*=}" ;;
+  case "$arg" in
     --feature=*) FEATURE_SLUG="${arg#*=}" ;;
+    --task=*) TASK_ID="${arg#*=}" ;;
+    --test-cmd=*) TEST_CMD="${arg#*=}" ;;
+    --approved-evidence=*) APPROVED_EVIDENCE="${arg#*=}" ;;
     --max-attempts=*) MAX_ATTEMPTS="${arg#*=}" ;;
+    --scope-category=*) SCOPE_CATEGORY="${arg#*=}" ;;
     --dry-run) DRY_RUN=true ;;
-    *) echo "Tham số không hợp lệ: $arg"; exit 1 ;;
+    --help|-h) usage; exit 0 ;;
+    *) printf '[ERROR] Invalid argument: %s\n' "$arg" >&2; usage; exit 2 ;;
   esac
 done
 
-# Kiểm tra an toàn
-if [[ -z "$TEST_CMD" ]]; then
-  echo "[ERROR] Bắt buộc có --test-cmd. Hãy chọn và approve exact test command trong .sdd/architecture-profile.md trước."
-  exit 1
+require_value() {
+  local name="$1"
+  local value="$2"
+  if [[ -z "$value" ]]; then
+    printf '[ERROR] Required argument missing: %s\n' "$name" >&2
+    exit 2
+  fi
+}
+
+require_value '--feature' "$FEATURE_SLUG"
+require_value '--task' "$TASK_ID"
+require_value '--test-cmd' "$TEST_CMD"
+require_value '--approved-evidence' "$APPROVED_EVIDENCE"
+require_value '--max-attempts' "$MAX_ATTEMPTS"
+require_value '--scope-category' "$SCOPE_CATEGORY"
+
+if [[ "$MAX_ATTEMPTS" != "1" ]]; then
+  printf '[ERROR] --max-attempts must be 1: this evidence collector executes the approved command once and never retries or repairs.\n' >&2
+  exit 2
 fi
 
-if [[ "$DRY_RUN" == "true" ]]; then
-  echo -e "${BLUE}[DRY RUN] Cấu hình Self-Heal:${NC}"
-  echo "  Test command : $TEST_CMD"
-  echo "  Max attempts : $MAX_ATTEMPTS"
-  echo "  Feature scope: ${FEATURE_SLUG:-all}"
-  echo "  Log file     : $LOG_FILE"
+case "$SCOPE_CATEGORY" in
+  implementation-defect|spec-gap|profile-config-gap|shared-public-contract|schema-business-data-mutation|security-permission-dependency-runtime-config|external-irreversible-side-effect) ;;
+  *) printf '[ERROR] Unknown --scope-category: %s\n' "$SCOPE_CATEGORY" >&2; exit 2 ;;
+esac
+
+if [[ "$SCOPE_CATEGORY" != "implementation-defect" ]]; then
+  printf '[BLOCKED] --scope-category=%s is outside the bounded recovery scope. Use the required SDD update or Human checkpoint path instead.\n' "$SCOPE_CATEGORY" >&2
+  exit 2
+fi
+
+TASK_FILE=".sdd/features/$FEATURE_SLUG/TASKS.md"
+if [[ ! "$FEATURE_SLUG" =~ ^[a-z0-9][a-z0-9-]*$ || ! "$TASK_ID" =~ ^T[0-9]+$ ]]; then
+  printf '[ERROR] --feature and --task must identify a feature slug and task ID.\n' >&2
+  exit 2
+fi
+
+if [[ "$APPROVED_EVIDENCE" != ".sdd/architecture-profile.md" || ! -f "$APPROVED_EVIDENCE" ]]; then
+  printf '[ERROR] --approved-evidence must be the approved .sdd/architecture-profile.md.\n' >&2
+  exit 2
+fi
+
+if [[ ! -f "$TASK_FILE" ]]; then
+  printf '[ERROR] Task evidence not found: %s\n' "$TASK_FILE" >&2
+  exit 2
+fi
+
+# Do not pass arbitrary shell syntax to an interpreter.
+if [[ "$TEST_CMD" == *$'\n'* || "$TEST_CMD" =~ [\;\|\&\<\>\$\`\(\)\'\"] ]]; then
+  printf '[ERROR] --test-cmd contains unsupported shell syntax. Use a plain executable and arguments.\n' >&2
+  exit 2
+fi
+
+if ! grep -Fqx -- "- Command: $TEST_CMD" "$APPROVED_EVIDENCE"; then
+  printf '[ERROR] --test-cmd is not an exact approved command entry in %s.\n' "$APPROVED_EVIDENCE" >&2
+  exit 2
+fi
+
+has_valid_human_review() {
+  local file="$1"
+  awk '
+    function is_non_placeholder(value) {
+      return value !~ /^[[:space:]]*(<.*>|TBD|TODO|PENDING)?[[:space:]]*$/
+    }
+    function is_leap_year(year) {
+      return year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)
+    }
+    function fence_run(value, marker,    count) {
+      count = 0
+      while (substr(value, count + 1, 1) == marker) count++
+      return count
+    }
+    function is_valid_timestamp(value,    year,month,day,hour,minute,second,max_day,offset_hour,offset_minute) {
+      if (value !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2}(\.[0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})$/) return 0
+      year = substr(value, 1, 4) + 0
+      month = substr(value, 6, 2) + 0
+      day = substr(value, 9, 2) + 0
+      hour = substr(value, 12, 2) + 0
+      minute = substr(value, 15, 2) + 0
+      second = substr(value, 17, 1) == ":" ? substr(value, 18, 2) + 0 : 0
+      if (month < 1 || month > 12 || hour > 23 || minute > 59 || second > 59) return 0
+      max_day = 31
+      if (month == 4 || month == 6 || month == 9 || month == 11) max_day = 30
+      if (month == 2) max_day = is_leap_year(year) ? 29 : 28
+      if (day < 1 || day > max_day) return 0
+      if (substr(value, length(value), 1) == "Z") return 1
+      offset_hour = substr(value, length(value) - 4, 2) + 0
+      offset_minute = substr(value, length(value) - 1, 2) + 0
+      return offset_hour <= 23 && offset_minute <= 59
+    }
+    {
+      line = $0
+      sub(/\r$/, "", line)
+    }
+    {
+      fence_line = line
+      sub(/^ +/, "", fence_line)
+    }
+    !in_fence && fence_line ~ /^```+/ {
+      in_fence = 1
+      fence_marker = "`"
+      fence_length = fence_run(fence_line, fence_marker)
+      next
+    }
+    !in_fence && fence_line ~ /^~~~/ {
+      in_fence = 1
+      fence_marker = "~"
+      fence_length = fence_run(fence_line, fence_marker)
+      next
+    }
+    in_fence && substr(fence_line, 1, 1) == fence_marker {
+      fence_count = fence_run(fence_line, fence_marker)
+      if (fence_count >= fence_length && substr(fence_line, fence_count + 1) ~ /^[ \t]*$/) {
+        in_fence = 0
+        fence_marker = ""
+        fence_length = 0
+      }
+      next
+    }
+    in_fence { next }
+    line == "## Human Final Review" {
+      review_count++
+      in_review = 1
+      next
+    }
+    in_review && line ~ /^## / { in_review = 0 }
+    in_review && line ~ /^- Status: / {
+      status_count++
+      status = substr(line, length("- Status: ") + 1)
+    }
+    in_review && line ~ /^- Decision: / {
+      decision_count++
+      decision = substr(line, length("- Decision: ") + 1)
+    }
+    in_review && line ~ /^- Reviewer: / {
+      reviewer_count++
+      reviewer = substr(line, length("- Reviewer: ") + 1)
+    }
+    in_review && line ~ /^- Reviewed at: / {
+      reviewed_at_count++
+      reviewed_at = substr(line, length("- Reviewed at: ") + 1)
+    }
+    in_review && line ~ /^- Follow-up: / {
+      follow_up_count++
+      follow_up = substr(line, length("- Follow-up: ") + 1)
+    }
+    END {
+      exit !(review_count == 1 && status_count == 1 && status == "APPROVED" && decision_count == 1 && is_non_placeholder(decision) && reviewer_count == 1 && is_non_placeholder(reviewer) && reviewed_at_count == 1 && is_valid_timestamp(reviewed_at) && follow_up_count == 1 && is_non_placeholder(follow_up))
+    }
+  ' "$file"
+}
+
+if ! has_valid_human_review "$APPROVED_EVIDENCE"; then
+  printf '[ERROR] Architecture Profile lacks a complete persisted Human Final Review approval.\n' >&2
+  exit 2
+fi
+
+if ! awk -v task_id="$TASK_ID" -v command="$TEST_CMD" '
+  function fence_run(value, marker,    count) {
+    count = 0
+    while (substr(value, count + 1, 1) == marker) count++
+    return count
+  }
+  {
+    line = $0
+    sub(/\r$/, "", line)
+  }
+  {
+    fence_line = line
+    sub(/^ +/, "", fence_line)
+  }
+  !in_fence && fence_line ~ /^```+/ {
+    in_fence = 1
+    fence_marker = "`"
+    fence_length = fence_run(fence_line, fence_marker)
+    next
+  }
+  !in_fence && fence_line ~ /^~~~/ {
+    in_fence = 1
+    fence_marker = "~"
+    fence_length = fence_run(fence_line, fence_marker)
+    next
+  }
+  in_fence && substr(fence_line, 1, 1) == fence_marker {
+    fence_count = fence_run(fence_line, fence_marker)
+    if (fence_count >= fence_length && substr(fence_line, fence_count + 1) ~ /^[ \t]*$/) {
+      in_fence = 0
+      fence_marker = ""
+      fence_length = 0
+    }
+    next
+  }
+  in_fence { next }
+  line ~ "^### " task_id " —" { task_found = 1; in_task = 1; next }
+  in_task && /^### / { in_task = 0 }
+  in_task && index(line, command) { command_found = 1 }
+  END { exit !(task_found && command_found) }
+' "$TASK_FILE"; then
+  printf '[ERROR] %s does not bind %s to exact command %s.\n' "$TASK_FILE" "$TASK_ID" "$TEST_CMD" >&2
+  exit 2
+fi
+
+if ! has_valid_human_review "$TASK_FILE"; then
+  printf '[ERROR] Task evidence lacks a complete persisted Human Final Review approval.\n' >&2
+  exit 2
+fi
+
+read -r -a TEST_ARGS <<< "$TEST_CMD"
+if [[ "${#TEST_ARGS[@]}" -eq 0 || -z "${TEST_ARGS[0]}" ]]; then
+  printf '[ERROR] --test-cmd did not yield an executable.\n' >&2
+  exit 2
+fi
+
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+  printf '[ERROR] Run this script from a Git repository.\n' >&2
+  exit 2
+fi
+
+if [[ "$DRY_RUN" == true ]]; then
+  cat <<EOF
+SELF-HEAL DRY RUN
+Feature: $FEATURE_SLUG
+Task: $TASK_ID
+Approved evidence: $APPROVED_EVIDENCE
+Test command: $TEST_CMD
+Attempt budget: $MAX_ATTEMPTS
+Scope category: $SCOPE_CATEGORY
+Mutation: disabled by design
+EOF
   exit 0
 fi
 
-# Bảo đảm thư mục review tồn tại.
 mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/self-heal-${FEATURE_SLUG}-${TASK_ID}-${TIMESTAMP}.log"
+REPORT_FILE="$LOG_DIR/self-heal-${FEATURE_SLUG}-${TASK_ID}-${TIMESTAMP}.md"
 
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo -e "${RED}[ERROR] Không ở trong Git repository. Dừng.${NC}"
-  exit 1
-fi
-
-# Hàm ghi log
-log() { echo -e "$1" | tee -a "$LOG_FILE"; }
-
-log_section() {
-  log ""
-  log "${BLUE}══════════════════════════════════════════${NC}"
-  log "${BLUE}  $1${NC}"
-  log "${BLUE}══════════════════════════════════════════${NC}"
-}
-
-# Chạy exact test command đã approved.
-run_tests() {
-  local output
+run_test() {
   local exit_code=0
-  output=$(eval "$TEST_CMD" 2>&1) || exit_code=$?
-  echo "$output" >> "$LOG_FILE"
-  echo "$output"
+  {
+    printf '## Test command\n\n```text\n%s\n```\n\n' "$TEST_CMD"
+    printf '## Output\n\n```text\n'
+    "${TEST_ARGS[@]}"
+  } >>"$LOG_FILE" 2>&1 || exit_code=$?
+  printf '\n```\nexit_code=%s\n' "$exit_code" >>"$LOG_FILE"
   return "$exit_code"
 }
 
-# Trích xuất tên test lỗi và error message cho Claude.
-extract_errors() {
-  local test_output="$1"
-  echo "$test_output" | grep -E "(FAIL|✗|×|Error:|expect\(|●)" | head -50
-}
-
-# Gọi Claude CLI để phân tích và áp dụng sửa đổi.
-invoke_claude_fix() {
-  local error_summary="$1"
-  local attempt="$2"
-
-  log "${YELLOW}[ATTEMPT $attempt/$MAX_ATTEMPTS] Gọi Claude để phân tích lỗi...${NC}"
-
-  if ! command -v claude &> /dev/null; then
-    log "${YELLOW}[WARN] Không tìm thấy Claude CLI. Bỏ qua tự động sửa.${NC}"
-    log "${YELLOW}       Cài đặt: https://claude.ai/code${NC}"
-    return 1
+classify_failure() {
+  local output
+  output="$(cat "$LOG_FILE")"
+  if [[ "$SCOPE_CATEGORY" != "implementation-defect" ]]; then
+    printf '%s' "$SCOPE_CATEGORY"
+  elif grep -Eiq 'SPEC|requirement|ambiguous|acceptance criteria' <<<"$output"; then
+    printf 'spec-gap'
+  elif grep -Eiq 'CONFIGURATION GAP|binding|not selected|command not found|profile' <<<"$output"; then
+    printf 'profile-config-gap'
+  else
+    printf 'implementation-defect'
   fi
-
-  local prompt
-  prompt=$(cat <<EOF
-Bạn là Senior Engineer đang sửa test failure.
-Phân tích các lỗi test sau và sửa code:
-
-TEST THẤT BẠI:
-$error_summary
-
-QUY TẮC:
-1. Tuân thủ Fix the Spec, not the Code — nếu business logic sai, cập nhật .sdd/features/*/SPEC.md.
-2. Tuân thủ constraint trong CONSTITUTION.md.
-3. Không hardcode secret, không dùng raw DELETE không có WHERE.
-4. Sửa root cause, không chỉ sửa symptom.
-5. Giữ thay đổi tối thiểu và đúng scope.
-
-Áp dụng sửa đổi ngay.
-EOF
-)
-
-  claude --print "$prompt" 2>> "$LOG_FILE" || return 1
 }
 
-# Tạo incident report để Human Director xử lý.
-escalate_to_human() {
-  local error_summary="$1"
-  local incident_file="${LOG_DIR}/self-heal-incident-${TIMESTAMP}.md"
+if run_test; then
+  cat >"$REPORT_FILE" <<EOF
+# Self-Heal Action Record
 
-  cat > "$incident_file" <<EOF
-# Báo cáo sự cố Self-Heal
+- Status: PASS — no recovery action required
+- Feature/task: $FEATURE_SLUG / $TASK_ID
+- Approved scope and file boundary: recorded in TASKS.md; this script did not modify files
+- Profile binding and exact command: $APPROVED_EVIDENCE — \`$TEST_CMD\`
+- State-change category: $SCOPE_CATEGORY
+- Human checkpoint: N/A — no mutation occurred
+- Actions and result: command passed on first execution
+- Residual blocker: none
+- Sync-back decision: N/A — no artifact or code changed
+- Log: \`$LOG_FILE\`
+EOF
+  printf '[PASS] Test command passed. Evidence: %s\n' "$REPORT_FILE"
+  exit 0
+fi
 
-**Ngày:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
-**Status:** ESCALATED — Requires Human Review
-**Feature:** ${FEATURE_SLUG:-all}
-**Số lần thử:** $MAX_ATTEMPTS (đã cạn)
+CLASSIFICATION="$(classify_failure)"
+cat >"$REPORT_FILE" <<EOF
+# Self-Heal Action Record
 
-## Lỗi test thất bại
+- Status: BLOCKED — Human review required
+- Feature/task: $FEATURE_SLUG / $TASK_ID
+- Approved scope and file boundary: recorded in TASKS.md; this script did not modify files
+- Profile binding and exact command: $APPROVED_EVIDENCE — \`$TEST_CMD\`
+- State-change category: $SCOPE_CATEGORY
+- Failure classification: $CLASSIFICATION
+- Attempt budget: $MAX_ATTEMPTS; no automated repair attempt was run
+- Human checkpoint: required before any material state-change repair
+- Actions and result: exact approved command failed; output retained in \`$LOG_FILE\`
+- Residual blocker: classify root cause and approve a scoped repair or artifact update
+- Sync-back decision: pending repair outcome; run /sdd-trace and /sdd-sync if the repair changes requirement, contract, or shared state
 
-\`\`\`
-$error_summary
-\`\`\`
+## Recovery boundary
 
-## Bước tiếp theo cho Human Director
+This script does not invoke a mutating Claude session. A \`claude --print\` call is analysis-only and must not be represented as an applied repair. Do not use this path for Spec gap, missing profile binding, schema/business-data mutation, shared/public contract, permission/security/dependency/runtime configuration, or external/irreversible side effect.
 
-1. Review lỗi bên trên.
-2. Kiểm tra Spec có cần cập nhật không: \`.sdd/features/${FEATURE_SLUG:-*}/SPEC.md\`.
-3. Áp dụng sửa đổi thủ công.
-4. Chạy lại: \`./scripts/self-heal.sh --test-cmd "<approved test command>" ${FEATURE_SLUG:+--feature=$FEATURE_SLUG}\`.
+## Next step
 
-## Log file
-
-\`$LOG_FILE\`
+- \`implementation-defect\`: Human reviews this record, approves a scoped repair, then runs the exact command again.
+- \`spec-gap\`: use \`/sdd-update --artifact=spec\` and complete required review before execution.
+- \`profile-config-gap\`: update and review \`.sdd/architecture-profile.md\` before execution.
+- Other material state change: obtain persisted Human checkpoint before any action.
 EOF
 
-  log ""
-  log "${RED}╔══════════════════════════════════════════╗${NC}"
-  log "${RED}║  ⚠️  CẦN ESCALATE                         ║${NC}"
-  log "${RED}║  Đã cạn $MAX_ATTEMPTS lần thử                     ║${NC}"
-  log "${RED}║  Incident: $incident_file${NC}"
-  log "${RED}╚══════════════════════════════════════════╝${NC}"
-  log ""
-  log "AI RECOMMENDATION: PENDING HUMAN REVIEW"
-  log "HUMAN DECISION REQUIRED: Review test failures and fix Spec or code"
-  log "NEXT STEP: Human Director reviews $incident_file"
-}
-
-main() {
-  log_section "Bắt đầu Self-Healing Loop — $(date)"
-  log "Cấu hình: cmd='$TEST_CMD' | max_attempts=$MAX_ATTEMPTS | feature=${FEATURE_SLUG:-all}"
-
-  local attempt=0
-  local test_output
-  local errors
-
-  log_section "Lần chạy test đầu tiên"
-  if test_output=$(run_tests 2>&1); then
-    log "${GREEN}✅ Tất cả test PASS ngay từ đầu. Không cần self-heal.${NC}"
-    exit 0
-  fi
-
-  errors=$(extract_errors "$test_output")
-  log "${RED}❌ Test FAILED. Bắt đầu self-heal loop...${NC}"
-  log "Lỗi phát hiện:"
-  log "$errors"
-
-  while [[ "$attempt" -lt "$MAX_ATTEMPTS" ]]; do
-    attempt=$((attempt + 1))
-    log_section "Lần self-heal $attempt / $MAX_ATTEMPTS"
-
-    if ! invoke_claude_fix "$errors" "$attempt"; then
-      log "${YELLOW}[WARN] Claude không sửa được hoặc bỏ qua lần $attempt.${NC}"
-    fi
-
-    log "Chạy lại test sau lần sửa $attempt..."
-    if test_output=$(run_tests 2>&1); then
-      log ""
-      log "${GREEN}╔══════════════════════════════════════════╗${NC}"
-      log "${GREEN}║  ✅ TẤT CẢ TEST PASS sau lần $attempt             ║${NC}"
-      log "${GREEN}╚══════════════════════════════════════════╝${NC}"
-      log ""
-      log "${GREEN}Self-Heal hoàn tất. Thay đổi vẫn uncommitted để Human review. Log: $LOG_FILE${NC}"
-      exit 0
-    fi
-
-    errors=$(extract_errors "$test_output")
-    log "${RED}Test vẫn thất bại sau lần $attempt.${NC}"
-
-    if [[ "$attempt" -lt "$MAX_ATTEMPTS" ]]; then
-      log "Thử lại với error context đã cập nhật..."
-    fi
-  done
-
-  escalate_to_human "$errors"
-  exit 1
-}
-
-main
+printf '[BLOCKED] %s. Evidence: %s\n' "$CLASSIFICATION" "$REPORT_FILE" >&2
+exit 1

@@ -10,13 +10,13 @@ user-invocable: true
 
 Dùng skill này trước mọi commit, push hoặc Pull Request. Đây là single source of truth cho validation của Git Operator. Gate **fail closed**: chỉ trả `READY` khi mọi check bắt buộc đạt.
 
-**Solo mode**: Đọc `.sdd/shared_context.md`. Nếu section 1A active (hoặc `--team-size=solo`), dùng solo mode. Solo mode vẫn chạy đầy đủ gate; `--scope=pr` dùng để validate trước push trực tiếp (thay vì PR creation). Solo mode: WARNING là advisory, không block (chỉ FAIL block). Team mode: `--scope=pr` bắt buộc `--strict`, WARNING convert thành FAIL.
+**Solo mode**: Đọc `# Collaboration Mode: team|solo` trong `.sdd/shared_context.md`; `--team-size=solo|team` override explicit cho invocation hiện tại. Không suy mode từ section mẫu. Solo mode vẫn chạy đầy đủ gate; `--scope=pr` dùng để validate trước push trực tiếp (thay vì PR creation). Solo mode: WARNING là advisory, không block (chỉ FAIL block). Team mode: `--scope=pr` bắt buộc `--strict`, WARNING convert thành FAIL.
 
 ## Tham số
 
 - `--scope=commit|pr`: bắt buộc.
   - `commit`: kiểm tra staged diff (`git diff --cached`).
-  - `pr`: kiểm tra diff trên remote (`origin/<base>...origin/<head>`), không dùng local diff làm nguồn kết luận. Solo mode: dùng trước push trực tiếp.
+  - `pr`: team mode kiểm tra diff trên remote (`origin/<base>...origin/<head>`). Solo mode trước Human push kiểm tra local diff (`origin/<base>...HEAD`); sau push kiểm tra remote diff (`origin/<base>...origin/<head>`).
 - `--feature=<feature-slug>`: tùy chọn; giới hạn SDD checks vào feature.
 - `--base=<branch>`: dùng với `pr`; mặc định branch mặc định của remote.
 - `--head=<branch>`: dùng với `pr`; mặc định branch hiện tại.
@@ -55,6 +55,8 @@ git diff --cached --name-only
 
 #### PR scope
 
+Team mode hoặc solo sau Human push:
+
 ```bash
 git fetch --prune origin
 git symbolic-ref --short refs/remotes/origin/HEAD
@@ -67,8 +69,22 @@ git status --short
 
 - Block detached HEAD, remote hoặc base/head thiếu, Git operation chưa xử lý, dirty worktree, base branch là head hoặc remote diff rỗng.
 - Block khi local `HEAD` khác `origin/<head>`; PR phải phản ánh commit đã push.
-- Nếu branch chưa có trên remote, không kết luận PR ready. `/git-pr` phải push khi người dùng yêu cầu, rồi chạy lại gate.
-- Dùng `origin/<base>...origin/<head>` cho mọi kết luận về PR. Không dùng `git diff main...HEAD`.
+- Nếu branch chưa có trên remote, không kết luận PR ready. Human phải push branch, rồi chạy lại gate; Agent không push thay Human.
+- Team mode dùng `origin/<base>...origin/<head>` cho mọi kết luận về PR. Không dùng `git diff main...HEAD`.
+
+Solo mode trước Human push dùng reference `origin/<base>` đã có sẵn, không fetch/push hoặc thực hiện network action:
+
+```bash
+git rev-parse --verify "origin/<base>"
+git diff --name-status "origin/<base>...HEAD"
+git diff --stat "origin/<base>...HEAD"
+git status --short
+```
+
+- Block detached HEAD, remote/base thiếu, Git operation chưa xử lý, dirty worktree, base branch là head hoặc local diff rỗng.
+- Nếu remote-tracking reference có thể stale, báo `WARNING` với thời điểm/reference đã dùng; solo mode giữ đây là advisory.
+- Không yêu cầu `origin/<head>` hoặc `HEAD == origin/<head>` trước Human push. Báo source là `origin/<base>...HEAD` và `remote verification: pending Human push`.
+- Sau Human push, Human hoặc repository workflow cập nhật remote reference rồi chạy lại `--scope=pr` để xác minh remote diff và `HEAD == origin/<head>`.
 
 ### 2. Security và file policy gate
 

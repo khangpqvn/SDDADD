@@ -40,7 +40,8 @@ Khi project adopt từ template, các sections phải được **customize theo 
 2. Xác định section canonical cần sửa; đối chiếu với Constitution — không mở rộng quyền vượt safety boundary.
 3. Cập nhật đúng section trong 8-section structure; không thêm section ngoài canonical.
 4. Bump SemVer và ghi entry trong section `## 8. Changelog` kèm lý do/người cập nhật.
-5. Báo rõ permission impact, security risk, affected skill và bước escalation mới.
+5. Với dispatcher change, phân biệt policy/advisory rule với host enforcement đã observed; ghi affected worker role, no-self-approval/no-commit-push, bounded retry và escalation behavior.
+6. Báo rõ permission impact, security risk, affected skill và bước escalation mới.
 
 ## AI Recommendation và Human Final Review
 

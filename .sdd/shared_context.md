@@ -29,7 +29,9 @@ Developer đọc profile, tự dispatch task, tự verify. Human Final Review v�
 | `@interface-agent` | HTTP/event adapter, DTO và presenter | `src/interface/` |
 | `@tester-agent` | Verification và E2E | `tests/unit/`, `tests/e2e/` |
 
-Lead phải gửi mỗi Agent frozen contract version, profile version, binding liên quan, evidence, exact command được phép chạy, ownership/file boundary, allowed action/checkpoint và MCP policy profile. Agent không được thêm package, adapter, path hoặc command ngoài profile đã approved.
+Lead là dispatcher duy nhất: tạo Dispatch Record, chọn batch, invoke worker, validate integration và mutate shared artifact. Lead phải gửi mỗi Agent task ID, frozen contract version, profile version, binding liên quan, evidence, exact command được phép chạy, ownership/file boundary, allowed action/checkpoint, audit evidence reference và MCP policy profile. Worker chỉ request contract change, không tự apply; Agent không được thêm package, adapter, path hoặc command ngoài profile đã approved.
+
+Dispatch evidence lưu dưới `## Current Handoff State` của feature `TASKS.md`. Runtime identity/enforcement phải ghi `VERIFIED` hoặc `UNVERIFIED` theo observed host evidence; `.sdd/mcp-config.yaml` là policy specification, không phải chứng cứ enforcement.
 
 ## 2. Shared-contract mutation rule
 

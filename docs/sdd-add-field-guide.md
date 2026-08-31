@@ -24,7 +24,12 @@ Thẻ thao tác nhanh. Contract chi tiết nằm trong `.claude/skills/`.
 | Session dừng | `/sdd-handoff --feature=<slug>`. |
 | Session tiếp tục | `/sdd-resume --feature=<slug>`. |
 | Shared contract đổi | Owner/Lead cập nhật `.sdd/shared_context.md` → `/sdd-trace` → `/sdd-sync`. |
-| Nhiều Agent | Dispatch contract-first, ownership không chồng lấn, Lead giữ shared artifact. |
+| Nhiều Agent | `/sdd-dispatch --feature=<slug>`; Dispatch Record, ownership không chồng lấn, Lead giữ shared artifact. |
+| Parallel-owned batch | `/sdd-dispatch --feature=<slug> --batch=<id> --task=<T001,T002>` sau preflight và approval applicable. |
+| Retry eligible task | `/sdd-dispatch --feature=<slug> --task=<T001> --retry`; chỉ `RETRY_PENDING` implementation defect trong immutable boundary. |
+| Interrupted/blocked/escalated task | Lead revalidates then `/sdd-dispatch --feature=<slug> --task=<T001> --resume`; escalated work needs explicit Human recovery decision. |
+| Material/cross-contract batch | Tạo `.sdd/reviews/dispatch-<feature>-<batch>.md`, Human review `APPROVED`, rồi dispatch. |
+| Solo dispatch request | `/sdd-dispatch --feature=<slug> --team-size=solo`; solo-bypass, không spawn worker. |
 | Git delivery | `/git-validate --scope=commit` → `READY` → Human-requested `/git-commit`. |
 
 ## Feature lifecycle
@@ -59,6 +64,7 @@ Thẻ thao tác nhanh. Contract chi tiết nằm trong `.claude/skills/`.
 - Human checkpoint: required | N/A; <evidence>
 - Shared contract and sync-back: <owner/version; trace/sync decision>
 - High-risk review route: <route or N/A>
+- Dispatch readiness: <single-owned | parallel-owned | sequential-handoff; worker role; exclusive boundary>
 ```
 
 ## Material state change

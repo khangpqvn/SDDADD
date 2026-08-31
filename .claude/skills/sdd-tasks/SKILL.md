@@ -43,6 +43,7 @@ Mỗi task dùng format sau, bổ sung additive cho format legacy:
 - Human checkpoint: required | N/A; <review route/evidence>
 - Shared contract and sync-back: <contract responsibility; /sdd-trace and /sdd-sync decision>
 - High-risk review route: <approved route or N/A>
+- Dispatch readiness: <single-owned | parallel-owned | sequential-handoff; worker role; exclusive boundary>
 ```
 
 `Scope category` dùng taxonomy từ protocol. Task material state change không được bắt đầu nếu Human checkpoint persisted thiếu. Task high-risk phải tham chiếu review route đã approved; normal Plan approval không thay thế route đó.
@@ -52,8 +53,9 @@ Mỗi task dùng format sau, bổ sung additive cho format legacy:
 1. Phân rã task theo ba tiêu chí: Atomic, Independent và Verifiable.
 2. Gắn requirement `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` cho business behavior.
 3. Ghi Intent reference, verifiable input/outcome, owner, dependency, file boundary, profile binding, exact command, scope category, checkpoint và contract/sync-back responsibility cho từng task.
-4. **Solo mode** (`--team-size=solo`): Developer xử lý toàn bộ ownership nhưng vẫn đọc và cập nhật shared contract khi task chạm contract dùng chung. **Team mode**: chỉ owner/Lead cập nhật `.sdd/shared_context.md`; contract chưa thuộc ownership phải block dispatch.
-5. Ghi risk và tạo recommendation.
+4. Ghi `Dispatch readiness`: `single-owned`, `parallel-owned` hoặc `sequential-handoff`; nêu worker role và exclusive file boundary. Task trong cùng `parallel-owned` batch không được overlap path, dependency hoặc shared-contract mutation. Shared/integration work phải `sequential-handoff`.
+5. **Solo mode** (`--team-size=solo`): Developer xử lý toàn bộ ownership nhưng vẫn đọc và cập nhật shared contract khi task chạm contract dùng chung. **Team mode**: chỉ owner/Lead cập nhật `.sdd/shared_context.md`; contract chưa thuộc ownership phải block dispatch.
+6. Ghi risk và tạo recommendation.
 
 ## DoD
 

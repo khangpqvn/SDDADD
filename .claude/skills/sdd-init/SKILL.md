@@ -47,7 +47,7 @@ Dùng cho greenfield hoặc bootstrap SDD+ADD trong repository hiện có.
 
 ## Solo mode
 
-Solo mode uses one `@developer` role and no multi-agent dispatch table. It retains Intent Packet, Methodology Profile, Feature Lock, Shadow Plan, Action Record, Architecture Profile and material-state checkpoint rules.
+Team mode cài `/sdd-dispatch` để coordinate Claude Code `Agent` worker theo persisted evidence. Skill không cài settings, identity provider hoặc host enforcement giả định; `.sdd/mcp-config.yaml` vẫn policy-only. Solo mode uses one `@developer` role and no multi-agent dispatch table; `/sdd-dispatch --team-size=solo` chỉ dùng solo-bypass. It retains Intent Packet, Methodology Profile, Feature Lock, Shadow Plan, Action Record, Architecture Profile and material-state checkpoint rules.
 
 Solo delivery removes PR overhead only. Agent does not `git push`; Human self-pushes after validation/commit.
 

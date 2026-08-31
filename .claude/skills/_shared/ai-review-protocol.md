@@ -90,6 +90,25 @@ Execution evidence hoặc handoff state ghi record tối thiểu:
 
 Task không complete khi required checkpoint, verification evidence hoặc sync-back còn thiếu.
 
+### Dispatch Record và retry evidence
+
+Team-mode dispatcher ghi một `## Dispatch Record — <dispatch-id>` dưới `## Current Handoff State` của feature `TASKS.md`. Record là additive evidence, không thay task marker, Action Record hoặc Human Final Review.
+
+```markdown
+## Dispatch Record — D-<feature>-<batch>-A<attempt>
+- Dispatcher and mode: <Claude Code /sdd-dispatch; team | solo-bypass>
+- Batch/tasks/state: <batch, ordered task IDs; PLANNED | AWAITING_APPROVAL | READY | DISPATCHED | RUNNING | VERIFYING | RETRY_PENDING | COMPLETED | BLOCKED | ESCALATED>
+- Ownership and frozen contracts: <boundary check; ID/version/owner or N/A>
+- Profile/checkpoint/commands: <approved evidence>
+- Runtime identity evidence: VERIFIED | UNVERIFIED; <observed evidence>
+- Runtime enforcement evidence: VERIFIED | UNVERIFIED; <observed evidence or absence>
+- Worker/host task references: <supplemental IDs or unavailable>
+- Attempt and retry count: <attempt; consecutive failures; maximum 5>
+- Results/integration/blocker/sync-back: <Action Record, command result, compatibility, blocker, decision>
+```
+
+Runtime policy metadata does not prove host enforcement. Automatic retry is limited to an implementation defect inside the unchanged approved task boundary, frozen contract, profile binding, exact command and checkpoint. A Spec/profile/command/checkpoint/contract/ownership/security/policy/dependency/runtime gap is `BLOCKED`, not retryable. At five consecutive failures, retain task marker `[/]`, set `ESCALATED`, persist a dispatch review report and require Human disposition.
+
 ### Consistency and sync-back
 
 Mọi artifact hoặc code change phải nêu downstream artifact bị ảnh hưởng và có cần `/sdd-trace` hoặc `/sdd-sync` hay không. Shared contract change phải ghi producer, version/status, owner, consumers và compatibility decision trong `.sdd/shared_context.md` trước completion.

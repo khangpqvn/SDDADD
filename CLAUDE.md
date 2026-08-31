@@ -1,7 +1,7 @@
 # CLAUDE.md — Bộ nhớ dự án và kiến trúc
 
 # Version: 1.1.0
-# Project: Starter Template (SDD + ADD Boilerplate)
+# Project: Template khởi đầu SDD + ADD (Starter Template)
 
 ---
 
@@ -92,7 +92,7 @@ src/
 
 ---
 
-## 5. Skill system — generate vs copy
+## 5. Hệ thống skill — tạo mới hay sao chép (generate vs copy)
 
 `/sdd-init` và `/sdd-adopt` **generate** governance files theo tech stack, không copy verbatim từ template. `AGENTS.md` có 8-section canonical structure (Identity, Scope, Tool Permissions, Security Rules, Communication Style, Error Handling, Escalation Protocol, Changelog). `CLAUDE.md` được điền từ project context thực tế. Xem chi tiết tại skill SKILL.md tương ứng.
 

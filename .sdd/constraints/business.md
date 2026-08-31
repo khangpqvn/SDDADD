@@ -1,4 +1,4 @@
-# Constraint Layer 2: Quy tắc nghiệp vụ
+# Tầng ràng buộc 2: Quy tắc nghiệp vụ (Constraint Layer 2)
 # Version: 1.0.0
 # Phạm vi: Agent xử lý business logic — domain và usecase layer
 # Tham chiếu: Slide 10.4 — 3-Layer Constraint Hierarchy

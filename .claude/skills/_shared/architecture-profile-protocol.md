@@ -1,4 +1,4 @@
-# Architecture Profile Protocol
+# Protocol Hồ sơ kiến trúc (Architecture Profile Protocol)
 
 Mọi SDD/ADD skill tạo hoặc thay đổi artifact dự án phải dùng protocol này.
 
@@ -40,9 +40,9 @@ Khi command đủ điều kiện chạy, profile ghi trong `## Approved verifica
 
 `scripts/self-heal.sh` chỉ chấp nhận exact `Command` entry từ profile có persisted `Human Final Review: APPROVED`, đồng thời command đó phải khớp task đã approved.
 
-## Output Language
+## Ngôn ngữ đầu ra (Output Language)
 
-All skill output that reads this protocol must mirror the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`APPROVED`, `PENDING`, `PENDING HUMAN REVIEW`, `CONFIGURATION GAP`, `FAIL`, `PASS`), code identifiers, file paths, and CLI commands are language-invariant.
+Mọi đầu ra của skill đọc protocol này phải theo ngôn ngữ của prompt gọi nó. Prompt tiếng Việt → đầu ra tiếng Việt; prompt tiếng Anh → đầu ra tiếng Anh. Canonical token (`APPROVED`, `PENDING`, `PENDING HUMAN REVIEW`, `CONFIGURATION GAP`, `FAIL`, `PASS`), code identifier, file path và CLI command không phụ thuộc ngôn ngữ.
 
 ## Block message bắt buộc
 

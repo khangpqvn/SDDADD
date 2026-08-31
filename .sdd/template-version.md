@@ -1,4 +1,4 @@
-# SDD + ADD Template Version
+# Phiên bản template SDD + ADD (Template Version)
 
 template-version: 1.3.0
 adopted-at:

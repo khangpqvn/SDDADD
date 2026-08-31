@@ -1,4 +1,4 @@
-# Constraint Layer 3: Quy tắc an toàn
+# Tầng ràng buộc 3: Quy tắc an toàn (Constraint Layer 3)
 # Version: 1.0.0
 # Phạm vi: Mọi Agent — ngưỡng an toàn tuyệt đối, không có ngoại lệ
 # Tham chiếu: Slide 10.4 — 3-Layer Constraint Hierarchy

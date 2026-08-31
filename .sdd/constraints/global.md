@@ -1,4 +1,4 @@
-# Constraint Layer 1: Global kỹ thuật
+# Tầng ràng buộc 1: Kỹ thuật dùng chung (Constraint Layer 1)
 # Version: 1.0.0
 # Phạm vi: Mọi Agent, mọi feature — baseline không thể tự suy đoán
 # Tham chiếu: Slide 10.4 — 3-Layer Constraint Hierarchy

@@ -1,10 +1,10 @@
-# Vòng đời SDD và Multi-Feature Registry
+# Vòng đời SDD và sổ đăng ký nhiều feature (Multi-Feature Registry)
 
 Trạng thái feature và đặc tả của hệ thống.
 
 > **Lần đầu?** Đọc [`../docs/sdd-add-quickstart.md`](../docs/sdd-add-quickstart.md) trước.
 
-## 1. Global governance
+## 1. Governance dùng chung (Global governance)
 
 - [`CONSTITUTION.md`](../CONSTITUTION.md) — Hard quality gate và security rule.
 - [`AGENTS.md`](../AGENTS.md) — Constitution, phạm vi và quyền tool của Agent.
@@ -16,7 +16,7 @@ Trạng thái feature và đặc tả của hệ thống.
 
 ---
 
-## 2. Feature Registry
+## 2. Sổ đăng ký feature (Feature Registry)
 
 | Feature slug | Tên feature | Owner | Status | Path |
 | :--- | :--- | :--- | :--- | :--- |

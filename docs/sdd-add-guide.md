@@ -1,7 +1,7 @@
 # Hướng dẫn vận hành SDD + ADD
 # Version: 7.2.0
 
-Tài liệu vận hành đầy đủ cho Product Owner, Human Director, Tech Lead, Developer, QA và AI Agent. Các skill trong `.claude/skills/` là command contract; tài liệu này mô tả workflow và decision cần có.
+Tài liệu này giải thích toàn bộ quy trình cho Product Owner, Human Director, Tech Lead, Developer, QA và AI Agent. `.claude/skills/` giữ command contract; trang này giúp biết **khi nào** dùng command, cần chuẩn bị gì và khi nào phải dừng.
 
 ## 1. Mô hình vận hành
 
@@ -11,20 +11,20 @@ SDD quản lý intent, requirement, contract, risk, traceability và validation.
 CONTEXT → SPEC → PLAN → TASKS → execute → verify → sync
 ```
 
-Agent đề xuất và ghi evidence. Human sở hữu business decision, risk acceptance và Human Final Review. Chat acknowledgement không phải durable approval.
+Human sở hữu business decision, risk acceptance và Human Final Review. Agent đề xuất, thực thi trong scope hợp lệ rồi ghi evidence. Chat acknowledgement không phải durable approval.
 
 Agent không tự approve, không bypass quality gate, không suy đoán stack/command, không commit nếu chưa có Human request, và không `git push` hoặc deploy.
 
-## 2. Artifact contract
+## 2. Bốn artifact của một feature
 
-| Artifact | Nội dung bắt buộc | Gate |
+| Artifact | Nội dung bắt buộc | Gate để đi tiếp |
 | :--- | :--- | :--- |
 | `CONTEXT.md` | Intent Packet, Methodology Profile, glossary, constraints, question disposition | Human review trước Spec |
 | `SPEC.md` | EARS, BDD/acceptance, errors, out-of-scope, SemVer, Feature Lock | `APPROVED & LOCKED` trước technical execution |
 | `PLAN.md` | `REQ-XXX` mapping, data flow, risk, profile evidence, consistency map | Human review trước Tasks |
-| `TASKS.md` | atomic task, owner, file boundary, command, checkpoint, sync-back | Human review trước execute |
+| `TASKS.md` | Atomic task, owner, file boundary, command, checkpoint, sync-back | Human review trước execute |
 
-### Intent Packet
+### Intent Packet: bắt đầu bằng kết quả cần đạt
 
 ```markdown
 ## Intent Packet
@@ -36,9 +36,9 @@ Agent không tự approve, không bypass quality gate, không suy đoán stack/c
 - Decision owner: <human role>
 ```
 
-Intent is technology-neutral. A material question is `resolved`, an `approved assumption`, `deferred`, or a `blocking decision`; otherwise Context cannot advance.
+Intent phải technology-neutral. Mỗi câu hỏi trọng yếu phải được ghi là `resolved`, `approved assumption`, `deferred` hoặc `blocking decision`; nếu không, Context chưa được sang Spec.
 
-### Methodology Profile
+### Methodology Profile: chọn độ sâu phù hợp rủi ro
 
 ```markdown
 ## Methodology Profile
@@ -49,33 +49,35 @@ Intent is technology-neutral. A material question is `resolved`, an `approved as
 - Unresolved-decision owner: <human role>
 ```
 
-High-risk review route is required for sensitive data, financial/business-critical behavior, destructive/irreversible work, compliance, authorization, cross-system consistency and public/external contracts. It calibrates review depth only; it never chooses technology or bypasses profile evidence.
+High-risk review route bắt buộc cho dữ liệu nhạy cảm, tài chính/business-critical behavior, destructive/irreversible work, compliance, authorization, cross-system consistency và public/external contracts. Profile này chỉ điều chỉnh độ sâu review; không chọn công nghệ và không thay Architecture Profile evidence.
 
-### Feature Lock
+### Feature Lock: giữ phạm vi ổn định
 
-Feature Lock freezes behavior and contract within the current feature/sprint only. Deferred work remains explicit. A change uses `/sdd-update`, invalidates affected review and requires new durable review.
+Feature Lock khóa behavior và contract của feature/sprint hiện tại, không khóa các việc không liên quan. Mọi thay đổi dùng `/sdd-update`, làm invalid review bị ảnh hưởng và cần durable review mới.
 
-## 3. Architecture Profile gate
+## 3. Gate Hồ sơ kiến trúc
 
-`.sdd/architecture-profile.md` precedence:
+`.sdd/architecture-profile.md` được ưu tiên theo thứ tự:
 
 ```text
 approved profile → clear repository evidence → explicit input → core-only baseline
 ```
 
-Context/Spec may be core-only and business-neutral. Plan, Tasks and execution stop if a relevant binding or exact command is missing. Do not replace missing command with `npm`, `pnpm`, `yarn` or a placeholder.
+Context/Spec có thể core-only và business-neutral. Plan, Tasks và execution phải dừng khi thiếu binding liên quan hoặc exact command. Không thay command thiếu bằng `npm`, `pnpm`, `yarn` hoặc placeholder.
+
+**Người mới:** Trước Plan, mở profile và kiểm tra mỗi behavior kỹ thuật đã có evidence, `APPROVED` binding và command chạy được chưa. Xem [Hướng dẫn Hồ sơ kiến trúc](./architecture-profile-guide.md).
 
 ## 4. Human Final Review
 
-Artifacts use the canonical blocks from `.claude/skills/_shared/ai-review-protocol.md`. `APPROVED` requires decision, reviewer, timestamp and follow-up. `REVISE` and `REJECTED` block downstream work. Artifact change after approval invalidates that approval.
+Artifact dùng canonical block từ `.claude/skills/_shared/ai-review-protocol.md`. `APPROVED` cần decision, reviewer, timestamp và follow-up. `REVISE` và `REJECTED` block downstream work. Artifact đổi sau approval thì approval cũ không còn hiệu lực.
 
-Use `/sdd-review` instead of manual status edits when command target is supported. Architecture Profile is a valid review target, but review cannot make a missing binding or command valid.
+Dùng `/sdd-review` thay vì tự sửa status khi command hỗ trợ target. Architecture Profile là review target hợp lệ, nhưng review không thể hợp thức hóa binding hoặc command còn thiếu.
 
-## 5. Plan and task design
+## 5. Thiết kế Plan và Tasks
 
-Plan maps every implementation/data flow to `REQ-XXX`, classifies state change, identifies shared-contract impact and records trace/sync ownership.
+Plan liên kết mọi implementation/data flow với `REQ-XXX`, phân loại state change, nêu shared-contract impact và owner của trace/sync.
 
-Each task contains:
+Mỗi task phải có:
 
 ```markdown
 ### T00X — <title>
@@ -90,22 +92,22 @@ Each task contains:
 - High-risk review route: <route or N/A>
 ```
 
-Tasks cannot silently absorb Feature Lock exclusions.
+Task không được âm thầm nhận thêm phần nằm trong Feature Lock exclusions.
 
-## 6. Execute and evidence
+## 6. Thực thi và bằng chứng
 
-Every task starts with a Shadow Plan containing Intent/DoD, scope/file boundary, profile version/binding/evidence, exact command, state-change category, checkpoint, contract/version, risk and sync-back decision.
+Mỗi task bắt đầu bằng Shadow Plan: Intent/DoD, scope/file boundary, profile version/binding/evidence, exact command, state-change category, checkpoint, contract/version, risk và sync-back decision.
 
-### Material state change
+### Thay đổi trạng thái trọng yếu
 
-Persisted Human checkpoint is required **before action** for:
+Cần persisted Human checkpoint **trước action** cho:
 
 - shared/public contract;
-- persistence schema or business-data mutation;
-- permission, security, dependency or runtime configuration;
-- external or irreversible side effect.
+- persistence schema hoặc business-data mutation;
+- permission, security, dependency hoặc runtime configuration;
+- external hoặc irreversible side effect.
 
-Read-only/low-risk task still needs Shadow Plan and Action Record, but baseline does not require a checkpoint. `/add-execute --strict-checkpoint` is opt-in for every task.
+Task read-only/low-risk vẫn cần Shadow Plan và Action Record, nhưng baseline không bắt checkpoint. `/add-execute --strict-checkpoint` là opt-in để yêu cầu checkpoint cho mọi task.
 
 ### Action Record
 
@@ -121,36 +123,36 @@ Read-only/low-risk task still needs Shadow Plan and Action Record, but baseline 
 - Sync-back decision: <affected artifacts; trace/sync decision>
 ```
 
-Task completion requires checkpoint, verification and sync-back evidence when applicable.
+Task chỉ complete khi checkpoint, verification và sync-back evidence áp dụng đều tồn tại.
 
-## 7. Failure classification
+## 7. Khi thất bại: phân loại trước khi sửa
 
-| Classification | Required action |
+| Classification | Action bắt buộc |
 | :--- | :--- |
-| Implementation defect | Repair only in approved task/file boundary; rerun exact command. |
-| Spec gap | Stop, `/sdd-update --artifact=spec`, review/lock, update downstream work. |
-| Profile/configuration gap | Stop, update/review profile; do not infer an adapter or command. |
-| Prohibited/high-risk mutation | Stop; get required Human checkpoint and route. |
+| Implementation defect | Chỉ repair trong approved task/file boundary; chạy lại exact command. |
+| Spec gap | Dừng, `/sdd-update --artifact=spec`, review/lock, rồi update downstream work. |
+| Profile/configuration gap | Dừng, update/review profile; không suy ra adapter hoặc command. |
+| Prohibited/high-risk mutation | Dừng; lấy Human checkpoint và route cần thiết. |
 
-Use `/sdd-trace --feature=<slug> --diff` for requirement/code/test changes. Use `/sdd-sync --feature=<slug> --reason="..."` for shared contract or state changes.
+Dùng `/sdd-trace --feature=<slug> --diff` khi requirement/code/test đổi. Dùng `/sdd-sync --feature=<slug> --reason="..."` khi shared contract hoặc state đổi.
 
-## 8. Shared contract and multi-agent work
+## 8. Shared contract và nhiều Agent
 
-`.sdd/shared_context.md` holds frozen records: ID/version/status, producer, consumers, owner, compatibility, linked requirements/tasks/evidence, last sync and unresolved decision.
+`.sdd/shared_context.md` giữ frozen record: ID/version/status, producer, consumers, owner, compatibility, linked requirements/tasks/evidence, last sync và unresolved decision.
 
-Only contract owner or Lead mutates a shared contract. Every dispatch includes task ID, frozen contract version, ownership/file boundary, selected profile binding, exact command, allowed action/checkpoint and audit evidence. Contract drift or overlapping ownership blocks affected work.
+Chỉ contract owner hoặc Lead được mutate shared contract. Mỗi dispatch phải có task ID, frozen contract version, ownership/file boundary, selected profile binding, exact command, allowed action/checkpoint và audit evidence. Contract drift hoặc ownership overlap block công việc bị ảnh hưởng.
 
-`.sdd/mcp-config.yaml` is a dispatch/audit policy specification; runtime host enforcement must be configured separately. Team execution uses `/sdd-dispatch --feature=<slug>` to create persisted Dispatch Records and invoke observed Claude Code `Agent` workers; `/add-execute` remains the atomic worker procedure. Material/cross-contract batches need batch-specific persisted Human approval, while low-risk owned tasks retain existing artifact gates.
+`.sdd/mcp-config.yaml` là dispatch/audit policy specification; runtime host enforcement phải được cấu hình riêng. Team dùng `/sdd-dispatch --feature=<slug>` để tạo Dispatch Record và gọi Claude Code `Agent` worker đang quan sát được; `/add-execute` vẫn là atomic worker procedure. Material/cross-contract batch cần batch-specific persisted Human approval.
 
-## 9. Handoff and resume
+## 9. Handoff và resume
 
-`/sdd-handoff` records Intent/DoD, active contract version, approved boundary, checkpoint, exact command/result, blocker and next decision in `Current Handoff State` with Action Record.
+`/sdd-handoff` ghi Intent/DoD, active contract version, approved boundary, checkpoint, exact command/result, blocker và next decision vào `Current Handoff State` cùng Action Record.
 
-`/sdd-resume` restores this data and proposes execution only when review, profile, command, contract ownership and required checkpoint are valid. Legacy high-risk features need Human disposition rather than automatic invalidation.
+`/sdd-resume` chỉ đề xuất execution khi review, profile, command, contract ownership và checkpoint bắt buộc hợp lệ. Legacy high-risk feature cần Human disposition thay vì automatic invalidation.
 
 ## 10. Self-heal
 
-`self-heal.sh` is opt-in evidence collection, not an automated repair mechanism:
+`self-heal.sh` là opt-in evidence collection, không phải automated repair:
 
 ```bash
 ./scripts/self-heal.sh --feature=<slug> --task=<task-id> \
@@ -160,22 +162,22 @@ Only contract owner or Lead mutates a shared contract. Every dispatch includes t
   --scope-category=implementation-defect
 ```
 
-It rejects unapproved/malformed commands and every non-implementation scope. It never edits source, self-approves, commits, pushes, deploys or claims that `claude --print` applied a repair.
+Script từ chối unapproved/malformed command và mọi non-implementation scope. Nó không sửa source, self-approve, commit, push, deploy hoặc tuyên bố `claude --print` đã repair.
 
 ## 11. Delivery
 
-1. Verify exact command output, Action Records, audit, trace and sync evidence.
-2. `/git-validate --scope=commit` must return `READY`.
-3. Agent commits only when Human requests it.
-4. Human runs `git push -u origin <head>`.
-5. Team flow then runs `/git-validate --scope=pr --strict`; Agent may create a PR only after remote branch exists and Human confirms outward-facing content. Solo skips PR overhead.
+1. Verify exact command output, Action Records, audit, trace và sync evidence.
+2. `/git-validate --scope=commit` phải trả `READY`.
+3. Agent chỉ commit khi Human yêu cầu.
+4. Human chạy `git push -u origin <head>`.
+5. Team flow chạy `/git-validate --scope=pr --strict`; Agent chỉ tạo PR khi remote branch tồn tại và Human xác nhận outward-facing content. Solo bỏ PR overhead.
 
-## 12. Completion checklist
+## 12. Checklist hoàn thành
 
-- [ ] Intent, Methodology Profile and Feature Lock match the delivered scope.
-- [ ] Required artifacts/reviews are valid.
-- [ ] Profile has relevant approved bindings and exact commands.
-- [ ] Every complete task has verification, Action Record and required checkpoint/sync-back.
-- [ ] Trace has no affected broken consistency.
-- [ ] Shared contract owner/version/compatibility are synchronized when applicable.
-- [ ] Git validation is `READY`.
+- [ ] Intent, Methodology Profile và Feature Lock khớp delivered scope.
+- [ ] Artifact/review bắt buộc còn hợp lệ.
+- [ ] Profile có approved binding và exact command liên quan.
+- [ ] Mỗi task complete có verification, Action Record, checkpoint/sync-back bắt buộc.
+- [ ] Trace không có consistency bị vỡ.
+- [ ] Shared contract owner/version/compatibility đã sync khi áp dụng.
+- [ ] Git validation là `READY`.

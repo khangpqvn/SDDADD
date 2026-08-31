@@ -1,4 +1,4 @@
-# Multi-Agent shared context và API contract
+# Ngữ cảnh dùng chung nhiều Agent và API contract (Multi-Agent shared context)
 
 # Version: 1.1.0
 # Last-Updated: 2026-08-31
@@ -9,7 +9,7 @@
 
 ---
 
-## 1A. Solo Developer Context *(solo mode)*
+## 1A. Ngữ cảnh lập trình viên làm một mình (Solo Developer Context) *(solo mode)*
 
 | Owned | Files |
 | :--- | :--- |
@@ -33,14 +33,14 @@ Lead là dispatcher duy nhất: tạo Dispatch Record, chọn batch, invoke work
 
 Dispatch evidence lưu dưới `## Current Handoff State` của feature `TASKS.md`. Runtime identity/enforcement phải ghi `VERIFIED` hoặc `UNVERIFIED` theo observed host evidence; `.sdd/mcp-config.yaml` là policy specification, không phải chứng cứ enforcement.
 
-## 2. Shared-contract mutation rule
+## 2. Quy tắc thay đổi shared contract (Shared-contract mutation rule)
 
 1. Mọi agent đọc frozen contract record trước khi đổi interface, event, DTO, state hoặc shared behavior.
 2. Chỉ contract owner hoặc Lead được sửa contract. Sub-agent phát hiện drift hoặc cần thay đổi ngoài ownership phải dừng, ghi evidence và gửi change request cho owner.
 3. Shared contract chỉ dùng technology-neutral shape cho đến khi adapter binding được Architecture Profile approve.
 4. Contract change phải cập nhật producer, consumers, compatibility và linked evidence; sau đó quyết định `/sdd-trace` và `/sdd-sync` theo Action Record.
 
-## 3. Frozen shared-contract record
+## 3. Bản ghi shared contract đã đóng băng (Frozen shared-contract record)
 
 Dùng một record cho từng contract đã fixed. Giữ placeholder khi chưa có contract thay vì suy đoán API syntax.
 

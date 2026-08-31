@@ -82,7 +82,28 @@ Before shared/public contract, schema/business-data, permission/security/depende
 
 `.sdd/mcp-config.yaml` is a policy specification. Runtime host enforcement must be configured separately; the file itself does not prove enforcement.
 
-## 8. Handoff and resume
+## 8. Claude Code dispatcher scenarios
+
+### Parallel-owned, low-risk batch
+
+1. `TASKS.md` is approved and T001/T002 have completed dependencies, exact commands, disjoint exclusive boundaries and `Dispatch readiness: parallel-owned`.
+2. Lead observes Claude Code `Agent`, records runtime identity/enforcement evidence as `VERIFIED` or `UNVERIFIED`, then runs:
+
+```text
+/sdd-dispatch --feature=<slug> --batch=<batch-id> --task=<T001,T002>
+```
+
+3. Each worker returns changed paths, Action Record, exact command/result, requirement coverage, blocker and sync-back decision.
+4. Lead validates boundaries/integration and only then marks tasks `[x]`. Missing return evidence blocks completion.
+
+### Blocked cross-contract batch
+
+1. A batch changes a frozen shared contract or public behavior.
+2. Lead creates `.sdd/reviews/dispatch-<feature>-<batch>.md` with canonical recommendation and records the exact contract/version, tasks, boundary and allowed checkpoint.
+3. Until Human Final Review is `APPROVED`, `/sdd-dispatch` remains `AWAITING_APPROVAL`; no worker mutation occurs.
+4. Drift, scope change or fifth consecutive eligible retry failure is `BLOCKED` or `ESCALATED`, not an opportunity to expand permissions.
+
+## 9. Handoff and resume
 
 ### Handoff
 
@@ -100,7 +121,7 @@ Ensure `Current Handoff State` records Intent/DoD, approved scope, active contra
 
 Resume blocks when required binding, review, checkpoint, contract ownership or exact command is missing. Legacy high-risk work requires Human disposition rather than automatic invalidation.
 
-## 9. Self-heal evidence collection
+## 10. Self-heal evidence collection
 
 ```bash
 ./scripts/self-heal.sh --feature=<slug> --task=<task-id> \
@@ -112,7 +133,7 @@ Resume blocks when required binding, review, checkpoint, contract ownership or e
 
 The script is opt-in and evidence-only. It rejects non-implementation scope and never applies a repair, commit, push, deploy, approval or external action.
 
-## 10. Delivery
+## 11. Delivery
 
 1. Verify intended diff and evidence.
 2. Run `/git-validate --scope=commit`.
@@ -120,6 +141,6 @@ The script is opt-in and evidence-only. It rejects non-implementation scope and 
 4. Human runs `git push -u origin <head>`.
 5. Team delivery then runs strict remote validation and may create a PR after Human confirms its content. Solo skips PR overhead.
 
-## 11. Constitution change
+## 12. Constitution change
 
 Use `/sdd-rfc`. Do not edit `CONSTITUTION.md` directly after template release. An approved RFC is required before constitutional governance changes.

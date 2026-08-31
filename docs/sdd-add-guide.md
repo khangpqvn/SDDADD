@@ -140,7 +140,7 @@ Use `/sdd-trace --feature=<slug> --diff` for requirement/code/test changes. Use 
 
 Only contract owner or Lead mutates a shared contract. Every dispatch includes task ID, frozen contract version, ownership/file boundary, selected profile binding, exact command, allowed action/checkpoint and audit evidence. Contract drift or overlapping ownership blocks affected work.
 
-`.sdd/mcp-config.yaml` is a dispatch/audit policy specification; runtime host enforcement must be configured separately.
+`.sdd/mcp-config.yaml` is a dispatch/audit policy specification; runtime host enforcement must be configured separately. Team execution uses `/sdd-dispatch --feature=<slug>` to create persisted Dispatch Records and invoke observed Claude Code `Agent` workers; `/add-execute` remains the atomic worker procedure. Material/cross-contract batches need batch-specific persisted Human approval, while low-risk owned tasks retain existing artifact gates.
 
 ## 9. Handoff and resume
 

@@ -18,10 +18,13 @@ Dùng khi bắt đầu phiên mới để quét task dở dang và nạp lại f
 
 1. Quét feature/task dở dang trong `.sdd/features/`.
 2. Đọc `CONTEXT.md`, `SPEC.md`, Architecture Profile theo [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md), `PLAN.md`, `TASKS.md`, `.sdd/shared_context.md` và `## Current Handoff State` nếu có.
-3. Báo feature, task đã xong/tổng số, task tiếp theo, Intent/DoD, approved scope/file boundary, active contract version, profile version/binding, state-change category/checkpoint, exact command, review state, exact next decision/command và unresolved blocker.
+3. Báo feature, task đã xong/tổng số, task tiếp theo, Intent/DoD, approved scope/file boundary, active contract version, profile version/binding, state-change category/checkpoint, exact command, review state, exact next decision/command và unresolved blocker. Detect active Dispatch Record and report its dispatch ID/state, attempts, worker references and runtime evidence.
 4. Với legacy high-risk feature thiếu metadata, dừng và yêu cầu Human disposition: chấp nhận evidence hiện tại hoặc yêu cầu targeted update. Không retroactively invalidate artifact chỉ vì format cũ.
-5. Chỉ đề xuất `/add-execute --feature={feature-slug}` khi task scope, required binding, exact verification command, review state, required checkpoint và contract ownership đều hợp lệ.
-6. Nếu profile binding/review/checkpoint còn `PENDING`, contract drift, hoặc blocker chưa resolve, báo blocker theo protocol; không đề xuất execution command suy đoán.
+5. Dispatch RETRY_PENDING retry-only qua `/sdd-dispatch --feature={feature-slug} --retry` sau khi revalidate immutable task boundary, contract/profile/checkpoint, dispatch approval và observed runtime evidence.
+6. Dispatch `RUNNING` bị gián đoạn hoặc `BLOCKED` chỉ resume qua `/sdd-dispatch --feature={feature-slug} --resume` sau khi Lead resolves evidence, closes old record and creates new `PLANNED` record. `ESCALATED` cần Human disposition explicit authorizing recovery trước `--resume`; changed immutable inputs cần batch approval mới.
+7. Không giả định Agent ID, host task mirror hoặc permission của session cũ còn tồn tại.
+8. Chỉ đề xuất `/add-execute --feature={feature-slug}` khi task scope, required binding, exact verification command, review state, required checkpoint và contract ownership đều hợp lệ.
+9. Nếu profile binding/review/checkpoint còn `PENDING`, contract drift, hoặc blocker chưa resolve, báo blocker theo protocol; không đề xuất execution command suy đoán.
 
 ## AI Recommendation và Human Final Review
 

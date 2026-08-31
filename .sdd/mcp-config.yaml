@@ -109,6 +109,23 @@ dispatch:
     - allowed_action_and_checkpoint
     - audit_evidence_reference
 
+# Claude Code mapping is policy metadata only. It does not prove host enforcement.
+claude_code_dispatch:
+  preferred_worker_invocation: Agent
+  optional_task_mirror_tools:
+    - TaskCreate
+    - TaskGet
+    - TaskList
+    - TaskUpdate
+  default_runtime_identity_evidence: UNVERIFIED
+  default_runtime_enforcement_evidence: UNVERIFIED
+  required_evidence_fields:
+    - runtime_identity_evidence
+    - runtime_enforcement_evidence
+    - worker_reference
+    - host_task_tracking_evidence
+  inherited_global_denied: true
+
 # Tool borrowing chỉ tăng quyền tạm thời theo một task. Lead ghi task, temporary
 # scope, justification, Lead action và outcome. Global denial không được override.
 tool_borrowing:

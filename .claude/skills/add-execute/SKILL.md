@@ -32,6 +32,8 @@ Dùng để thực thi task trong `.sdd/features/{feature-slug}/TASKS.md`, theo 
 
 ### 1. Atomic session và Shadow Plan bắt buộc
 
+Trong team mode, `/sdd-dispatch` là coordinator; worker chỉ bắt đầu `/add-execute` sau khi validate immutable dispatch packet: dispatch ID, role, task/DoD, exclusive file boundary, frozen contract, profile evidence, exact commands, checkpoint và policy evidence. Packet thiếu, contract drift, boundary mismatch hoặc host-enforcement claim không có observed evidence là `BLOCKED`.
+
 Mỗi session chỉ load task-scoped context: Intent Packet, locked `REQ-XXX`, applicable Plan/task records, profile binding/exact command, shared contract version và review evidence. Không absorb cleanup hoặc scope ngoài task.
 
 Trước mỗi task, xuất Shadow Plan:
@@ -97,6 +99,7 @@ Nếu test fail do requirement mơ hồ/thiếu edge case:
 2. Phân loại failure: implementation defect, Spec gap, profile/configuration gap, hoặc prohibited/high-risk mutation.
 3. Với Spec gap hoặc profile/configuration gap, dừng, đề xuất `/sdd-update` hoặc Architecture Profile review và chờ Human.
 4. Chỉ bounded recovery cho implementation defect trong approved task/file scope; không auto-retry mutation thuộc prohibited/high-risk category.
+5. Khi dispatcher đang điều phối, worker trả Action Record-compatible payload gồm changed paths, exact command/result, requirement coverage, residual blocker và sync-back decision. Dispatcher chỉ retry khi packet immutable không đổi; maximum 5 consecutive failures trước `ESCALATED`.
 
 ## AI Recommendation và Human Final Review
 

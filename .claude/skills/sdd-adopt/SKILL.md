@@ -29,7 +29,7 @@ Dùng để adopt SDD+ADD vào repository có source hoặc tạo Reverse Spec c
 
 Generate `AGENTS.md`, `CLAUDE.md`, `.agentignore` and `.gitignore` from observed convention, repository paths, real commands and secret boundaries. Never copy stack-specific permissions, command names or source layout as a default.
 
-`CLAUDE.md` reflects approved profile for human readers. `.sdd/mcp-config.yaml` is policy specification; it does not prove runtime enforcement.
+`CLAUDE.md` reflects approved profile for human readers. `.sdd/mcp-config.yaml` is policy specification; it does not prove runtime enforcement. `/sdd-dispatch` maps to Claude Code `Agent` only when the adopted host exposes observed evidence; adoption does not copy assumed settings, identity provider or permission configuration.
 
 ## Reverse Spec
 

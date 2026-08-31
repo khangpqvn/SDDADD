@@ -22,7 +22,7 @@ CONTEXT → SPEC → PLAN → TASKS → execute → verify → sync
 - `CONTEXT.md` giữ Intent Packet: WHAT, WHY, Definition of Done, boundaries, exclusions và decision owner.
 - `SPEC.md` giữ requirement EARS, Methodology Profile và Feature Lock cho phạm vi feature/sprint.
 - `PLAN.md` và `TASKS.md` map `REQ-XXX`, architecture/profile evidence, state-change category và verification command.
-- Mỗi task có Shadow Plan và Action Record.
+- Mỗi task có Shadow Plan và Action Record. Team mode dùng `/sdd-dispatch` để tạo Dispatch Record và điều phối Claude Code `Agent` worker trong ownership boundary.
 - `/sdd-trace` kiểm tra consistency; `/sdd-sync` đồng bộ registry và shared contract khi cần.
 
 ## Bắt đầu
@@ -40,7 +40,7 @@ Sau khi Context và Spec được review, chọn binding cần thiết và exact
 ```text
 /sdd-plan --feature=feat-user-auth
 /sdd-tasks --feature=feat-user-auth
-/add-execute --feature=feat-user-auth
+/sdd-dispatch --feature=feat-user-auth # team mode; /add-execute remains atomic worker execution
 /sdd-lint --feature=feat-user-auth
 /sdd-audit --feature=feat-user-auth
 /sdd-trace --feature=feat-user-auth

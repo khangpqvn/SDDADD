@@ -20,8 +20,8 @@ Dùng trước khi kết thúc phiên có feature chưa hoàn thành. Skill tổ
    - `[x]`: Hoàn thành; required exact verification command đã pass, hoặc `N/A` với lý do hợp lệ; Action Record, checkpoint và sync-back cần thiết đã có.
    - `[/]`: Đang thực hiện.
    - `[ ]`: Chưa thực hiện.
-2. Ghi feature/task đang dở, profile version/binding evidence, active contract version, approved scope/file boundary, state-change checkpoint, exact command đã chạy/kết quả, method đang dở, blocker và open question.
-3. Thêm/cập nhật `## Current Handoff State` cuối `TASKS.md` với Action Record theo [AI Review Protocol](../_shared/ai-review-protocol.md), exact next decision/command và sync-back state.
+2. Ghi feature/task đang dở, profile version/binding evidence, active contract version, approved scope/file boundary, state-change checkpoint, exact command đã chạy/kết quả, method đang dở, blocker và open question. Nếu có Dispatch Record, giữ dispatch ID, batch/state, attempt count, worker reference, runtime identity/enforcement evidence, pending approval và exact resume operation.
+3. Thêm/cập nhật `## Current Handoff State` cuối `TASKS.md` với Action Record và Dispatch Record theo [AI Review Protocol](../_shared/ai-review-protocol.md), exact next decision/command và sync-back state. Agent/host task reference hết hạn hoặc unavailable phải được ghi rõ; không tự reassign ownership.
 4. Handoff ngay khi scope expansion, blocker, contract drift hoặc decision mới xuất hiện; không tiếp tục absorb unrelated cleanup.
 5. Xuất tóm tắt và hướng dẫn phiên sau:
 

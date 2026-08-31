@@ -30,7 +30,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 2. Phân loại thay đổi dự kiến. Chỉ cập nhật registry không làm thay đổi contract có thể tiếp tục với Action Record. Mọi shared/public contract change là material state change.
 3. Trước shared-contract write, xác minh checkpoint persisted đã `APPROVED` cho feature/contract, cùng decision, reviewer và timestamp. Nếu thiếu, tạo recommendation `PENDING HUMAN REVIEW`, lưu tại `.sdd/reviews/sync-<slug>.md`, rồi dừng; recommendation sau action không thể hợp thức hóa write trước đó.
 4. Trước khi sửa shared contract, đọc ownership và frozen contract record trong `.sdd/shared_context.md`. Chỉ contract owner hoặc Lead được sửa; actor khác dừng và gửi change request.
-5. Sau checkpoint hợp lệ, cập nhật `.sdd/README.md`; tổng hợp contract được evidence xác nhận; ghi producer, contract ID/version/status, owner, linked `REQ-XXX`/task/review evidence, consumers, compatibility, unresolved decision, last sync và Action Record reference.
+5. Sau checkpoint hợp lệ, cập nhật `.sdd/README.md`; tổng hợp contract được evidence xác nhận; ghi producer, contract ID/version/status, owner, linked `REQ-XXX`/task/review/Dispatch Record evidence, consumers, compatibility, unresolved decision, last sync và Action Record reference.
 6. Ghi hoặc đề xuất `/sdd-trace` khi contract version, requirement hoặc implementation evidence thay đổi. Action Record phải tham chiếu checkpoint đã tồn tại trước action.
 
 ## Output

@@ -50,7 +50,7 @@ Sau khi review/lock Spec và approve Architecture Profile:
 ```text
 /sdd-plan --feature=feat-user-register
 /sdd-tasks --feature=feat-user-register
-/add-execute --feature=feat-user-register
+/sdd-dispatch --feature=feat-user-register # team mode; /add-execute remains atomic worker execution
 /sdd-lint --feature=feat-user-register
 /sdd-audit --feature=feat-user-register
 /sdd-trace --feature=feat-user-register

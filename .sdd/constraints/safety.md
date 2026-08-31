@@ -55,6 +55,7 @@ Chỉ dùng secret scan tool/command đã được Architecture Profile hoặc C
 | AGT-S-05 | Mọi DB schema change phải qua Human Final Review trước execution. |
 | AGT-S-06 | Material state change — shared/public contract, business-data mutation, security/permission/dependency/runtime configuration, external/irreversible side effect — cần Human checkpoint bền vững trước action. |
 | AGT-S-07 | Self-heal chỉ là opt-in bounded recovery cho implementation defect trong approved task/file scope; không self-approve, commit, push, deploy hoặc mutate prohibited/high-risk scope. |
+| AGT-S-08 | Dispatch retry không được mở rộng task/file boundary, frozen contract, profile binding, exact command, checkpoint hoặc chạm material/cross-contract work nếu chưa có Human checkpoint persisted. |
 
 ---
 

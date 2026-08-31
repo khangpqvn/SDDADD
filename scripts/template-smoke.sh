@@ -34,6 +34,7 @@ required_files=(
   .claude/skills/sdd-tasks/SKILL.md
   .claude/skills/sdd-update/SKILL.md
   .claude/skills/add-execute/SKILL.md
+  .claude/skills/sdd-dispatch/SKILL.md
   .claude/skills/sdd-trace/SKILL.md
   .claude/skills/sdd-sync/SKILL.md
   .claude/skills/sdd-review/SKILL.md
@@ -66,6 +67,30 @@ require_token ".claude/skills/sdd-tasks/SKILL.md" "Scope category"
 require_token ".claude/skills/sdd-update/SKILL.md" "## Change Impact Record"
 require_token ".claude/skills/add-execute/SKILL.md" "Atomic session"
 require_token ".claude/skills/add-execute/SKILL.md" "Human checkpoint"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "Claude Code"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "Agent"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "TaskCreate"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "AUDIT EVIDENCE REFERENCE"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "--resume"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "Dispatch Record"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "RETRY_PENDING"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "solo-bypass"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "Runtime identity evidence"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "Runtime enforcement evidence"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "maximum 5"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "does not prove host enforcement"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "VERIFYING -> COMPLETED | RETRY_PENDING | BLOCKED | ESCALATED"
+require_token ".claude/skills/sdd-dispatch/SKILL.md" "ESCALATED -> PLANNED"
+require_token ".claude/skills/sdd-resume/SKILL.md" "RETRY_PENDING retry-only"
+require_token "docs/multi-agent-orchestration-guide.md" "VERIFYING -> COMPLETED | RETRY_PENDING | BLOCKED | ESCALATED"
+require_token "docs/multi-agent-orchestration-guide.md" "ESCALATED -> PLANNED"
+require_token "docs/multi-agent-orchestration-guide.md" "[--resume]"
+require_token ".sdd/mcp-config.yaml" "claude_code_dispatch"
+require_token ".sdd/mcp-config.yaml" "UNVERIFIED"
+require_token ".sdd/shared_context.md" "task ID"
+require_token ".sdd/shared_context.md" "audit evidence reference"
+require_token "docs/multi-agent-orchestration-guide.md" "task_id"
+require_token "docs/multi-agent-orchestration-guide.md" "audit_evidence_reference"
 require_token ".claude/skills/sdd-trace/SKILL.md" 'contract `DRIFT`'
 require_token ".claude/skills/sdd-sync/SKILL.md" "--feature=<feature-slug>"
 require_token ".claude/skills/sdd-sync/SKILL.md" 'checkpoint persisted đã `APPROVED`'

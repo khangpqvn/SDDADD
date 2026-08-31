@@ -20,6 +20,7 @@ Dùng skill này sau khi Human Director, Tech Lead hoặc reviewer được ủy
   - `.sdd/features/feat-user-register/PLAN.md`
   - `.sdd/features/feat-user-register/TASKS.md`
   - `.sdd/reviews/audit-feat-user-register.md`
+  - `.sdd/reviews/dispatch-feat-user-register-batch-01.md`
   - `.sdd/rfcs/RFC-001-soft-delete-policy.md`
   - `.sdd/architecture-profile.md`
 - Hoặc dùng cặp `--feature=<feature-slug> --artifact=<context|spec|plan|tasks>`.
@@ -55,27 +56,32 @@ Không được bỏ trống các trường bắt buộc. Dùng `--status=REVISE
    - `reviewed-at` nếu được truyền phải là timestamp ISO-8601 có timezone, ví dụ `2026-08-22T00:45:00+07:00`; nếu không truyền thì mặc định lấy ISO-8601 timestamp hiện tại có timezone của hệ thống.
    - `decision` phải nói rõ artifact/phạm vi đã duyệt và kết luận; `follow-up` phải nói bước tiếp theo hoặc lý do không có bước tiếp theo.
 
-4. **Kiểm tra trạng thái cũ**:
+4. **Batch dispatch review**:
+   - Batch dispatch approval dùng `.sdd/reviews/dispatch-<feature>-<batch>.md`; `TASKS.md` Dispatch Record chỉ tham chiếu report này và không là review target độc lập.
+   - Với material/cross-contract batch, `decision` phải nêu feature, batch/task IDs, frozen contract version, scope/file boundary và allowed action/checkpoint.
+   - Không dùng review để xác nhận host enforcement không có observed evidence; `UNVERIFIED` là configuration limitation, không phải approval bypass.
+
+5. **Kiểm tra trạng thái cũ**:
    - Nếu review hiện tại đã là `APPROVED`, không ghi đè decision hợp lệ bằng lệnh mới.
    - Nếu artifact đã thay đổi approved scope — intent, requirement, file boundary, exact command, checkpoint category hoặc shared-contract decision — phải coi review cũ là không còn hợp lệ, đưa status về `PENDING`, tạo recommendation mới hoặc ghi nhận thay đổi scope trước khi Human review lại. Task status và append-only `Action Record`/`Current Handoff State` không làm mất hiệu lực khi các field scope không đổi.
    - Nếu status cũ là `REVISE` hoặc `REJECTED`, chỉ cập nhật khi recommendation mới đã được Agent tạo và vẫn đang `PENDING HUMAN REVIEW`.
 
-5. **Cập nhật đúng phạm vi**:
+6. **Cập nhật đúng phạm vi**:
    - Chỉ thay đổi các dòng trong `## Human Final Review`: `Status`, `Decision`, `Reviewer`, `Reviewed at`, `Follow-up`.
    - Không sửa `AI Agent Recommendation`, requirement, architecture, tasks, evidence, changelog hoặc nội dung RFC.
    - Giữ nguyên thứ tự và tên field canonical.
 
-6. **Xử lý Spec lock**:
+7. **Xử lý Spec lock**:
    - Nếu target là `SPEC.md` và status là `APPROVED`, kiểm tra DoD tối thiểu: SemVer hợp lệ, requirement `REQ-XXX` không trùng, EARS/acceptance/out-of-scope hiện diện, recommendation hợp lệ và review đủ trường.
    - Chỉ sau khi các kiểm tra đạt mới đổi header `Status: DRAFT` thành `Status: APPROVED & LOCKED`.
    - Nếu status là `REVISE` hoặc `REJECTED`, giữ Spec ở trạng thái chưa lock và in bước xử lý tiếp theo.
    - Skill không sửa `CONSTITUTION.md`; RFC vẫn phải được phê duyệt bằng `/sdd-rfc --approve=<rfc-number>` theo contract riêng.
 
-7. **Architecture Profile review**:
+8. **Architecture Profile review**:
    - Nếu target là `.sdd/architecture-profile.md`, kiểm tra recommendation nêu selected binding, repository evidence, exact verification command hoặc explicit `N/A` và configuration gap còn lại.
    - `APPROVED` chỉ xác nhận binding/evidence đã review. Nó không tự resolve binding thiếu, không thay exact command bằng suy đoán và không bypass Architecture Profile Protocol cho Plan, Tasks hoặc execution.
 
-8. **Báo cáo kết quả**:
+9. **Báo cáo kết quả**:
 
 ```text
 HUMAN REVIEW: RECORDED

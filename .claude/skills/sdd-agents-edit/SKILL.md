@@ -6,43 +6,39 @@ user-invocable: true
 
 # SDD Agent Constitution Editor (`/sdd-agents-edit`)
 
-**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), file paths, and CLI commands are language-invariant.
+**Output language:** Mirror the invoking prompt. Canonical tokens, paths and commands remain language-invariant.
 
-Dùng khi cần cập nhật `AGENTS.md`: vai trò, phạm vi, quyền công cụ, quy tắc bảo mật hoặc quy trình escalation của AI Agent.
+Dùng khi cập nhật `AGENTS.md`: vai trò, scope, tool permission, security hoặc escalation của AI Agent.
 
-## Tham số
+## Parameters
 
-- `--section=<tên-mục>`: Tùy chọn; tên section canonical, ví dụ `identity`, `scope`, `tool-permissions`, `security`, `communication`, `error-handling`, `escalation`, `changelog`.
-- `--reason=<lý-do>`: Lý do cập nhật quyền hoặc quy tắc Agent.
+- `--section=<name>`: Optional canonical section: `identity`, `scope`, `tool-permissions`, `security`, `communication`, `error-handling`, `escalation`, `changelog`.
+- `--reason=<reason>`: Required reason for permission or rule update.
 
-## Cấu trúc 8 sections canonical của AGENTS.md
+## Canonical structure
 
-`AGENTS.md` phải có đúng 8 sections theo thứ tự. Khi sửa, chỉ thay đổi đúng section liên quan — không thêm section ngoài canonical, không đổi thứ tự.
+`AGENTS.md` has exactly eight ordered sections: Identity & Persona, Scope & Boundaries, Tool Permissions, Security Rules, Communication Style, Error Handling, Escalation Protocol and Changelog. Modify only the applicable section. Customize generated content to observed stack, paths and exact commands; never copy generic stack commands as evidence.
 
-| # | Section | Nội dung |
-| :--- | :--- | :--- |
-| 1 | **Identity & Persona** | Seniority, ngôn ngữ chính, philosophy, vị thế Agent |
-| 2 | **Scope & Boundaries** | Path được phép/bị cấm theo project layout thực tế |
-| 3 | **Tool Permissions** | Exact commands của stack; quyền theo loại hành động |
-| 4 | **Security Rules** | Zero secret, input sanitization, data masking |
-| 5 | **Communication Style** | Language mirroring, format báo cáo, cách đặt câu hỏi |
-| 6 | **Error Handling** | Quy trình khi test fail, Spec mơ hồ, recommendation/review |
-| 7 | **Escalation Protocol** | Khi nào dừng và báo Human Director; không escalate chung chung |
-| 8 | **Changelog** | Semantic versioning; mọi thay đổi cần peer review |
+## Ownership and execution model
 
-Khi project adopt từ template, các sections phải được **customize theo stack thực** — persona Go ≠ TypeScript; path `cmd/internal/pkg` ≠ `src/`; tool command `make test` ≠ `npm test`. Xem `/sdd-init` hoặc `/sdd-adopt` để generate tự động.
+Read `.sdd/shared_context.md` before changing roles:
 
-> **Solo mode** (`--team-size=solo`): AGENTS.md chỉ có 1 role `@developer` — full-stack scope, toàn bộ tool permission. Sections 1–8 vẫn đầy đủ nhưng giản lược: bỏ ownership boundary, bỏ Lead→sub-agent escalation, giữ Human gate khi cần external decision.
+- `Project Ownership: solo` means one Human project owner. It may simplify Human accountability, but never limits agent roles or prevents orchestrated dispatch.
+- `Project Ownership: team` means multiple Human collaborators.
+- `Agent Execution: direct` executes in the current agent session.
+- `Agent Execution: orchestrated` allows `/sdd-dispatch` to coordinate workers with exclusive boundaries.
 
-## Quy trình
+Agent roles, worker count, Lead→worker escalation and ownership boundaries depend on approved execution/tasks, not Human ownership count. Direct execution retains Human gates, profile evidence, checkpoint and no-push restrictions.
 
-1. Đọc `AGENTS.md`, `CONSTITUTION.md`, `CLAUDE.md`, Architecture Profile và constraint liên quan.
-2. Xác định section canonical cần sửa; đối chiếu với Constitution — không mở rộng quyền vượt safety boundary.
-3. Cập nhật đúng section trong 8-section structure; không thêm section ngoài canonical.
-4. Bump SemVer và ghi entry trong section `## 8. Changelog` kèm lý do/người cập nhật.
-5. Với dispatcher change, phân biệt policy/advisory rule với host enforcement đã observed; ghi affected worker role, no-self-approval/no-commit-push, bounded retry và escalation behavior.
-6. Báo rõ permission impact, security risk, affected skill và bước escalation mới.
+## Procedure
 
-## AI Recommendation và Human Final Review
+1. Read `AGENTS.md`, `CONSTITUTION.md`, `CLAUDE.md`, Architecture Profile, shared context and relevant constraints.
+2. Identify the canonical section; do not expand permissions beyond safety boundaries.
+3. Update only that section and record execution/ownership effects where relevant.
+4. Bump SemVer and add a Changelog entry with reason and updater.
+5. For dispatcher changes, distinguish policy from observed host enforcement; record affected role, no-self-approval/no-commit-push, bounded retry and escalation behavior.
+6. Report permission impact, security risk, affected skill and escalation step.
 
-Trước khi sửa `AGENTS.md`, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, bao gồm permission impact, security risk, escalation behavior, alternative và affected skill. Lưu tại `.sdd/reviews/agents-edit.md` với `PENDING HUMAN REVIEW`. Human Director hoặc Tech Lead phải `APPROVED` trước khi sửa. Sau khi sửa, refresh recommendation; Agent không tự approve permission mới.
+## AI Recommendation and Human Final Review
+
+Before editing `AGENTS.md`, create the canonical recommendation at `.sdd/reviews/agents-edit.md` with permission impact, security risk, execution/ownership effect, alternative and affected skills. A Human review must be `APPROVED` before editing. A solo owner may persist their own Human Final Review; in team ownership an authorized Human collaborator persists it. Agent never self-approves permissions.

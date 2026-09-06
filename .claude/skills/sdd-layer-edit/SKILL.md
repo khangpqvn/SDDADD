@@ -17,7 +17,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 - Đọc profile, constraint, feature `SPEC.md`, `PLAN.md`, `TASKS.md` và review block trước thay đổi.
 - Domain/usecase có thể được plan bằng core-only TypeScript. Interface/infra chỉ sinh/sửa adapter khi HTTP framework, validation, database hoặc ORM/query layer tương ứng đã selected, evidenced và `APPROVED`.
 - Thiếu binding, exact test/build/lint command hoặc Human Final Review: dừng, lưu `PENDING HUMAN REVIEW`. Không sinh controller, repository, migration, DTO decorator, cache client hoặc command suy đoán.
-- Xuất Shadow Plan gồm profile evidence, file scope, exact command và risk; chờ Human Director `APPROVED` trước edit.
+- Xuất Shadow Plan gồm profile evidence, file scope, exact command và risk; chờ Human reviewer có thẩm quyền `APPROVED` trước edit.
 
 ## Tham số
 
@@ -34,4 +34,4 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 
 ## AI Recommendation và Human Final Review
 
-Trước edit, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm requirement, boundary, file, risk, alternative và verification. Lưu trong feature artifact/review với `Human Final Review.Status: PENDING`. Human Director phải `APPROVED` execution scope; sau edit refresh recommendation và không tự approve.
+Trước edit, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm requirement, boundary, file, risk, alternative và verification. Lưu trong feature artifact/review với `Human Final Review.Status: PENDING`. Human reviewer có thẩm quyền phải `APPROVED` execution scope; sau edit refresh recommendation và không tự approve.

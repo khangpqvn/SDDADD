@@ -26,7 +26,7 @@
 | GIT-S-01 | Cấm commit `.env`, `.env.*` trừ `.env.example`. | `.gitignore` + hook |
 | GIT-S-02 | Cấm commit file chứa `sk-ant-`, `sk-proj-`, `-----BEGIN`. | Secret scan/hook đã được project chọn |
 | GIT-S-03 | Cấm `git push --force` lên `main`, `master` hoặc `production`. | Branch protection |
-| GIT-S-04 | Team mode cấm commit trực tiếp lên `main`; phải qua PR + review. Solo mode cho phép Human-owned direct delivery sau validation và durable review; Agent vẫn không được `git push`. | Branch protection hoặc Human delivery gate |
+| GIT-S-04 | `Project Ownership: team` cấm commit trực tiếp lên `main`; phải qua PR + review. `Project Ownership: solo` cho phép Human-owned direct delivery sau validation và durable review. `Agent Execution` không thay đổi delivery policy; Agent vẫn không được `git push`. | Branch protection hoặc Human delivery gate |
 | GIT-S-05 | Commit message phải theo Conventional Commits. | Commit-msg hook |
 
 ---
@@ -48,8 +48,8 @@ Chỉ dùng secret scan tool/command đã được Architecture Profile hoặc C
 
 | Rule ID | Quy tắc |
 | :--- | :--- |
-| AGT-S-01 | Agent không được self-approve recommendation; chỉ Human Director có quyền. |
-| AGT-S-02 | Agent phải dừng sau năm retry failure liên tiếp và escalate cho Human Director. |
+| AGT-S-01 | Agent không được self-approve recommendation. `Project Ownership: solo` chỉ Human project owner được persist Human Final Review; `team` cần Human collaborator được project ủy quyền. Template không tự xác thực identity hoặc membership. |
+| AGT-S-02 | Agent phải dừng sau năm retry failure liên tiếp và escalate cho Human owner/collaborator được project giao decision. |
 | AGT-S-03 | Agent không được `git push`, `npm publish` hoặc deploy production tự động. |
 | AGT-S-04 | Agent không được xóa file ngoài permitted path khi chưa có Human confirmation. |
 | AGT-S-05 | Mọi DB schema change phải qua Human Final Review trước execution. |
@@ -72,5 +72,5 @@ Chỉ dùng secret scan tool/command đã được Architecture Profile hoặc C
 
 1. **STOP** — dừng execution ngay.
 2. **REVERT** — rollback action vừa thực hiện nếu an toàn và có thể.
-3. **ESCALATE** — báo Human Director kèm evidence.
+3. **ESCALATE** — báo Human owner hoặc Human collaborator được project giao quyết định, kèm evidence.
 4. **LOG** — ghi incident vào `.sdd/reviews/safety-incident-<timestamp>.md`.

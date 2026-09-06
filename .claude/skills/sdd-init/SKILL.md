@@ -8,49 +8,45 @@ user-invocable: true
 
 Dùng cho greenfield hoặc bootstrap SDD+ADD trong repository hiện có.
 
-## Tham số
+## Parameters
 
-- `--project-name=<name>`: Tùy chọn.
-- `--stack=<tech-stack>`: Tùy chọn; chỉ nêu binding biết explicit.
-- `--team-size=solo|team`: Tùy chọn; `team` là mặc định.
+- `--project-name=<name>`: Optional.
+- `--stack=<tech-stack>`: Optional; only explicit known bindings.
+- `--project-ownership=solo|team`: Optional Human governance setting; default `team`.
+- `--agent-execution=direct|orchestrated`: Optional execution setting; default `orchestrated`.
+- `--team-size=solo|team`: Deprecated composite alias for one transition release. `solo` maps to `solo/direct`; `team` maps to `team/orchestrated`. Emit a migration warning.
 
-## Baseline và Architecture Profile
+`solo` means one Human project owner; `team` means multiple Human collaborators. `direct` executes in the current Agent session; `orchestrated` allows `/sdd-dispatch` to coordinate one or more workers. The axes are independent.
 
-1. Tạo `.sdd/architecture-profile.md` làm nguồn canonical cho artifact generation.
-2. Chỉ parse `--stack` thành binding được nêu explicit. Không suy ra HTTP framework, ORM, validation hoặc command.
-3. Không có `--stack`: seed TypeScript + Node.js + Clean Architecture core-only.
-4. Ghi evidence, unresolved binding và canonical `PENDING HUMAN REVIEW` recommendation vào profile.
-5. Context/Spec được phép business-neutral. Plan/Tasks/execute bị block đến khi relevant binding và exact command được approved.
-6. Methodology Profile chỉ quy định depth/risk/review route; không thay Architecture Profile gate.
+Reject `--team-size` when combined with `--project-ownership` or `--agent-execution`. When canonical shared-context headers already exist, reject `--team-size`; the alias is valid only while both headers are absent. A deprecated alias may set only its documented composite pair; a canonical flag selects only its own axis.
+
+## Baseline and Architecture Profile
+
+1. Create `.sdd/architecture-profile.md` as canonical artifact-generation source.
+2. Parse `--stack` only into explicit bindings; do not infer framework, ORM, validation or commands.
+3. Without `--stack`, seed TypeScript + Node.js + Clean Architecture core-only.
+4. Record evidence, unresolved binding and canonical `PENDING HUMAN REVIEW` recommendation in the profile.
+5. Context/Spec may be business-neutral; Plan/Tasks/execution block until relevant binding and exact command are approved.
+6. Methodology Profile sets depth/risk/review route only; it does not replace the Architecture Profile gate.
 
 ## Output
 
-1. Tạo `.sdd/features/`, `.sdd/reviews/`, `.sdd/rfcs/`, `.claude/skills/`, `docs/`, `scripts/`, `src/{domain,usecase,interface,infra,shared}/` và `tests/` theo scope template.
-2. Generate `AGENTS.md`, `CLAUDE.md`, `.agentignore` và `.gitignore` theo repository/stack evidence. Không copy manifest-specific rule hay command suy đoán.
-3. Khởi tạo `.sdd/README.md`, Architecture Profile, shared context, MCP policy và constraints; ghi `# Collaboration Mode: solo|team` trong shared context theo `--team-size` (mặc định `team`).
-4. Cài toàn bộ current template-owned documentation:
-   - `docs/sdd-add-quickstart.md`
-   - `docs/sdd-add-guide.md`
-   - `docs/sdd-add-field-guide.md`
-   - `docs/sdd-add-scenario-playbook.md`
-   - `docs/architecture-profile-guide.md`
-   - `docs/multi-agent-orchestration-guide.md`
-5. Cài support scripts `self-heal.sh`, `template-smoke.sh`, `template-smoke.ps1`, `start-claude.sh`, `start-claude.ps1`, `update.sh` và `update.ps1`.
-6. Tạo `.sdd/reviews/init.md` với canonical recommendation; Human reviews bootstrap scope before feature work.
+1. Create `.sdd/features/`, `.sdd/reviews/`, `.sdd/rfcs/`, `.claude/skills/`, `docs/`, `scripts/`, `src/{domain,usecase,interface,infra,shared}/` and `tests/` within template scope.
+2. Generate `AGENTS.md`, `CLAUDE.md`, `.agentignore` and `.gitignore` from repository/stack evidence; do not copy manifest-specific rules or commands without evidence.
+3. Initialize `.sdd/README.md`, Architecture Profile, shared context, MCP policy and constraints. Shared context contains `# Project Ownership: <solo|team>` and `# Agent Execution: <direct|orchestrated>`.
+4. Install template-owned documentation and support scripts.
+5. Create `.sdd/reviews/init.md` with canonical recommendation; Human reviews bootstrap scope before feature work.
 
-## Generated governance requirements
+## Governance
 
-- `AGENTS.md` has eight canonical sections: Identity, Scope, Tool Permissions, Security Rules, Communication Style, Error Handling, Escalation Protocol and Changelog.
-- `CLAUDE.md` mirrors approved architecture, actual layout and durable project guidance; it does not choose stack.
-- `.agentignore` and `.gitignore` use observed stack/build patterns and protect secret files.
-- `CONSTITUTION.md` Layer 1/2 is never changed without approved RFC. If exact verification command is unknown, preserve a review blocker rather than invent one.
-
-## Solo mode
-
-Team mode cài `/sdd-dispatch` để coordinate Claude Code `Agent` worker theo persisted evidence. Skill không cài settings, identity provider hoặc host enforcement giả định; `.sdd/mcp-config.yaml` vẫn policy-only. Solo mode uses one `@developer` role and no multi-agent dispatch table; `/sdd-dispatch --team-size=solo` chỉ dùng solo-bypass. It retains Intent Packet, Methodology Profile, Feature Lock, Shadow Plan, Action Record, Architecture Profile and material-state checkpoint rules.
-
-Solo delivery removes PR overhead only. Agent does not `git push`; Human self-pushes after validation/commit.
+- `AGENTS.md` retains its eight canonical sections.
+- `CLAUDE.md` mirrors approved architecture and durable project guidance; it does not choose stack.
+- `.agentignore` and `.gitignore` use observed patterns and protect secret files.
+- `CONSTITUTION.md` Layer 1/2 changes require approved RFC.
+- `Project Ownership: solo` allows the sole Human owner to persist Human Final Review; `team` allows an authorized Human collaborator. Agents never self-approve.
+- `Agent Execution: direct` retains Intent Packet, Methodology Profile, Feature Lock, Shadow Plan, Action Record, Architecture Profile, material checkpoint and validation. `orchestrated` adds bounded worker dispatch; it does not reduce or replace the same gates.
+- Solo delivery removes PR overhead only. Agent never `git push`; Human handles remote delivery after validation and commit.
 
 ## AI Recommendation and Human Final Review
 
-Use `.claude/skills/_shared/ai-review-protocol.md`. Recommendation includes bootstrap scope, profile evidence/unknowns, selected Methodology Profile defaults, missing decisions and next command. Human Final Review remains `PENDING` until a human records a durable decision. `/sdd-review` does not replace `/sdd-rfc --approve=<rfc-number>` for Constitution changes.
+Use `.claude/skills/_shared/ai-review-protocol.md`. Recommendation includes bootstrap scope, profile evidence/unknowns, methodology defaults, selected ownership/execution settings, migration warning if applicable, missing decisions and next command. Human Final Review remains `PENDING` until a human records a durable decision.

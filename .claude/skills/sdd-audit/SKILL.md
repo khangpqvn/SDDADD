@@ -37,4 +37,4 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 
 ## AI Recommendation và Human Final Review
 
-Sau audit, tạo canonical recommendation gồm finding, severity, evidence, remediation option và residual risk. Lưu trong feature artifact hoặc `.sdd/reviews/audit-<slug>.md` với `PENDING HUMAN REVIEW`. Human Director/Tech Lead quyết định disposition; Layer 1 failure và blocker còn mở vẫn block. Agent không tự approve audit.
+Sau audit, tạo canonical recommendation gồm finding, severity, evidence, remediation option và residual risk. Lưu trong feature artifact hoặc `.sdd/reviews/audit-<slug>.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền quyết định disposition; `Tech Lead` có thể review architecture khi repository giao thẩm quyền. Layer 1 failure và blocker còn mở vẫn block. Agent không tự approve audit.

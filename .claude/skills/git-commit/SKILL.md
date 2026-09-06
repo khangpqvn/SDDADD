@@ -8,13 +8,13 @@ user-invocable: true
 
 **Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Status tokens (`READY`, `BLOCKED`, `NO-OP`), Git output, and code identifiers are language-invariant.
 
-Dùng để tạo commit an toàn. Không chạy `git commit` trước khi `/git-validate --scope=commit` trả `READY`. Cả solo và team mode, Agent chỉ commit khi Human yêu cầu; Agent không `git push`. Human Director tự thực hiện delivery remote sau commit/validation.
+Dùng để tạo commit an toàn. Không chạy `git commit` trước khi `/git-validate --scope=commit` trả `READY`. Cả solo và team mode, Agent chỉ commit khi Human yêu cầu; Agent không `git push`. Human thực hiện delivery remote theo `Project Ownership` sau commit/validation.
 
-## Solo mode detection
+## Project ownership detection
 
-Đọc `# Collaboration Mode: team|solo` trong `.sdd/shared_context.md`. `--team-size=solo|team` override explicit cho invocation hiện tại. Không suy mode từ sự tồn tại section mẫu 1A/1.
+Đọc `# Project Ownership: team|solo` và `# Agent Execution: direct|orchestrated` trong `.sdd/shared_context.md`. `--project-ownership=solo|team` override explicit cho invocation hiện tại. Chỉ dùng canonical khi mỗi header tồn tại đúng một lần và hợp lệ. Khi cả hai canonical header đều vắng mặt, chỉ dùng đúng một legacy source hợp lệ: đúng một `# Collaboration Mode: solo|team` hoặc đúng một `--team-size=solo|team`; source duplicate, malformed hoặc coexist là `BLOCKED`. Source hợp lệ map `solo` thành solo/direct và `team` thành team/orchestrated; báo migration warning, không tự rewrite governance. Thiếu, trùng hoặc malformed canonical header là `BLOCKED`, không fallback legacy. Khi có một trong hai canonical header, `--team-size` là `BLOCKED`; alias chỉ hợp lệ khi cả hai canonical header đều vắng mặt. `--team-size` cũng không được kết hợp `--project-ownership` hoặc `--agent-execution`; conflict là `BLOCKED`. Legacy header tồn tại cùng canonical headers không dùng để resolve và phải ghi migration cleanup.
 
-Solo mode bỏ PR overhead; không nới outbound safety gate và không ủy quyền Agent push.
+Solo ownership bỏ PR overhead; Agent Execution không ảnh hưởng Git delivery, không nới outbound safety gate và không ủy quyền Agent push.
 
 ## Tham số
 
@@ -23,7 +23,8 @@ Solo mode bỏ PR overhead; không nới outbound safety gate và không ủy qu
 - `--scope=<scope>`: Tùy chọn.
 - `--feature=<feature-slug>`: Tùy chọn, truyền tiếp cho validator.
 - `--files=<path,...>`: Tùy chọn; chỉ stage path này. Không có thì hiển thị danh sách và yêu cầu xác nhận trước khi stage intended changes.
-- `--team-size=solo|team`: Tùy chọn; override solo detection từ shared_context.
+- `--project-ownership=solo|team`: Tùy chọn; override delivery ownership.
+- `--team-size=solo|team`: Deprecated composite alias trong một transition release; báo migration warning.
 
 ## Quy trình
 

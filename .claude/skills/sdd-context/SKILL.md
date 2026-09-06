@@ -18,7 +18,7 @@ Dùng khi bắt đầu feature để làm rõ bài toán nghiệp vụ và tạo
 
 ## Shared methodology contract
 
-Đọc [AI Review Protocol](../_shared/ai-review-protocol.md) trước khi tạo artifact. `CONTEXT.md` mới phải dùng `Intent Packet` và `Methodology Profile` trong protocol. Intent giữ technology-neutral; solution kỹ thuật chỉ được ghi như question, constraint hoặc decision đã approved, không phải requirement mặc định.
+Đọc [AI Review Protocol](../_shared/ai-review-protocol.md) trước khi tạo artifact. `CONTEXT.md` mới phải dùng `Intent Packet`, `Describe-back record` và `Methodology Profile` trong protocol. Intent giữ technology-neutral; solution kỹ thuật chỉ được ghi như question, constraint hoặc decision đã approved, không phải requirement mặc định.
 
 ## Architecture Profile preflight
 
@@ -36,9 +36,11 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 3. Thu thập problem, user pain và desired behavior; chưa thiết kế giải pháp kỹ thuật.
 4. Lập domain glossary, entity/state và business rule.
 5. Xác định stakeholder, decision maker, business constraint và open question.
-6. Ghi `## Methodology Profile` với depth, rationale, risk posture, high-risk review route và unresolved-decision owner.
-7. Gán disposition cho từng open question material: resolved, approved assumption, deferred hoặc blocking decision. Nếu intent bị trộn với solution, hoặc question material chưa có disposition, dừng trước `/sdd-spec`.
-8. Kiểm tra DoD, ghi artifact và cập nhật `.sdd/README.md`.
+6. Ghi `## Methodology Profile` với depth `SKIP | SKETCH | DETAILED | FORMAL`, rationale, risk posture, high-risk review route và unresolved-decision owner. Depth là recommendation, không bỏ gate.
+7. Gán disposition cho từng open question material: resolved, approved assumption, deferred hoặc blocking decision.
+8. Ghi `## Describe-back record`: Agent diễn giải lại WHAT, WHY, DoD, boundaries/exclusions, assumptions/unknowns và material-question disposition; đối chiếu với Intent Packet, glossary và constraints.
+9. Nếu intent bị trộn với solution, material question chưa disposition, describe-back mâu thuẫn evidence, hoặc Agent tự thêm technology/solution không có evidence, dừng trước `/sdd-spec`.
+10. Kiểm tra DoD, ghi artifact và cập nhật `.sdd/README.md`.
 
 ## DoD
 
@@ -49,8 +51,9 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 - [ ] Có decision maker rõ ràng.
 - [ ] Methodology Profile có depth, rationale, risk posture và review route khi high-risk.
 - [ ] Open question quan trọng đã trả lời, có approved assumption, deferred rõ ràng hoặc được đánh dấu blocking.
-- [ ] Không chuyển sang Spec khi intent lẫn solution hoặc có material question chưa disposition.
+- [ ] Describe-back record khớp Intent Packet, glossary và constraints; assumption/unknown có impact và disposition.
+- [ ] Không chuyển sang Spec khi intent lẫn solution, có material question chưa disposition hoặc describe-back mâu thuẫn.
 
 ## AI Recommendation và Human Final Review
 
-Sau khi tạo/sửa `CONTEXT.md`, lưu canonical recommendation trong artifact, gồm Intent Packet, business question, assumption, stakeholder, constraint, exclusion, Methodology Profile và alternative. Giữ `Human Final Review.Status: PENDING`. Chỉ chuyển sang `/sdd-spec` sau `APPROVED` có decision, reviewer và timestamp. Agent phải dừng, không self-approve.
+Sau khi tạo/sửa `CONTEXT.md`, lưu canonical recommendation trong artifact, gồm Intent Packet, Describe-back record, business question, assumption, stakeholder, constraint, exclusion, Methodology Profile và alternative. Giữ `Human Final Review.Status: PENDING`. Chỉ chuyển sang `/sdd-spec` sau `APPROVED` có decision, reviewer và timestamp. Agent phải dừng, không self-approve.

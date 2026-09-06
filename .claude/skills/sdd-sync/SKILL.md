@@ -22,7 +22,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 - Đọc `.sdd/architecture-profile.md` trước khi trích xuất/cập nhật shared contract.
 - Chỉ ghi HTTP route, event schema, DTO validator, persistence identifier và command khi profile binding/evidence tương ứng đã `APPROVED`.
 - Binding chưa chọn: ghi behavior và data shape technology-neutral; không thêm framework route syntax, decorator, ORM schema hoặc command suy đoán.
-- Artifact feature mâu thuẫn profile `APPROVED`: giữ evidence, báo `CONFIGURATION GAP` và yêu cầu Human Director disposition; không tự rewrite contract.
+- Artifact feature mâu thuẫn profile `APPROVED`: giữ evidence, báo `CONFIGURATION GAP` và yêu cầu Human reviewer có thẩm quyền disposition; không tự rewrite contract.
 
 ## Quy trình
 

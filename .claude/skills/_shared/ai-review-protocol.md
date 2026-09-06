@@ -2,7 +2,7 @@
 
 ## Mục đích
 
-Mọi SDD/ADD skill có thể phân tích, đề xuất, sinh, cập nhật hoặc báo cáo. Agent cung cấp evidence và recommendation; Human Director sở hữu quyết định cuối cùng. Không Agent nào được approve recommendation của chính mình.
+Mọi SDD/ADD skill có thể phân tích, đề xuất, sinh, cập nhật hoặc báo cáo. Agent cung cấp evidence và recommendation; Human reviewer có thẩm quyền theo `Project Ownership` sở hữu quyết định cuối cùng. Không Agent nào được approve recommendation của chính mình.
 
 ## Canonical block
 
@@ -37,14 +37,19 @@ Các section sau là additive metadata cho artifact mới hoặc được cập 
 `CONTEXT.md` hoặc `SPEC.md` ghi một `## Methodology Profile` với:
 
 ```markdown
-- Depth: Sketch | Detailed | Formal
-- Rationale: <risk và complexity dẫn tới độ sâu này>
+- Depth: SKIP | SKETCH | DETAILED | FORMAL
+- Rationale: <risk, complexity và lý do chọn độ sâu>
 - Risk posture: low | elevated | high
 - High-risk review route: <durable review route hoặc N/A>
 - Unresolved-decision owner: <human role hoặc decision owner>
 ```
 
-`High-risk review route` bắt buộc khi feature xử lý dữ liệu nhạy cảm, financial/business-critical behavior, destructive hoặc irreversible action, compliance, authorization, cross-system consistency, hoặc public/external contract. Template không tự gán danh tính reviewer.
+- `SKIP`: chỉ cho scope được Human chấp nhận là exploratory/throwaway hoặc không thêm behavior/contract material; phải ghi lý do và evidence.
+- `SKETCH`: behavior nhỏ, risk thấp; vẫn có requirement, acceptance, boundary và disposition cho ambiguity.
+- `DETAILED`: mặc định cho integration, authorization, concurrency, third-party hoặc risk đáng kể.
+- `FORMAL`: money, compliance, destructive/irreversible action, migration, security/authorization, core business state hoặc public/external contract; bổ sung state/invariant và adversarial review phù hợp.
+
+Depth là sizing recommendation. Nó không bypass Human review, Feature Lock, Architecture Profile evidence, exact approved command hoặc material checkpoint. `High-risk review route` bắt buộc khi feature xử lý dữ liệu nhạy cảm, financial/business-critical behavior, destructive hoặc irreversible action, compliance, authorization, cross-system consistency, hoặc public/external contract. Template không tự gán danh tính reviewer.
 
 ### Intent Packet
 
@@ -60,6 +65,22 @@ Các section sau là additive metadata cho artifact mới hoặc được cập 
 ```
 
 Intent không được thay thế bởi solution kỹ thuật. Mọi question material phải có disposition: resolved, approved assumption, deferred, hoặc blocking decision.
+
+### Describe-back record
+
+Trước Context review, Agent ghi `## Describe-back record` để Human kiểm tra Agent hiểu đúng bài toán:
+
+```markdown
+- WHAT understood: <observable outcome in Agent's own words>
+- WHY understood: <problem/value in Agent's own words>
+- Definition of Done understood: <verifiable conditions>
+- Boundaries and exclusions understood: <included and excluded behavior>
+- Assumptions and unknowns: <each item and its impact>
+- Material questions and disposition: <clarified | approved assumption | deferred | blocking>
+- Consistency check: <Intent Packet, glossary, constraints and contradictions checked>
+```
+
+Không chuyển sang Spec nếu record mâu thuẫn Intent Packet, glossary hoặc constraint; nếu còn material question không disposition; hoặc nếu Agent đưa solution/technology không có evidence. Describe-back là evidence cho Human review, không phải approval tự động hay gate thay thế Human Final Review.
 
 ### Material state change
 
@@ -83,31 +104,47 @@ Execution evidence hoặc handoff state ghi record tối thiểu:
 - Profile binding and exact commands: <approved evidence>
 - State-change category: <none or category list>
 - Human checkpoint: <review reference or N/A>
+- Task execution grant: <grant ID; route; dispatcher-issued opaque consumer reference; consumption evidence or N/A with reason>
+- Host execution-claim evidence: <host-controlled claim reference or UNVERIFIED>
 - Actions and result: <what ran/changed and outcome>
+- Validation route: <lint/audit/trace/sync/git-validation result or N/A with reason>
+- Post-code review: <required report/reference or N/A with reason>
 - Residual blocker: <none or blocker>
 - Sync-back decision: <affected artifacts; /sdd-trace and /sdd-sync decision>
 ```
 
-Task không complete khi required checkpoint, verification evidence hoặc sync-back còn thiếu.
+Task không complete khi required checkpoint, verification evidence, required post-code review hoặc sync-back còn thiếu.
+
+### Delivery and post-code review
+
+Delivery thay đổi implementation behavior, test, API/public/shared contract, runtime/dependency/security configuration, persistence schema hoặc business state cần post-code review persisted tại `.sdd/reviews/post-code-<feature>-<delivery-or-timestamp>.md` trước khi delivery complete hoặc Git validation trả `READY`.
+
+Report dùng canonical block và phải nêu changed boundary, `REQ-XXX` coverage, exact approved command/result, lint/audit/trace/sync state, residual risk và required Human decision. Docs-only artifact work tiếp tục dùng artifact review thông thường; không cần post-code review chỉ vì có thay đổi Markdown.
 
 ### Dispatch Record và retry evidence
 
-Team-mode dispatcher ghi một `## Dispatch Record — <dispatch-id>` dưới `## Current Handoff State` của feature `TASKS.md`. Record là additive evidence, không thay task marker, Action Record hoặc Human Final Review.
+Dispatcher ghi một `## Dispatch Record — <dispatch-id>` dưới `## Current Handoff State` của feature `TASKS.md`. Record là additive evidence, không thay task marker, Action Record hoặc Human Final Review. `Project ownership` và `Agent execution` phải được ghi tách biệt; direct execution không phải bypass governance.
 
 ```markdown
 ## Dispatch Record — D-<feature>-<batch>-A<attempt>
-- Dispatcher and mode: <Claude Code /sdd-dispatch; team | solo-bypass>
+- Dispatcher: <Claude Code /sdd-dispatch or current Agent>
+- Project ownership: solo | team
+- Agent execution: direct | orchestrated
+- Governance resolution: <canonical | legacy-header | legacy-alias>; invocation axis overrides: <none | project-ownership=<value> | agent-execution=<value> | both>
+- Feature: <feature-slug>
 - Batch/tasks/state: <batch, ordered task IDs; PLANNED | AWAITING_APPROVAL | READY | DISPATCHED | RUNNING | VERIFYING | RETRY_PENDING | COMPLETED | BLOCKED | ESCALATED>
+- Task execution grants: <one append-only entry per selected task: task ID; grant ID; grant attempt; route=direct|orchestrated; task grant state=DISPATCHED|RUNNING|RETIRED|REVOKED; consumption state=UNCONSUMED|CONSUMED; dispatcher-issued opaque consumer reference; consumption evidence; terminal/retry evidence>
+- Host execution-claim evidence: <host-controlled atomic claim reference or UNVERIFIED; matching feature/task/grant/route/consumer when available>
 - Ownership and frozen contracts: <boundary check; ID/version/owner or N/A>
 - Profile/checkpoint/commands: <approved evidence>
 - Runtime identity evidence: VERIFIED | UNVERIFIED; <observed evidence>
 - Runtime enforcement evidence: VERIFIED | UNVERIFIED; <observed evidence or absence>
-- Worker/host task references: <supplemental IDs or unavailable>
+- Worker/host task references: <supplemental IDs, direct/no worker, or unavailable>
 - Attempt and retry count: <attempt; consecutive failures; maximum 5>
 - Results/integration/blocker/sync-back: <Action Record, command result, compatibility, blocker, decision>
 ```
 
-Runtime policy metadata does not prove host enforcement. Automatic retry is limited to an implementation defect inside the unchanged approved task boundary, frozen contract, profile binding, exact command and checkpoint. A Spec/profile/command/checkpoint/contract/ownership/security/policy/dependency/runtime gap is `BLOCKED`, not retryable. At five consecutive failures, retain task marker `[/]`, set `ESCALATED`, persist a dispatch review report and require Human disposition.
+Runtime policy metadata does not prove host enforcement. Markdown grant state is cooperative evidence only: compliant routes must persist `RUNNING`/`CONSUMED` before action and reject consumed or mismatched grants, but this template cannot atomically prevent concurrent or malicious writers across sessions. `/sdd-dispatch` allocates an opaque consumer reference in every grant before handoff; `/add-execute` must match it before consumption. This is cooperative binding, not proof that a host prevented another session from replaying the reference. When an observed host provides an atomic execution claim, bind it to feature/task/grant/route/consumer and record the evidence; otherwise preserve `Runtime enforcement evidence: UNVERIFIED` and do not represent the grant as host-enforced replay protection. Task execution eligibility is controlled by the matching task execution grant, not aggregate batch state: only `DISPATCHED` with `UNCONSUMED` may start; `/add-execute` records `RUNNING` with `CONSUMED` before task action. A consumed, non-`DISPATCHED`, mismatched or missing grant is `BLOCKED`. Only `/sdd-dispatch` may allocate, revoke, retire or renew a grant. Automatic retry is limited to an implementation defect inside the unchanged approved task boundary, frozen contract, profile binding, exact command and checkpoint; it retires the consumed grant and creates a fresh eligible grant. A Spec/profile/command/checkpoint/contract/ownership/security/policy/dependency/runtime gap is `BLOCKED`, not retryable. At five consecutive failures, retain task marker `[/]`, set `ESCALATED`, persist a dispatch review report and require Human disposition.
 
 ### Consistency and sync-back
 
@@ -134,9 +171,9 @@ Mọi artifact hoặc code change phải nêu downstream artifact bị ảnh hư
 
 ## Vai trò review
 
-- `Human Director` là reviewer mặc định cho feature behavior, execution và session continuation.
-- `Tech Lead` hoặc `Architecture Board` có thể review architecture, governance hoặc RFC khi repository rule giao thẩm quyền.
-- Agent ghi reviewer identity do con người cung cấp, không tự điền thay con người.
+- Với `Project Ownership: solo`, Human project owner duy nhất có thể persist Human Final Review cho feature behavior, execution và session continuation.
+- Với `Project Ownership: team`, bất kỳ Human collaborator nào được project ủy quyền có thể persist Human Final Review; `Tech Lead` hoặc `Architecture Board` có thể review architecture, governance hoặc RFC khi repository rule giao thẩm quyền.
+- Agent ghi reviewer identity do con người cung cấp, không tự điền, xác thực identity hoặc suy membership thay con người/host.
 
 ## Ghi quyết định Human
 

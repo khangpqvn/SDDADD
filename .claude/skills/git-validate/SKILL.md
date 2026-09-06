@@ -1,166 +1,86 @@
 ---
 name: git-validate
-Validation gate của repository, bắt buộc đạt trước commit, push hoặc Pull Request
+description: Validation gate của repository, bắt buộc đạt trước commit, push hoặc Pull Request
 user-invocable: true
 ---
 
 # Git Repository Validation Gate (`/git-validate`)
 
-**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`GIT VALIDATION: READY`, `GIT VALIDATION: BLOCKED`, `PASS`, `FAIL`, `WARNING`, `N/A`), file paths, and CLI commands are language-invariant.
+**Output language:** Mirror the invoking prompt. Canonical tokens, paths and commands remain language-invariant.
 
-Dùng skill này trước mọi commit, push hoặc Pull Request. Đây là single source of truth cho validation của Git Operator. Gate **fail closed**: chỉ trả `READY` khi mọi check bắt buộc đạt.
+Dùng trước commit, push hoặc Pull Request. Gate fail closed: chỉ `READY` khi mọi check bắt buộc đạt.
 
-**Solo mode**: Đọc `# Collaboration Mode: team|solo` trong `.sdd/shared_context.md`; `--team-size=solo|team` override explicit cho invocation hiện tại. Không suy mode từ section mẫu. Solo mode vẫn chạy đầy đủ gate; `--scope=pr` dùng để validate trước push trực tiếp (thay vì PR creation). Solo mode: WARNING là advisory, không block (chỉ FAIL block). Team mode: `--scope=pr` bắt buộc `--strict`, WARNING convert thành FAIL.
+## Project ownership
 
-## Tham số
+Read `# Project Ownership: solo|team` and `# Agent Execution: direct|orchestrated` in `.sdd/shared_context.md`. `--project-ownership=solo|team` overrides only this delivery setting; `Agent Execution` does not affect delivery validation.
 
-- `--scope=commit|pr`: bắt buộc.
-  - `commit`: kiểm tra staged diff (`git diff --cached`).
-  - `pr`: team mode kiểm tra diff trên remote (`origin/<base>...origin/<head>`). Solo mode trước Human push kiểm tra local diff (`origin/<base>...HEAD`); sau push kiểm tra remote diff (`origin/<base>...origin/<head>`).
-- `--feature=<feature-slug>`: tùy chọn; giới hạn SDD checks vào feature.
-- `--base=<branch>`: dùng với `pr`; mặc định branch mặc định của remote.
-- `--head=<branch>`: dùng với `pr`; mặc định branch hiện tại.
-- `--strict`: biến mọi `WARNING` thành `BLOCKED`. Team mode: bắt buộc cho PR. Solo mode: WARNING vẫn là advisory.
-- `--team-size=solo|team`: tùy chọn; override solo detection từ shared_context.
+Resolve governance fail closed: use canonical settings only when both headers exist exactly once and are valid. Only when both canonical headers are absent may exactly one valid legacy source map to `solo/direct` or `team/orchestrated`: exactly one `# Collaboration Mode: solo|team` header or exactly one `--team-size=solo|team`. Duplicate, malformed or coexisting legacy sources are `BLOCKED`; emit a migration warning and never rewrite governance automatically. Missing, duplicate or malformed canonical headers are `BLOCKED`; never fallback legacy. When either canonical header exists, `--team-size` is `BLOCKED`; the alias is valid only when both canonical headers are absent. `--team-size` cannot be combined with `--project-ownership` or `--agent-execution`; the conflict is `BLOCKED`. A legacy header alongside canonical headers is ignored for resolution and recorded for migration cleanup.
 
-## Nguyên tắc bắt buộc
+Solo ownership runs the full gate; `--scope=pr` validates direct-delivery readiness before Human push. Team ownership requires `--strict` for `--scope=pr`.
 
-1. Không commit, push, merge, tạo PR hoặc sửa file trong skill này.
-2. Không hiển thị secret thật. Chỉ hiển thị path, loại pattern và dòng đã mask.
-3. Không gọi `PASS` cho bước chưa chạy. Kết quả hợp lệ chỉ là `PASS`, `FAIL`, hoặc `N/A (reason)`.
-4. Nếu command không tồn tại, script test không có, hoặc prerequisite bị thiếu: báo `N/A` với lý do. Với source behavior có thể kiểm thử mà không có test command, báo `FAIL`.
-5. Không tự sửa lỗi, reset, checkout, stash, amend hoặc discard changes.
-6. Nếu phát hiện lỗi, dừng tại gate liên quan và đưa lệnh khắc phục; không tiếp tục tới commit/PR.
+## Parameters
 
-## Quy trình
+- `--scope=commit|pr`: Required.
+- `--feature=<feature-slug>`: Optional; limits SDD checks to feature.
+- `--base=<branch>`, `--head=<branch>`: Used with `pr`.
+- `--strict`: Turns `WARNING` into `BLOCKED`; required for team PR.
+- `--project-ownership=solo|team`: Optional delivery-policy override.
+- `--team-size=solo|team`: Deprecated composite alias for one transition release.
 
-### 1. Xác định repository và nguồn diff
+## Mandatory rules
 
-Đọc `AGENTS.md`, `CLAUDE.md`, `CONSTITUTION.md` và `.sdd/architecture-profile.md` theo [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md) trước khi kiểm tra. Profile xác định command test/lint/typecheck/build; manifest/CI là evidence để xác minh command đó, không phải nguồn suy đoán replacement command.
+1. Do not commit, push, merge, create PR or modify files.
+2. Never expose secret values; report only masked path/pattern evidence.
+3. Do not report `PASS` for unrun work. Valid results are `PASS`, `FAIL`, or `N/A (reason)`.
+4. Missing command/prerequisite is `N/A` with reason; source behavior needing unavailable test command is `FAIL`.
+5. Do not auto-fix, reset, checkout, stash, amend or discard changes.
+6. Stop at the relevant gate and state remediation on failure.
 
-#### Commit scope
+## Procedure
 
-```bash
-git rev-parse --show-toplevel
-git symbolic-ref --short -q HEAD
-git status --short
-git diff --cached --stat
-git diff --cached --name-only
-```
+### 1. Repository and diff source
 
-- Block detached HEAD.
-- Block merge/rebase/cherry-pick đang dở (`.git/MERGE_HEAD`, `.git/rebase-merge`, `.git/rebase-apply`, `.git/CHERRY_PICK_HEAD`).
-- Block nếu staged diff rỗng.
-- Chỉ kiểm tra nội dung được stage; file unstaged không thuộc commit hiện tại nhưng phải được báo để người dùng biết.
+Read `AGENTS.md`, `CLAUDE.md`, `CONSTITUTION.md`, shared context and `.sdd/architecture-profile.md`.
 
-#### PR scope
+- `commit`: inspect staged diff; block detached HEAD, active Git operation or empty staged diff.
+- `pr` for team or after Human push: use `origin/<base>...origin/<head>`; block missing refs, dirty worktree, local/remote mismatch or empty remote diff.
+- `pr` for solo before Human push: use `origin/<base>...HEAD`; stale remote reference is advisory `WARNING`, never claimed as remote verification.
 
-Team mode hoặc solo sau Human push:
+### 2. Security and file policy
 
-```bash
-git fetch --prune origin
-git symbolic-ref --short refs/remotes/origin/HEAD
-git rev-parse --verify "origin/<base>"
-git rev-parse --verify "origin/<head>"
-git diff --name-status "origin/<base>...origin/<head>"
-git diff --stat "origin/<base>...origin/<head>"
-git status --short
-```
+Scan the selected diff for credential patterns and forbidden paths from current contract. `.env.example` placeholders are allowed. Block likely real credentials or forbidden files only; do not print values. `CONSTITUTION.md` changes require matching RFC `APPROVED`.
 
-- Block detached HEAD, remote hoặc base/head thiếu, Git operation chưa xử lý, dirty worktree, base branch là head hoặc remote diff rỗng.
-- Block khi local `HEAD` khác `origin/<head>`; PR phải phản ánh commit đã push.
-- Nếu branch chưa có trên remote, không kết luận PR ready. Human phải push branch, rồi chạy lại gate; Agent không push thay Human.
-- Team mode dùng `origin/<base>...origin/<head>` cho mọi kết luận về PR. Không dùng `git diff main...HEAD`.
+### 3. SDD governance and validation route
 
-Solo mode trước Human push dùng reference `origin/<base>` đã có sẵn, không fetch/push hoặc thực hiện network action:
+- Changed `.sdd/features/*/SPEC.md`: require `/sdd-lint --feature=<slug>`.
+- Changed `src/`, `tests/`, feature Plan/Tasks, `CONSTITUTION.md`, `CLAUDE.md`, `AGENTS.md`: require `/sdd-audit` for feature or repository.
+- Changed Spec, usecase, test or `@ears`: require `/sdd-trace --feature=<slug> --diff`.
+- Changed feature registry or shared context: require `/sdd-sync` first.
 
-```bash
-git rev-parse --verify "origin/<base>"
-git diff --name-status "origin/<base>...HEAD"
-git diff --stat "origin/<base>...HEAD"
-git status --short
-```
+Fail for lint/hard-rule audit/trace failure, missing or stale review evidence, unlocked Spec when source/test changes, or source behavior without requirement/test evidence.
 
-- Block detached HEAD, remote/base thiếu, Git operation chưa xử lý, dirty worktree, base branch là head hoặc local diff rỗng.
-- Nếu remote-tracking reference có thể stale, báo `WARNING` với thời điểm/reference đã dùng; solo mode giữ đây là advisory.
-- Không yêu cầu `origin/<head>` hoặc `HEAD == origin/<head>` trước Human push. Báo source là `origin/<base>...HEAD` và `remote verification: pending Human push`.
-- Sau Human push, Human hoặc repository workflow cập nhật remote reference rồi chạy lại `--scope=pr` để xác minh remote diff và `HEAD == origin/<head>`.
+### 4. Post-code review
 
-### 2. Security và file policy gate
+A diff changing implementation behavior, tests, API/public/shared contract, runtime/dependency/security configuration, persistence schema or business state needs `.sdd/reviews/post-code-<feature>-<delivery-or-timestamp>.md` with canonical recommendation, Human Final Review `APPROVED`, changed boundary, `REQ-XXX` coverage, exact result, lint/audit/trace/sync state and residual risk. Docs-only changes do not need post-code review merely because they are Markdown. Ownership does not change this gate.
 
-Quét đúng diff tương ứng với scope. Pattern cần kiểm tra:
+### 5. Test and quality gate
 
-```text
-AKIA[0-9A-Z]{16}
-sk-[A-Za-z0-9_-]+
-(api[_-]?key|auth[_-]?token|client[_-]?secret|password|passwd|credential|private[_-]?key|jwt)
-(mongodb|postgres|mysql|redis)://
------BEGIN .*PRIVATE KEY-----
-```
+Run ordered exact approved commands from Architecture Profile: test, lint, typecheck and build. Commands require both approval and manifest/CI evidence. Missing suitable command/test for source behavior is `FAIL`; core-only template without executable source/test is `N/A` with reason; command/profile conflict or execution failure is `FAIL`.
 
-Kiểm tra cả file path:
-
-```text
-.env, .env.*, *.pem, *.key, *.p12, credentials.json, secrets.json,
-config/private.*, node_modules/, dist/
-```
-
-- `.env.example` được phép nếu không chứa credential thật.
-- Chỉ block khi pattern đi kèm giá trị có khả năng là credential thật hoặc file path bị cấm. Các pattern nằm trong chính tài liệu kiểm định, placeholder (`<value>`, `example`, `REDACTED`) và tên biến không có giá trị không phải secret.
-- Scan phần dòng được thêm/sửa, ưu tiên assignment/URL/key format; không block chỉ vì tài liệu nhắc đến từ `password`, `token`, `secret` hoặc regex policy.
-- Không dùng `grep` output nguyên văn nếu có khả năng lộ giá trị. Mask values trước khi báo cáo.
-- Nếu `CONSTITUTION.md` thay đổi, yêu cầu RFC approved tương ứng trong `.sdd/rfcs/`. Không chấp nhận thay đổi Constitution chỉ vì commit message giải thích lý do.
-
-### 3. SDD governance gate
-
-Xác định các path bị ảnh hưởng từ diff:
-
-- `.sdd/features/*/SPEC.md`: chạy `/sdd-lint --feature=<slug>`.
-- `src/`, `tests/`, `.sdd/features/*/PLAN.md`, `.sdd/features/*/TASKS.md`, `CONSTITUTION.md`, `CLAUDE.md`, `AGENTS.md`: chạy `/sdd-audit` với feature scope nếu xác định được, nếu không chạy toàn repo.
-- Thay đổi `SPEC.md`, usecase, test hoặc `@ears`: chạy `/sdd-trace --feature=<slug> --diff`.
-- Thay đổi `.sdd/features/`, `.sdd/README.md`, hoặc `.sdd/shared_context.md`: yêu cầu người dùng chạy `/sdd-sync` trước, sau đó kiểm tra không còn thay đổi registry/contracts ngoài intended diff. Validator không tự gọi skill có khả năng sửa file.
-
-Quy tắc kết quả:
-
-- `sdd-lint` error: `FAIL`.
-- `sdd-audit` vi phạm Layer 1 (`SEC-*`, `DATA-*`) hoặc hard rule: `FAIL`.
-- Broken trace, orphan code, missing test trace: `FAIL`.
-- Layer 2/3 warning: `WARNING`; với `--strict` hoặc scope PR: `FAIL` nếu chưa có giải trình được chấp thuận.
-- Nếu feature có `SPEC.md` nhưng chưa ở trạng thái `APPROVED & LOCKED` và diff chạm source/test feature đó: `FAIL`.
-- Nếu thay đổi source behavior nhưng không xác định được requirement/test liên quan: `FAIL`, yêu cầu cập nhật Spec/trace trước.
-- Khi diff có SDD artifact, governance file hoặc review report, phải xác nhận recommendation/review block theo `.claude/skills/_shared/ai-review-protocol.md` tồn tại và không ở trạng thái `REVISE`/`REJECTED`.
-- `APPROVED` chỉ hợp lệ khi có decision, reviewer identity và timestamp; Agent-generated `APPROVED` không được chấp nhận.
-- Diff làm thay đổi artifact đã approved nhưng không tạo recommendation mới hoặc invalidate review: `FAIL`.
-
-### 4. Test và quality gate
-
-Đọc approved `.sdd/architecture-profile.md`, manifest và CI evidence. Chạy theo thứ tự các **exact commands** đã approved trong profile: test, lint, typecheck, build. Không thay bằng package-manager command hoặc script name suy đoán.
-
-- Chỉ chạy command vừa `APPROVED` trong profile vừa tồn tại theo evidence; ghi command và exit result.
-- Nếu source behavior tồn tại nhưng profile thiếu command test hoặc test files phù hợp: `FAIL`.
-- Nếu repository là core-only template, không có source/test behavior executable và profile chưa chọn command: `N/A (core-only template; verification command intentionally unselected)`.
-- Nếu profile command không khớp manifest/CI evidence: `FAIL`; yêu cầu cập nhật profile và Human Final Review.
-- Không nuốt output hoặc đổi failure thành warning.
-- Test fail, lint fail, typecheck fail hoặc build fail: `FAIL`.
-
-### 5. Báo cáo gate
-
-Báo cáo theo format ổn định:
+### 6. Result
 
 ```text
 GIT VALIDATION: READY | BLOCKED
 scope: commit | pr
+project ownership: solo | team
 source: <staged diff | origin/base...origin/head>
 
 [PASS] repository integrity — evidence
 [PASS] secret and forbidden-file scan — evidence
 [PASS] constitution and RFC policy — evidence
-[PASS|N/A] SDD lint — evidence/reason
-[PASS|N/A] SDD audit — evidence/reason
-[PASS|N/A] SDD trace — evidence/reason
-[PASS|N/A] SDD sync — evidence/reason
-[PASS|N/A] tests — command/result/reason
-[PASS|N/A] lint/typecheck/build — command/result/reason
+[PASS|N/A] SDD lint/audit/trace/sync — evidence or reason
+[PASS|N/A] post-code review — evidence or reason
+[PASS|N/A] tests/lint/typecheck/build — command/result/reason
 
 blockers:
 - <path:line or command and remediation>
@@ -170,9 +90,4 @@ next step:
 - <exact remediation command>
 ```
 
-`READY` chỉ hợp lệ khi:
-
-- Không có `FAIL`.
-- Scope `pr` không có `WARNING` unresolved (team mode, tương đương `--strict`). Solo mode: `WARNING` là advisory, không block `READY`.
-- Mọi `N/A` có lý do hợp lệ.
-- Diff không rỗng và nguồn diff đúng scope.
+`READY` requires no `FAIL`, non-empty diff, valid reasons for every `N/A`, required post-code review `APPROVED`, and no unresolved warnings for team PR validation.

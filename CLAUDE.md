@@ -3,23 +3,23 @@
 # Version: 1.1.0
 # Project: Template khởi đầu SDD + ADD (Starter Template)
 
----
+## Mục đích
 
-## 1. Mục đích
+Repository là Starter Template theo **SDD** (Spec-Driven Development) và **ADD** (Agent-Driven Development). Template tạo governance, slash command và đặc tả chuẩn hóa để Human quyết định còn Agent thực thi có evidence.
 
-Repository là Starter Template theo **SDD** (Spec-Driven Development) và **ADD** (Agent-Driven Development). Dùng template để khởi tạo dự án mới với governance, slash command và tài liệu đặc tả chuẩn hóa.
+## Kiến trúc và cấu trúc
 
----
+### Nguồn chuẩn
 
-## 2. Kiến trúc và cấu trúc thư mục
+- `.sdd/architecture-profile.md` là profile machine-readable canonical cho tech binding và exact verification command.
+- `.claude/skills/_shared/ai-review-protocol.md` là protocol canonical cho Human Final Review, Methodology Profile, Describe-back và Action Record.
+- `.sdd/shared_context.md` canonicalize hai trục độc lập: `Project Ownership` (Human governance/delivery) và `Agent Execution` (direct/orchestrated worker route). `team` là mặc định cho ownership; solo vẫn có thể orchestration nhiều Agent.
+- `CLAUDE.md` phản ánh kiến trúc đã approved cho con người đọc; không tự chọn stack.
+- Thứ tự chọn binding: profile approved → repository evidence rõ ràng → input explicit → core-only baseline.
 
-### 2.1 Kiến trúc chuẩn
+Skill không được tự suy đoán HTTP framework, database, ORM/query layer, validation library hoặc test/build command chưa được chọn.
 
-Trạng thái Human Final Review được ghi bằng `/sdd-review`; protocol canonical nằm tại `.claude/skills/_shared/ai-review-protocol.md`.
-
-**Nguồn sự thật kiến trúc:** `.sdd/architecture-profile.md` là profile machine-readable canonical mà SDD/ADD skills sử dụng. `CLAUDE.md` là bộ nhớ kiến trúc dành cho con người và phải phản ánh các thay đổi profile đã approved. Thứ tự chọn: profile approved → repository evidence rõ ràng → input explicit của skill → core-only baseline. Skill không được tự suy đoán HTTP framework, database, ORM/query layer, validation library hoặc test/build command chưa được chọn.
-
-Dự án tuân thủ **Clean Architecture / Hexagonal Architecture**:
+### Clean Architecture / Hexagonal Architecture
 
 ```text
 src/
@@ -30,84 +30,73 @@ src/
 └── shared/         # Error, logger, bảo mật và tiện ích dùng chung
 ```
 
-### 2.2 Cấu trúc chuẩn
+### Cấu trúc chính
 
 ```text
 .
-├── AGENTS.md               # Constitution dành cho Agent: vai trò, phạm vi, quyền tool
-├── CLAUDE.md               # Bộ nhớ dự án và kiến trúc
-├── CONSTITUTION.md         # Hard governance rule và quality gate
-├── .agentignore            # Tệp cần bỏ qua để giữ context sạch
-├── .claude/skills/         # Slash command SDD/ADD, Git và technical skill
+├── AGENTS.md
+├── CLAUDE.md
+├── CONSTITUTION.md
+├── .agentignore
+├── .claude/skills/             # SDD/ADD, Git và technical command contract
 ├── .sdd/
-│   ├── README.md           # Feature registry
-│   ├── architecture-profile.md # Binding công nghệ, evidence và artifact gate
-│   ├── shared_context.md   # State và API contract dùng chung
-│   ├── mcp-config.yaml     # MCP access control theo Agent
-│   ├── template-version.md # Version template đã adopt; do adopt/update scripts quản lý
-│   ├── constraints/        # Global, business và safety constraints
-│   ├── reviews/            # Report và review ngoài feature
-│   ├── rfcs/               # RFC thay đổi governance
-│   ├── updates/            # Staged governance files chờ merge (tạm thời sau update)
-│   └── features/           # Bộ CONTEXT, SPEC, PLAN, TASKS của từng feature
+│   ├── README.md               # Feature registry
+│   ├── architecture-profile.md # Binding, evidence, artifact gate
+│   ├── shared_context.md       # Shared state/API contract
+│   ├── mcp-config.yaml         # MCP policy; không chứng minh host enforcement
+│   ├── constraints/            # Global, business, safety constraints
+│   ├── reviews/                # Review ngoài feature, gồm post-code review
+│   └── features/               # CONTEXT, SPEC, PLAN, TASKS
 ├── docs/
-│   ├── sdd-add-guide.md
+│   ├── sdd-add-quickstart.md   # Lộ trình chính từng bước
+│   ├── sdd-add-guide.md        # Artifact, gate, ownership reference
+│   ├── sdd-add-field-guide.md  # Tình huống → action reference
+│   ├── sdd-add-scenario-playbook.md
 │   ├── architecture-profile-guide.md
 │   └── multi-agent-orchestration-guide.md
 ├── scripts/
-│   ├── adopt.sh / adopt.ps1       # Tích hợp vào repository có sẵn
-│   ├── update.sh / update.ps1     # Cập nhật template từ nguồn gốc
-│   ├── self-heal.sh               # Test, sửa có giới hạn và Human review
-│   └── start-claude.sh / .ps1     # Chế độ --dangerously-skip-permissions
-├── src/                    # Mã nguồn thực thi
-└── tests/                  # Test suite
+│   ├── adopt.sh / adopt.ps1
+│   ├── update.sh / update.ps1
+│   ├── self-heal.sh
+│   └── template-smoke.sh / template-smoke.ps1
+├── src/
+└── tests/
 ```
 
----
+## Nguyên tắc cốt lõi
 
-## 3. Nguyên tắc kiến trúc cốt lõi
+- **Spec-as-Code:** đặc tả có cấu trúc nằm trong Git.
+- **Fix the Spec, not the Code:** requirement thiếu/mơ hồ phải update/review Spec trước behavior.
+- **EARS:** Functional Requirement trong `SPEC.md` dùng EARS.
+- **Architecture Profile Gate:** Context/Spec có thể core-only; Plan/Tasks/`/add-execute`/`/sdd-layer-edit` dừng khi thiếu binding hoặc exact command.
+- **Human gate:** Agent không self-approve. Review phải persisted; chat không thay thế review.
+- **Task sizing:** khoảng bốn giờ là signal để split task hoặc ghi Human-approved exception; không là bypass gate.
+- **Delivery review:** source/test/contract/config/schema/state changes cần post-code Human review trước Git `READY`.
 
-- **Spec-as-Code:** Đặc tả được lưu trong Git ở Markdown có cấu trúc để con người và Agent cùng đọc/ghi.
-- **EARS Notation:** Functional Requirement trong `SPEC.md` phải dùng EARS: Ubiquitous, Event-driven, State-driven, Optional hoặc Unwanted.
-- **Fix the Spec, not the Code:** Khi test thất bại vì requirement thiếu, bổ sung Spec rồi mới thay đổi behavior.
-- **Architecture Profile Gate:** `CONTEXT.md` và `SPEC.md` có thể core-only; `PLAN.md`, `TASKS.md`, `/add-execute` và `/sdd-layer-edit` phải dừng khi thiếu binding hoặc exact verification command cần thiết.
-- **Template Update:** Repo đã adopt theo dõi version template tại `.sdd/template-version.md`. Dùng `scripts/update.sh` (Linux/macOS) hoặc `scripts/update.ps1` (Windows) để nhận thay đổi mới từ template nguồn; dùng `/sdd-template-update --check` để xem version drift và `/sdd-template-update --review` để AI hướng dẫn merge governance files.
+## Quy ước và anti-pattern
 
----
-
-## 4. Quy ước kỹ thuật và anti-pattern
-
-### 4.1 Quy ước
-
-- **Tên:** Tệp dùng kebab-case (`order-repository.ts`); class, interface và type dùng PascalCase (`OrderRepository`, `OrderEntity`).
-- **EARS tagging:** Function/method thực thi business rule phải có JSDoc `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
-- **Dependency direction:** Interface gọi usecase; usecase phụ thuộc port; infra triển khai port. Domain không phụ thuộc adapter hay third-party package.
-
-### 4.2 Anti-pattern cần tránh
-
+- Tệp dùng kebab-case; class/interface/type dùng PascalCase.
+- Business method thực thi rule có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
+- Interface gọi usecase; usecase phụ thuộc port; infra triển khai port; domain không phụ thuộc adapter/third-party package.
 - Không truy cập DB trực tiếp từ controller/interface.
-- Không dùng magic number inline; đưa vào constant hoặc configuration đã approved.
-- Không vá code trực tiếp khi Spec không khớp; quay lại `.sdd/features/{slug}/SPEC.md` trước.
-- Không thêm framework, ORM, package, migration hoặc command ngoài Architecture Profile đã approved.
+- Không thêm framework, ORM, package, migration hoặc command ngoài Architecture Profile approved.
+- Không vá code khi Spec không khớp.
 
----
+## Self-heal safety boundary
 
-## 5. Hệ thống skill — tạo mới hay sao chép (generate vs copy)
+`scripts/self-heal.sh` chỉ thu thập evidence cho `implementation-defect`: chạy **một** exact approved command với `--max-attempts=1`. Script không edit source, repair, retry, self-approve, commit, push hoặc deploy.
 
-`/sdd-init` và `/sdd-adopt` **generate** governance files theo tech stack, không copy verbatim từ template. `AGENTS.md` có 8-section canonical structure (Identity, Scope, Tool Permissions, Security Rules, Communication Style, Error Handling, Escalation Protocol, Changelog). `CLAUDE.md` được điền từ project context thực tế. Xem chi tiết tại skill SKILL.md tương ứng.
+## Template lifecycle
 
-ADD 4-phase pipeline: Context Setup → Intent Communication → Agentic Execution → Human Review. Human time ≈ 20% (setup + review); AI time ≈ 80% (execute). Xem `docs/sdd-add-guide.md` section 1.3.
+`/sdd-init` và `/sdd-adopt` generate governance theo repository evidence; không copy manifest-specific command suy đoán. Repo đã adopt dùng `scripts/update.sh` hoặc `scripts/update.ps1`; `/sdd-template-update --check` xem version drift và `--review` hướng dẫn merge staged governance files. Không sửa `.sdd/architecture-profile.md` chỉ để cập nhật template.
 
-## 6. Tài liệu tham chiếu nhanh
+## Tài liệu
 
 | Mục đích | File |
 | :--- | :--- |
-| **Lần đầu — bắt đầu từ đây** | `docs/sdd-add-quickstart.md` |
-| Vận hành đầy đủ, review gate | `docs/sdd-add-guide.md` |
-| Tra nhanh scenario → command | `docs/sdd-add-field-guide.md` |
-| Kịch bản chi tiết từng bước | `docs/sdd-add-scenario-playbook.md` |
-| Architecture Profile chọn stack | `docs/architecture-profile-guide.md` |
-| Multi-Agent orchestration | `docs/multi-agent-orchestration-guide.md` |
-| Hard rule, quality gate | `CONSTITUTION.md` |
-| Agent scope & tool permission | `AGENTS.md` |
-| Architecture Profile (canonical) | `.sdd/architecture-profile.md` |
+| Lần đầu, làm từng bước | `docs/sdd-add-quickstart.md` |
+| Artifact, gate, ownership | `docs/sdd-add-guide.md` |
+| Tình huống → command | `docs/sdd-add-field-guide.md` |
+| Recovery, handoff, delivery | `docs/sdd-add-scenario-playbook.md` |
+| Binding/command | `docs/architecture-profile-guide.md` |
+| Agent execution và dispatch | `docs/multi-agent-orchestration-guide.md` |

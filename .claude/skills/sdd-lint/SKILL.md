@@ -8,7 +8,7 @@ user-invocable: true
 
 **Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), EARS keywords, `REQ-XXX` identifiers, file paths, and CLI commands are language-invariant.
 
-Dùng để lint và kiểm định `.sdd/features/{feature-slug}/SPEC.md`, phát hiện requirement mơ hồ, vi phạm EARS hoặc thiếu edge case trước khi Human Director hoặc Tech Lead review Spec.
+Dùng để lint và kiểm định `.sdd/features/{feature-slug}/SPEC.md`, phát hiện requirement mơ hồ, vi phạm EARS hoặc thiếu edge case trước khi Human reviewer có thẩm quyền review Spec.
 
 ## Tham số
 
@@ -33,4 +33,4 @@ Dùng để lint và kiểm định `.sdd/features/{feature-slug}/SPEC.md`, phá
 
 ## AI Recommendation và Human Final Review
 
-Sau lint, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm error, warning, EARS correction đề xuất, edge-case gap và residual risk. Lưu trong feature `SPEC.md` hoặc `.sdd/reviews/lint-<slug>.md` với `PENDING HUMAN REVIEW`. Human Director quyết định có chấp thuận correction hay không; lint failure vẫn bị block đến khi được khắc phục hoặc disposition rõ ràng. Agent không tự approve Spec.
+Sau lint, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm error, warning, EARS correction đề xuất, edge-case gap và residual risk. Lưu trong feature `SPEC.md` hoặc `.sdd/reviews/lint-<slug>.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền quyết định có chấp thuận correction hay không; lint failure vẫn bị block đến khi được khắc phục hoặc disposition rõ ràng. Agent không tự approve Spec.

@@ -183,7 +183,7 @@ Write-Host ""
 Write-Host "Bước tiếp theo trong repository đích:" -ForegroundColor White
 Write-Host "  1. Mở repository đích trong Claude Code hoặc AI IDE."
 Write-Host "  2. Chạy '/sdd-adopt' để khảo sát và đề xuất Architecture Profile theo tech stack thực tế."
-Write-Host "  3. Human Director review Architecture Profile; chỉ duyệt binding và command có evidence."
+Write-Host "  3. Human reviewer có thẩm quyền review Architecture Profile; chỉ duyệt binding và command có evidence."
 Write-Host "  4. Bắt đầu feature bằng '/sdd-context --feature=<slug>'."
 Write-Host "  5. Đảo ngược Spec cho module cũ bằng '/sdd-adopt --reverse-feature=<slug> --path=<module-path>'."
 Write-Host "  6. Review AI recommendation trước mọi công việc downstream."

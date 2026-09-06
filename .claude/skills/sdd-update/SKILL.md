@@ -71,7 +71,7 @@ Trước khi viết thay đổi, liệt kê điểm chưa chắc chắn theo 3 l
 2. **Constraint kỹ thuật** — NFR thêm vào có giá trị đo được chưa? (timeout, rate limit, threshold)
 3. **Edge case chưa xử lý** — Thay đổi này ảnh hưởng tình huống nào đang có trong Spec?
 
-Dừng và chờ Human Director confirm trước khi ghi thay đổi. Nếu được phép tiếp tục với assumption, ghi rõ assumption đó trong artifact.
+Dừng và chờ Human reviewer có thẩm quyền confirm trước khi ghi thay đổi. Nếu được phép tiếp tục với assumption, ghi rõ assumption đó trong artifact.
 
 ## Quy trình
 
@@ -120,7 +120,7 @@ Dừng và chờ Human Director confirm trước khi ghi thay đổi. Nếu đư
 
 ## AI Recommendation và Human Final Review
 
-Sau khi cập nhật artifact, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm Change Impact Record, invalidated scope, review route và exact next command. Giữ `Human Final Review.Status: PENDING`; downstream execution bị block đến khi Human Director ghi `APPROVED`. Agent không tự approve artifact đã sửa.
+Sau khi cập nhật artifact, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm Change Impact Record, invalidated scope, review route và exact next command. Giữ `Human Final Review.Status: PENDING`; downstream execution bị block đến khi Human reviewer có thẩm quyền ghi `APPROVED`. Agent không tự approve artifact đã sửa.
 
 ## Ví dụ
 

@@ -44,7 +44,7 @@ Next step : {update command}
 
 1. Xác định OS (Windows → PowerShell, Linux/macOS → Bash).
 2. Xác nhận `template-source` từ `.sdd/template-version.md` hoặc `--template`.
-3. Hiển thị lệnh update và chờ Human Director xác nhận trước khi chạy.
+3. Hiển thị lệnh update và chờ Human reviewer có thẩm quyền xác nhận trước khi chạy.
 4. Sau khi chạy, kiểm tra `.sdd/updates/` và tự động chuyển sang `--review` nếu có staged files.
 
 ```bash
@@ -65,7 +65,7 @@ Thêm `--dry-run` để xem trước. `--force-governance` chỉ overwrite `AGEN
    - Section/block hiện tại có thể bị ảnh hưởng.
    - Đề xuất merge action: **keep**, **replace**, **merge-manually**.
 3. Tạo AI recommendation theo `.claude/skills/_shared/ai-review-protocol.md`.
-4. Human Director quyết định merge action; Agent không tự merge hoặc overwrite governance files.
+4. Human reviewer có thẩm quyền quyết định merge action; Agent không tự merge hoặc overwrite governance files.
 
 ```text
 STAGED GOVERNANCE REVIEW
@@ -83,12 +83,12 @@ Next step: Merge manually → delete .sdd/updates/ → commit
 
 ## AI Recommendation và Human Final Review
 
-Sau khi chạy `--review`, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm staged files, diff summary, merge risk, action đề xuất và NEVER-file nào không nên đụng tới. Lưu tại `.sdd/reviews/update-<timestamp>.md` với `PENDING HUMAN REVIEW`. Human Director quyết định merge action; Agent không tự merge, overwrite hoặc xoá staged files.
+Sau khi chạy `--review`, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm staged files, diff summary, merge risk, action đề xuất và NEVER-file nào không nên đụng tới. Lưu tại `.sdd/reviews/update-<timestamp>.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền quyết định merge action; Agent không tự merge, overwrite hoặc xoá staged files.
 
 ## Safety gates
 
 - Không bao giờ đề xuất ghi vào NEVER files.
 - `CONSTITUTION.md` luôn chỉ stage, kể cả `--force-governance`; thay đổi Layer 1/2 cần RFC qua `/sdd-rfc` trước khi merge.
-- `AGENTS.md` thay đổi permission cần Human Director approval theo `/sdd-agents-edit`.
-- Agent không tự chạy update script mà không có xác nhận explicit của Human Director.
+- `AGENTS.md` thay đổi permission cần Human reviewer có thẩm quyền approval theo `/sdd-agents-edit`.
+- Agent không tự chạy update script mà không có xác nhận explicit của Human reviewer có thẩm quyền.
 - Nếu `template-source` không xác định được và không có `--template`, dừng và yêu cầu Human cung cấp path.

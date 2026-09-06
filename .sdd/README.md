@@ -1,51 +1,34 @@
-# Vòng đời SDD và sổ đăng ký nhiều feature (Multi-Feature Registry)
+# Vòng đời SDD và sổ đăng ký nhiều feature
 
-Trạng thái feature và đặc tả của hệ thống.
+> **Lần đầu dùng template?** Làm theo [Bắt đầu nhanh SDD + ADD](../docs/sdd-add-quickstart.md). Đây là lộ trình chính từ Context đến delivery.
 
-> **Lần đầu?** Đọc [`../docs/sdd-add-quickstart.md`](../docs/sdd-add-quickstart.md) trước.
+## Governance dùng chung
 
-## 1. Governance dùng chung (Global governance)
+- [`CONSTITUTION.md`](../CONSTITUTION.md): hard quality/security rules.
+- [`AGENTS.md`](../AGENTS.md): phạm vi và quyền của Agent.
+- [`CLAUDE.md`](../CLAUDE.md): bộ nhớ kiến trúc cho con người.
+- [`architecture-profile.md`](./architecture-profile.md): tech binding, evidence và exact verification command canonical.
+- [`shared_context.md`](./shared_context.md): shared contract/state.
+- [`constraints/`](./constraints/): global, business và safety constraints.
+- [`mcp-config.yaml`](./mcp-config.yaml): MCP/dispatch policy, không phải runtime enforcement evidence.
 
-- [`CONSTITUTION.md`](../CONSTITUTION.md) — Hard quality gate và security rule.
-- [`AGENTS.md`](../AGENTS.md) — Constitution, phạm vi và quyền tool của Agent.
-- [`CLAUDE.md`](../CLAUDE.md) — Bộ nhớ kiến trúc dành cho con người.
-- [`architecture-profile.md`](./architecture-profile.md) — Binding tech stack/kiến trúc, evidence và artifact gate canonical.
-- [`shared_context.md`](./shared_context.md) — API contract và trạng thái dùng chung.
-- [`constraints/`](./constraints/) — Global, business và safety constraints.
-- [`mcp-config.yaml`](./mcp-config.yaml) — MCP access control theo Agent.
-
----
-
-## 2. Sổ đăng ký feature (Feature Registry)
+## Sổ đăng ký feature
 
 | Feature slug | Tên feature | Owner | Status | Path |
 | :--- | :--- | :--- | :--- | :--- |
 | *(Chưa có feature)* | Chạy `/sdd-context --feature=<slug>` để khởi tạo. | — | — | `.sdd/features/` |
 
----
+## Cấu trúc feature
 
-## 3. Cấu trúc feature chuẩn
+Mỗi feature nằm trong `.sdd/features/{feature-slug}/`:
 
-Mỗi feature nằm trong `.sdd/features/{feature-slug}/` và có bốn artifact:
+- `CONTEXT.md`: Intent Packet, Describe-back, Methodology Profile, glossary và question disposition.
+- `SPEC.md`: executable requirements, Feature Lock và review/lock.
+- `PLAN.md`: architecture/data flow, profile evidence, consistency và risk.
+- `TASKS.md`: atomic tasks, owner, command, checkpoint, sizing và delivery trigger.
 
-- `CONTEXT.md` — Pha 0: Context Discovery.
-- `SPEC.md` — Pha 1: Executable Specification.
-- `PLAN.md` — Pha 2: Architecture Plan.
-- `TASKS.md` — Pha 3: Atomic Tasks Breakdown.
+Context/Spec có thể core-only. Plan/Tasks cần binding/command liên quan từ Architecture Profile đã `APPROVED`.
 
-`CONTEXT.md` và `SPEC.md` có thể dùng core-only baseline. `PLAN.md` và `TASKS.md` cần binding/command liên quan trong Architecture Profile đã approved.
+## Cập nhật artifact
 
----
-
-## 4. Cập nhật artifact
-
-Dùng `/sdd-update --artifact=<spec|context|plan|tasks>` để cập nhật artifact đã approved:
-
-| Artifact | Khi dùng |
-| :--- | :--- |
-| `spec` | Sửa requirement, thêm error case, bump SemVer |
-| `context` | Thay đổi stakeholder, constraint, glossary |
-| `plan` | Sửa component, risk, data flow (Spec không đổi) |
-| `tasks` | Thêm/sửa task, dependency (Plan không đổi) |
-
-Mỗi update invalidate review cũ, tạo recommendation mới cần Human Director approve.
+Dùng `/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --reason="..."` để cập nhật artifact đã approved. Update material invalidate review bị ảnh hưởng, tạo recommendation mới và cần Human review trước downstream work.

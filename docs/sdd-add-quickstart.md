@@ -1,153 +1,174 @@
 # Bắt đầu nhanh SDD + ADD
-# Version: 1.1.0
 
-Đây là bài thực hành đầu tiên cho Starter Template SDD + ADD. Làm theo từng bước; dừng tại mọi điểm cần Human review. Command contract chi tiết nằm trong `.claude/skills/`.
+Đây là lộ trình chính để làm một feature từ ý tưởng đến delivery. Làm theo thứ tự. Dừng tại mọi `Human Final Review`; chat không phải approval persisted.
 
-## Trước khi bắt đầu
-
-Bạn cần một repository Git và một feature slug, ví dụ `feat-user-register`. Chưa cần chọn framework hay database để viết Context/Spec.
+**Bạn cần:** repository Git, feature slug (ví dụ `feat-user-register`) và một Human quyết định business/risk.
 
 ```text
-Human quyết định WHAT, WHY, boundaries và risk
-Agent đề xuất HOW, thực thi trong scope đã duyệt, rồi ghi evidence
+Human quyết định WHAT, WHY, boundary và risk.
+Agent đề xuất HOW, thực thi scope đã duyệt, rồi ghi evidence.
 ```
 
-Agent không tự approve, không suy approval từ chat, không `git push`, không deploy, và không tự quyết material state change.
+Agent không self-approve, không `git push`, không deploy, không tự chọn stack/command và không tự thực hiện material state change.
 
-## Bản đồ hành trình
+## Bước 0 — Chọn độ sâu trước khi viết
 
-```text
-CONTEXT → SPEC → PLAN → TASKS → execute → verify → sync
-```
+Chọn trong `Methodology Profile`:
 
-| Artifact | Bạn ghi gì vào đó? | Khi nào dừng? |
-| :--- | :--- | :--- |
-| `CONTEXT.md` | Intent Packet: WHAT, WHY, Definition of Done, boundaries, exclusions, decision owner. | Gửi Human review trước Spec. |
-| `SPEC.md` | EARS requirements, Methodology Profile, Feature Lock, acceptance và out-of-scope. | Cần `APPROVED & LOCKED` trước technical execution. |
-| `PLAN.md` | `REQ-XXX` mapping, data flow, profile evidence, state-change và consistency impact. | Human review trước Tasks. |
-| `TASKS.md` | Atomic task, ownership, file boundary, exact command, checkpoint và sync-back. | Human review trước execute. |
+| Level | Dùng khi |
+| :--- | :--- |
+| `SKIP` | Scope exploratory/throwaway hoặc không thêm behavior/contract material, đã có Human decision và evidence. |
+| `SKETCH` | Phạm vi nhỏ, risk thấp. |
+| `DETAILED` | Mặc định cho integration, authorization, concurrency, third-party hoặc risk đáng kể. |
+| `FORMAL` | Money, compliance, security/authorization, migration, destructive/irreversible action, core state hoặc external contract. |
 
-`Feature Lock` chỉ khóa behavior/contract của feature hoặc sprint đang làm. Muốn đổi artifact đã approved, dùng `/sdd-update` rồi review lại.
+Đây là sizing recommendation, không bỏ Human review, Feature Lock, Architecture Profile evidence, exact command hay checkpoint.
 
-## Hai cổng bắt buộc trước technical execution
-
-Trước khi tạo Plan/Tasks kỹ thuật hoặc chạy code, xác nhận cả hai:
-
-1. `SPEC.md` là `APPROVED & LOCKED`.
-2. `.sdd/architecture-profile.md` có binding liên quan và exact verification command đã `APPROVED`.
-
-Context và Spec có thể technology-neutral. Nếu Plan/Tasks cần framework, database, ORM/query layer, validation hoặc command chưa được chọn/evidenced, dừng và xử lý Architecture Profile trước.
-
-## Bài thực hành: feature đầu tiên
-
-### Bước 1: Khởi tạo project và Context
+## Bước 1 — Tạo Context và kiểm tra Agent hiểu đúng
 
 ```text
 /sdd-init --project-name="my-project"
 /sdd-context --feature=feat-user-register
 ```
 
-Mở `CONTEXT.md` vừa tạo. Điền kết quả người dùng quan sát được, lý do, Definition of Done, phạm vi không làm và người chịu trách nhiệm quyết định.
+Trong `CONTEXT.md`, kiểm tra:
 
-**Dừng:** Yêu cầu Human review Context. Không chuyển sang Spec chỉ vì chat đã đồng ý.
+- `Intent Packet`: WHAT, WHY, Definition of Done, boundaries, exclusions, decision owner.
+- glossary, actor/state, constraint và open question.
+- disposition cho mọi question material: `resolved`, `approved assumption`, `deferred` hoặc `blocking decision`.
+- `Describe-back record`: Agent diễn giải lại WHAT/WHY/DoD/boundary; không được mâu thuẫn Intent Packet, glossary hoặc constraints.
 
-### Bước 2: Viết Spec và khóa behavior
+**Dừng:** Human review Context. Nếu describe-back sai, sửa Context trước; không sang Spec.
+
+## Bước 2 — Viết, phản biện và khóa Spec
 
 ```text
 /sdd-review --feature=feat-user-register --artifact=context --status=APPROVED \
-  --decision="Intent is ready for specification." --reviewer="<human reviewer>" \
+  --decision="Đã duyệt Context và cách Agent hiểu bài toán." \
+  --reviewer="<human reviewer>" \
   --follow-up="/sdd-spec --feature=feat-user-register"
 /sdd-spec --feature=feat-user-register
 ```
 
-Ghi requirement bằng EARS, tiêu chí chấp nhận, lỗi cần xử lý và out-of-scope. Sau đó để Human review và lock Spec.
+Spec cần EARS, acceptance, error behavior, NFR đo được, out-of-scope và Feature Lock. Trước recommendation, Agent phải:
 
-**Kết quả mong đợi:** Bạn biết chính xác behavior cần làm và điều gì chưa làm. Nếu có requirement mới, dùng `/sdd-update`; không vá code trước.
+1. Chạy Clarification-First và dừng khi business rule/NFR/edge case còn mơ hồ.
+2. Làm pre-mortem: giả định feature gây incident, bổ sung rule/evidence cần thiết.
+3. Domain walkthrough: normal/error flow, state boundary, authorization, duplicate/concurrency, data lifecycle khi phù hợp.
+4. Ghi disposition cho mọi finding.
 
-### Bước 3: Chọn kỹ thuật có evidence
+Chạy `/sdd-lint --feature=feat-user-register`, sau đó Human review. `SPEC.md` phải là `APPROVED & LOCKED` trước Plan kỹ thuật.
 
-Mở `.sdd/architecture-profile.md`. Ghi binding và exact command cho technical behavior của feature, rồi gửi Human review. Xem [Hướng dẫn Hồ sơ kiến trúc](./architecture-profile-guide.md) nếu chưa rõ evidence cần gì.
+**Nếu behavior đổi sau lock:** `/sdd-update --artifact=spec --reason="..."`, review/lock lại. Không vá code trước.
 
-**Dừng:** Không có command/binding `APPROVED` thì không tạo Plan kỹ thuật.
+## Bước 3 — Xác nhận Hồ sơ kiến trúc
 
-### Bước 4: Lập Plan, review rồi mới tạo Tasks
+Mở `.sdd/architecture-profile.md` trước Plan/Tasks/execution. Với behavior kỹ thuật trong feature, cần binding liên quan, evidence và exact verification command `APPROVED`.
+
+```text
+/sdd-review --target=.sdd/architecture-profile.md --status=APPROVED \
+  --decision="Đã duyệt binding và command cho scope feature." \
+  --reviewer="<human reviewer>" \
+  --follow-up="/sdd-plan --feature=feat-user-register"
+```
+
+**Dừng:** thiếu binding/command, evidence mâu thuẫn, hoặc command không chạy được. Không thay bằng `npm test` hay command suy đoán. Xem [Hướng dẫn Hồ sơ kiến trúc](./architecture-profile-guide.md).
+
+## Bước 4 — Lập Plan
 
 ```text
 /sdd-plan --feature=feat-user-register
 ```
 
-Gửi `PLAN.md` để Human review. Chỉ chạy bước tiếp theo sau khi Plan là `APPROVED`.
+Plan phải map `REQ-XXX` đến component/data flow, phân loại state change, ghi shared-contract impact, exact command, trace/sync decision và post-code review trigger. Human review Plan trước Tasks.
+
+## Bước 5 — Chia Tasks có thể xác minh
 
 ```text
 /sdd-tasks --feature=feat-user-register
 ```
 
-Gửi `TASKS.md` để Human review. Chỉ execution sau khi Tasks là `APPROVED`.
+Mỗi task cần ownership/file boundary, `REQ-XXX`, exact command, checkpoint, sync-back, post-code review trigger, `Estimated effort` và `Sizing signal`.
 
-### Bước 5: Thực thi, xác minh và đồng bộ
+Một task implementation độc lập nên trong khoảng bốn giờ. Tách task khi có nhiều ownership, requirement, command, checkpoint, shared contract/integration hoặc không thể verify atomically. Nếu giữ task lớn hơn, ghi `approved-exception` cùng lý do, risk và Human evidence.
 
-Nếu làm một mình:
+Human review `TASKS.md` trước execution.
 
-```text
-/add-execute --feature=feat-user-register
-```
+## Bước 6 — Chọn execution rồi thực thi task
 
-Nếu làm theo team mode:
+Chọn `Agent Execution` độc lập với `Project Ownership`:
 
-```text
-/sdd-dispatch --feature=feat-user-register
-```
+- `direct`: Agent hiện tại thực thi task.
+- `orchestrated`: dispatcher điều phối một hoặc nhiều worker có boundary độc quyền.
 
-Sau execution, chạy các command đã được Architecture Profile duyệt:
+Solo owner và team đều dùng được cả hai route.
 
 ```text
-/sdd-lint --feature=feat-user-register
-/sdd-audit --feature=feat-user-register
-/sdd-trace --feature=feat-user-register
-/sdd-sync --feature=feat-user-register --reason="feature delivery"
+# direct
+/sdd-dispatch --feature=feat-user-register --task=T001 --agent-execution=direct
+
+# orchestrated, kể cả solo project owner
+/sdd-dispatch --feature=feat-user-register --task=T001 --project-ownership=solo --agent-execution=orchestrated
 ```
 
-Mỗi task cần Shadow Plan và Action Record. Nếu dispatch team, đọc [hướng dẫn điều phối](./multi-agent-orchestration-guide.md). Không gọi `/sdd-dispatch` khi `TASKS.md` chưa được review.
+`/add-execute` luôn cần `--dispatch-record=<reference>`, `--dispatch-grant=<grant-id>` và `--dispatch-consumer=<consumer-ref>` do `/sdd-dispatch` tạo cho đúng feature/task. Chỉ grant matching `DISPATCHED`/`UNCONSUMED` cùng consumer reference được bắt đầu; direct consume grant trước action, còn orchestrated worker cần immutable packet khớp record. Không gọi trực tiếp để bỏ qua `/sdd-dispatch` preflight.
 
-## Khi nào cần checkpoint trước action?
 
-Human checkpoint được lưu bền vững bắt buộc trước:
+Trước edit, Agent tạo Shadow Plan. Material state change cần Human checkpoint persisted trước action:
 
 - shared/public contract;
-- persistence schema hoặc business-data mutation;
+- schema hoặc business-data mutation;
 - permission, security, dependency hoặc runtime configuration;
 - external hoặc irreversible side effect.
 
-Task low-risk/read-only vẫn cần evidence, nhưng baseline không yêu cầu checkpoint. Dùng `/add-execute --strict-checkpoint` nếu dự án muốn checkpoint cho mọi task.
+Mỗi task phải có Action Record. Scope/contract/profile drift hoặc requirement mới là blocker, không phải lý do mở rộng task.
 
-## Khi test hoặc CI thất bại
+## Bước 7 — Chạy validation route
 
-| Nguyên nhân | Làm gì ngay? |
-| :--- | :--- |
-| Code trái Spec rõ ràng | Sửa trong approved task scope, rồi chạy lại exact command. |
-| Requirement/edge case chưa có trong Spec | Dừng; `/sdd-update --artifact=spec`, review và lock lại. |
-| Binding hoặc command thiếu/sai | Dừng; cập nhật/review Architecture Profile. |
-| Material/high-risk mutation | Dừng; lấy checkpoint persisted trước action. |
-
-Không thêm test filter, skip hoặc mock chỉ để biến failure thành success.
-
-## Solo mode
+Theo trigger của diff, ghi command/result vào Action Record:
 
 ```text
-/sdd-init --project-name="my-project" --team-size=solo
+<exact approved command>
+/sdd-lint --feature=feat-user-register
+/sdd-audit --feature=feat-user-register
+/sdd-trace --feature=feat-user-register --diff
+/sdd-sync --feature=feat-user-register --reason="feature delivery"
+/git-validate --scope=commit --feature=feat-user-register
 ```
 
-Solo chỉ giảm Pull Request overhead. Human Developer vẫn review durable decision. Sau validation và commit, Human tự chạy:
+Chỉ chạy exact command đã được Architecture Profile duyệt. Một route không áp dụng phải ghi `N/A` cùng lý do, không giả `PASS`.
 
-```bash
-git push -u origin <head>
+## Bước 8 — Review sau code khi cần
+
+Tạo `.sdd/reviews/post-code-<feature>-<delivery-or-timestamp>.md` khi delivery thay đổi source behavior, test, API/public/shared contract, runtime/dependency/security configuration, schema hoặc business state.
+
+Report phải nêu changed boundary, `REQ-XXX` coverage, command/result, lint/audit/trace/sync state, residual risk và Human decision. Human dùng `/sdd-review` để approve.
+
+Docs-only không cần post-code review chỉ vì thay Markdown.
+
+## Bước 9 — Delivery Git
+
+```text
+/git-validate --scope=commit --feature=feat-user-register
+/git-commit --message="feat: add user registration"
 ```
 
-Agent có thể validate hoặc commit khi Human yêu cầu, nhưng không push.
+Chỉ commit khi Human yêu cầu và `GIT VALIDATION: READY`. Human tự `git push`. `Project Ownership: team` chạy thêm `/git-validate --scope=pr --strict` trước `/git-pr`; `solo` không cần PR. `Agent Execution` không đổi delivery policy.
+
+## Khi bị block
+
+| Dấu hiệu | Làm đúng |
+| :--- | :--- |
+| Describe-back/Context mâu thuẫn | Sửa Context, disposition question rồi review lại. |
+| Spec thiếu rule hoặc edge case | `/sdd-update --artifact=spec`, review/lock lại. |
+| Binding/command thiếu hoặc mâu thuẫn | Review Architecture Profile; không đoán stack/command. |
+| Contract drift | Dừng; owner/Lead resolve rồi trace/sync. |
+| Task quá lớn | Tách task hoặc ghi Human-approved exception. |
+| Lặp sửa không tiến triển | Dừng; giữ evidence, phân loại blocker, handoff hoặc xin Human decision. |
+| Context/token pressure | `/sdd-handoff --feature=<slug>` rồi `/sdd-resume --feature=<slug>`. |
+| Environment/command mismatch | Ghi evidence, coi là profile/configuration gap. |
 
 ## Self-heal: chỉ thu thập evidence
-
-`self-heal.sh` không sửa source. Nó chỉ chạy exact approved command của task có Human Final Review `APPROVED`, rồi ghi evidence cho `implementation-defect` đã được scope:
 
 ```bash
 ./scripts/self-heal.sh --feature=<slug> --task=<task-id> \
@@ -157,12 +178,11 @@ Agent có thể validate hoặc commit khi Human yêu cầu, nhưng không push.
   --scope-category=implementation-defect
 ```
 
-Script block Spec gap, profile gap, contract, schema/data, security/config và external/irreversible scope. `--max-attempts=1` nghĩa là command chỉ chạy một lần; script không tự repair.
+Script chạy command một lần, không edit/repair/retry, self-approve, commit, push hoặc deploy.
 
-## Đọc tiếp
+## Đọc tiếp khi cần
 
-- [Hướng dẫn vận hành đầy đủ](./sdd-add-guide.md)
+- [Hướng dẫn vận hành](./sdd-add-guide.md)
 - [Tra cứu nhanh](./sdd-add-field-guide.md)
 - [Sổ tay tình huống](./sdd-add-scenario-playbook.md)
-- [Hướng dẫn Hồ sơ kiến trúc](./architecture-profile-guide.md)
 - [Hướng dẫn điều phối nhiều Agent](./multi-agent-orchestration-guide.md)

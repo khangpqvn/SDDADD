@@ -14,7 +14,7 @@ Skill resolve quyết định công nghệ theo thứ tự:
 3. Input explicit của command, ví dụ `/sdd-init --stack="..."`.
 4. Core-only starter baseline bên dưới.
 
-Mâu thuẫn giữa các nguồn là **blocking configuration gap**. Skill phải lưu AI recommendation và yêu cầu Human Director quyết định; không được chọn một bên hoặc sinh artifact adapter-specific.
+Mâu thuẫn giữa các nguồn là **blocking configuration gap**. Skill phải lưu AI recommendation và yêu cầu Human reviewer có thẩm quyền quyết định; không được chọn một bên hoặc sinh artifact adapter-specific.
 
 ---
 

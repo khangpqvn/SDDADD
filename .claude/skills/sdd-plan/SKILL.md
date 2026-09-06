@@ -18,7 +18,7 @@ Dùng `SPEC.md` và `CONSTITUTION.md` để tạo `.sdd/features/{feature-slug}/
 
 ## Shared methodology contract
 
-Đọc [AI Review Protocol](../_shared/ai-review-protocol.md), `Intent Packet`, `Methodology Profile` và `Feature Lock` của feature. Plan chỉ triển khai locked scope, không đưa deferred work vào component/task. High-risk route từ Spec phải có evidence `APPROVED` trước khi plan technical work thuộc route đó.
+Đọc [AI Review Protocol](../_shared/ai-review-protocol.md), `Intent Packet`, `Methodology Profile` và `Feature Lock` của feature. Plan chỉ triển khai locked scope, không đưa deferred work vào component/task. Kế thừa depth đã chọn từ Context/Spec; Plan không tự tăng hoặc hạ `SKIP | SKETCH | DETAILED | FORMAL`. High-risk route từ Spec phải có evidence `APPROVED` trước khi plan technical work thuộc route đó.
 
 ## Architecture Profile gate (BLOCKING)
 
@@ -28,7 +28,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 2. Chỉ dùng layout đã chọn: `domain/` → `usecase/` → `interface/` / `infra/` adapter.
 3. Feature cần HTTP, persistence, validation, cache, async messaging hoặc runnable test/build command chưa `APPROVED` thì dừng; không sinh Plan adapter-specific.
 4. Lưu `PENDING HUMAN REVIEW` recommendation nêu binding thiếu, evidence và exact follow-up.
-5. Profile/evidence mâu thuẫn thì Human Director phải quyết định trước Plan.
+5. Profile/evidence mâu thuẫn thì Human reviewer có thẩm quyền phải quyết định trước Plan.
 
 ## Các bước
 
@@ -37,14 +37,15 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 3. Vẽ data flow: Client → approved interface adapter → usecase → port → approved infra adapter → store/service; mỗi flow nêu `REQ-XXX` liên quan.
 4. Ghi state-change category cho component/flow: `none`, shared/public contract, persistence schema/business-data mutation, permission/security/dependency/runtime configuration, external/irreversible side effect.
 5. Ghi shared-contract impact: no impact hoặc contract ID/version, producer/consumer, owner, compatibility decision và sync-back owner.
-6. Tạo `## Consistency Map`: requirement, Plan component, task expectation, test/trace evidence và `/sdd-sync` decision.
-7. Đánh giá risk về security, concurrency, performance, migration và rollback.
-8. Ghi **Questions for Human Director** — xem mục bên dưới.
-9. Kiểm tra DoD và tạo recommendation.
+6. Tạo `## Consistency Map`: requirement, Plan component, task expectation, exact verification command, test/trace evidence, `/sdd-sync` decision và post-code review trigger.
+7. Dùng estimated effort chỉ để nhận diện task candidate quá lớn; estimate không tự cho phép dispatch, retry hoặc approval.
+8. Đánh giá risk về security, concurrency, performance, migration và rollback.
+9. Ghi **Questions for Human reviewer** — xem mục bên dưới.
+10. Kiểm tra DoD và tạo recommendation.
 
-## Questions for Human Director — bắt buộc trong PLAN.md
+## Questions for Human reviewer — bắt buộc trong PLAN.md
 
-`PLAN.md` phải có section `## Questions for Human Director` liệt kê những điểm Spec còn mơ hồ mà planning phát hiện. Đây là giá trị cốt lõi của pha Plan: AI đọc Spec và báo cáo những gì nó phải assume để lập plan.
+`PLAN.md` phải có section `## Questions for Human reviewer` liệt kê những điểm Spec còn mơ hồ mà planning phát hiện. Đây là giá trị cốt lõi của pha Plan: AI đọc Spec và báo cáo những gì nó phải assume để lập plan.
 
 **Format từng câu hỏi:**
 
@@ -60,30 +61,31 @@ Nếu sau khi đọc Spec kỹ AI không có câu hỏi nào, phải **chủ đ�
 
 ## PLAN.md phải có
 
-- **Architectural Approach** — pattern, design pattern, lý do chọn
-- **REQ-to-Component Mapping** — mọi `REQ-XXX` có component/data flow rõ ràng
-- **Components** — tên, trách nhiệm, interface, file path theo layer
-- **Data Flow** — user input → processing → storage → response, gắn `REQ-XXX`
-- **State-change classification** — category và checkpoint need cho từng flow có state change
-- **Shared-contract impact** — owner, compatibility, consumer và sync-back responsibility khi applicable
-- **Consistency Map** — liên kết Spec → Plan → expected Tasks → trace/test/sync evidence
-- **Dependencies** — thứ tự implement, external dep
-- **Risks & Mitigations** — ít nhất 3 rủi ro kỹ thuật với mitigation
-- **Questions for Human Director** — xem trên
+- **Architectural Approach** — pattern, design pattern, lý do chọn.
+- **REQ-to-Component Mapping** — mọi `REQ-XXX` có component/data flow rõ ràng.
+- **Components** — tên, trách nhiệm, interface, file path theo layer.
+- **Data Flow** — user input → processing → storage → response, gắn `REQ-XXX`.
+- **State-change classification** — category và checkpoint need cho từng flow có state change.
+- **Shared-contract impact** — owner, compatibility, consumer và sync-back responsibility khi applicable.
+- **Consistency Map** — requirement, Plan, expected task, exact command, trace/test/sync evidence và post-code review trigger.
+- **Dependencies** — thứ tự implement, external dep.
+- **Risks & Mitigations** — ít nhất 3 rủi ro kỹ thuật với mitigation.
+- **Questions for Human reviewer** — xem trên.
 
 ## DoD
 
+- [ ] Depth từ Methodology Profile được giữ nguyên; deferred scope không vào Plan.
 - [ ] Boundary và dependency direction rõ ràng.
 - [ ] Mỗi `REQ-XXX` có component, data flow hoặc disposition rõ ràng.
 - [ ] Component có trách nhiệm, layer và path cụ thể.
 - [ ] Data flow chỉ dùng approved adapter.
 - [ ] State-change category và checkpoint requirement đã phân loại cho mọi flow/task candidate.
 - [ ] Shared contract impact và compatibility/sync-back owner đã ghi khi applicable.
-- [ ] Consistency Map liên kết requirement, Plan, expected task và trace/test/sync evidence.
+- [ ] Consistency Map liên kết requirement, Plan, expected task, exact command, trace/test/sync evidence và post-code review trigger.
 - [ ] Có ít nhất ba risk và mitigation.
-- [ ] Section "Questions for Human Director" có ít nhất 1 câu hỏi hoặc ghi rõ "Không có câu hỏi mở — assumption: [danh sách]".
+- [ ] Section "Questions for Human reviewer" có ít nhất 1 câu hỏi hoặc ghi rõ "Không có câu hỏi mở — assumption: [danh sách]".
 - [ ] Technical question/assumption được nêu hoặc đã approved.
 
 ## AI Recommendation và Human Final Review
 
-Sau khi tạo/sửa `PLAN.md`, lưu canonical recommendation gồm locked scope, architecture option, `REQ-XXX` mapping, dependency direction, state-change/checkpoint, shared-contract impact, risk, mitigation, decision kỹ thuật mở và requirement bị ảnh hưởng. Human review giữ `PENDING`; task decomposition/execution cần `APPROVED`. Agent phải dừng, không self-approve.
+Sau khi tạo/sửa `PLAN.md`, lưu canonical recommendation gồm locked scope, inherited depth, architecture option, `REQ-XXX` mapping, dependency direction, state-change/checkpoint, shared-contract impact, risk, mitigation, decision kỹ thuật mở, delivery validation/post-code review trigger và requirement bị ảnh hưởng. Human review giữ `PENDING`; task decomposition/execution cần `APPROVED`. Agent phải dừng, không self-approve.

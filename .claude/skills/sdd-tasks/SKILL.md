@@ -6,67 +6,60 @@ user-invocable: true
 
 # SDD Phase 3 — Task Decomposition (`/sdd-tasks`)
 
-**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `PENDING`, `APPROVED`), `@ears` references, file paths, and CLI commands are language-invariant.
+**Output language:** Mirror the invoking prompt. Canonical tokens, `@ears` references, paths and commands remain language-invariant.
 
-Dùng `PLAN.md` đã approved để tạo `.sdd/features/{feature-slug}/TASKS.md`.
+Dùng `PLAN.md` đã approved để tạo `.sdd/features/{feature-slug}/TASKS.md`. Sửa Tasks approved khi Plan không đổi dùng `/sdd-update --artifact=tasks --reason="..."`.
 
-## Tham số
+## Parameters
 
-- `--feature=<feature-slug>`: Feature identifier.
+- `--feature=<feature-slug>`: Required feature identifier.
 
-> **Sửa TASKS.md đã approved mà Plan không đổi?** Dùng `/sdd-update --artifact=tasks --reason="..."`. `/sdd-tasks` tạo Tasks từ đầu từ Plan đã approved — dùng khi Tasks chưa có hoặc Plan thay đổi yêu cầu phân rã lại.
+## Required contract and Architecture Profile gate
 
-## Shared methodology contract
+Read AI Review Protocol, Intent Packet, Methodology Profile, Feature Lock, Plan consistency map, shared-contract impact, `.sdd/shared_context.md` and Architecture Profile. Tasks only implement locked scope. Each task must use approved exact paths, package/config/migration choices and exact verification command; do not substitute guessed commands. Missing binding or command blocks Tasks.
 
-Đọc [AI Review Protocol](../_shared/ai-review-protocol.md), Intent Packet, Methodology Profile, Feature Lock, Plan consistency map và shared-contract impact trước khi phân rã. Task chỉ thực hiện locked scope; deferred work phải giữ ngoài TASKS.md.
+## Task sizing
 
-## Architecture Profile gate (BLOCKING)
+An independent implementation task should generally fit about four hours. Split when work has multiple boundaries, requirements, commands, checkpoints, shared-contract/integration phases, or cannot be verified atomically. A larger task requires a Human-approved exception with dependency, integration risk, checkpoint, owner, exact command and split rationale.
 
-- Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-protocol.md).
-- Đọc profile và `PLAN.md` đã approved trước khi sinh task.
-- Chỉ ghi exact path, package, migration, config và command có profile evidence.
-- `TASKS.md` bị block nếu thiếu test/build/lint command hoặc feature binding cần thiết. Không dùng `npm test` làm giá trị thay thế.
-- Mỗi task phải nêu architecture layer, profile binding, `@ears` reference và exact verification command.
-
-## Task record bắt buộc
-
-Mỗi task dùng format sau, bổ sung additive cho format legacy:
+## Required task record
 
 ```markdown
 ### T00X — <title>
-- Intent reference: <Intent Packet WHAT/DoD và REQ-XXX>
+- Intent reference: <Intent Packet WHAT/DoD and REQ-XXX>
 - Input and expected outcome: <verifiable starting state and observable result>
 - Layer and file boundary: <owned paths>
-- Owner and dependencies: <owner; blockedBy or none>
+- Owner and dependencies: <human accountable owner or approved agent role; blockedBy or none>
+- Estimated effort: <duration/range>
+- Sizing signal: within-guideline | split-recommended | approved-exception
 - Profile binding and exact verification command: <approved evidence>
 - Scope category: none | <material state-change category>
 - Human checkpoint: required | N/A; <review route/evidence>
 - Shared contract and sync-back: <contract responsibility; /sdd-trace and /sdd-sync decision>
 - High-risk review route: <approved route or N/A>
-- Dispatch readiness: <single-owned | parallel-owned | sequential-handoff; worker role; exclusive boundary>
+- Post-code review: required | N/A; <trigger/review route>
+- Dispatch readiness: <single-owned | parallel-owned | sequential-handoff; approved agent role or direct; exclusive boundary>
 ```
 
-`Scope category` dùng taxonomy từ protocol. Task material state change không được bắt đầu nếu Human checkpoint persisted thiếu. Task high-risk phải tham chiếu review route đã approved; normal Plan approval không thay thế route đó.
+## Procedure
 
-## Các bước
-
-1. Phân rã task theo ba tiêu chí: Atomic, Independent và Verifiable.
-2. Gắn requirement `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` cho business behavior.
-3. Ghi Intent reference, verifiable input/outcome, owner, dependency, file boundary, profile binding, exact command, scope category, checkpoint và contract/sync-back responsibility cho từng task.
-4. Ghi `Dispatch readiness`: `single-owned`, `parallel-owned` hoặc `sequential-handoff`; nêu worker role và exclusive file boundary. Task trong cùng `parallel-owned` batch không được overlap path, dependency hoặc shared-contract mutation. Shared/integration work phải `sequential-handoff`.
-5. **Solo mode** (`--team-size=solo`): Developer xử lý toàn bộ ownership nhưng vẫn đọc và cập nhật shared contract khi task chạm contract dùng chung. **Team mode**: chỉ owner/Lead cập nhật `.sdd/shared_context.md`; contract chưa thuộc ownership phải block dispatch.
-6. Ghi risk và tạo recommendation.
+1. Decompose tasks as Atomic, Independent and Verifiable.
+2. Attach `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` to business behavior.
+3. Record all required fields, including explicit human/accountable owner and dispatch readiness.
+4. `parallel-owned` tasks cannot overlap paths, dependencies or shared-contract mutation. Shared/integration work is `sequential-handoff`.
+5. `Project Ownership` does not select the execution route: solo and team both may use `direct` or `orchestrated` execution. `Dispatch readiness` authorizes task selection only; it is not a task execution grant. Only `/sdd-dispatch` may issue a feature- and task-bound grant after preflight, with immutable boundary and route evidence. The named frozen-contract owner alone mutates shared contract; a sole solo Human owner may be named, while team ownership follows named delegation.
+6. Record risks and create recommendation.
 
 ## DoD
 
-- [ ] Task atomic, independent hoặc có `blockedBy`, và verifiable.
-- [ ] Task có Intent reference, input/outcome, path, layer, owner, profile binding, requirement và exact command.
-- [ ] Task có scope category, checkpoint disposition và high-risk review route khi applicable.
-- [ ] Task nêu contract/sync-back responsibility cùng `/sdd-trace`/`/sdd-sync` decision.
-- [ ] Không task nào vượt Feature Lock hoặc Out of Scope.
-- [ ] Shared contract đã đồng bộ khi applicable.
-- [ ] Human Final Review `APPROVED` trước `/add-execute`.
+- [ ] Tasks are atomic, independent or declare `blockedBy`, and verifiable.
+- [ ] Each task has Intent/input/outcome/path/layer/owner/profile binding/requirement/exact command.
+- [ ] Sizing signal is present; exceptions have evidence.
+- [ ] Scope category, checkpoint, post-code route and high-risk route are recorded where applicable.
+- [ ] Contract/sync-back and dispatch readiness are explicit.
+- [ ] No task exceeds Feature Lock or Out of Scope.
+- [ ] Human Final Review is `APPROVED` before `/add-execute` or `/sdd-dispatch`.
 
-## AI Recommendation và Human Final Review
+## AI Recommendation and Human Final Review
 
-Sau khi tạo/sửa `TASKS.md`, lưu canonical recommendation gồm thứ tự task, dependency, file, verification command, state-change checkpoint, high-risk review route, shared contract/sync-back và delivery risk. Giữ `Human Final Review.Status: PENDING`; `/add-execute` không được bắt đầu đến khi Human Director ghi `APPROVED`. Agent không tự approve task plan.
+Record the canonical recommendation with task order, dependencies, boundaries, sizing, verification, checkpoints, review routes, contract/sync-back, execution readiness and delivery risk. Keep review `PENDING` until a human persists `APPROVED`; agents never approve task plans.

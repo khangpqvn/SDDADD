@@ -6,105 +6,58 @@ user-invocable: true
 
 # Git Push / Pull Request Operator (`/git-pr`)
 
-**Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Status tokens (`READY`, `BLOCKED`), Git/GitHub output, and code identifiers are language-invariant.
+**Output language:** Mirror the invoking prompt. Status tokens, Git/GitHub output and identifiers remain language-invariant.
 
-Dùng để chuẩn bị delivery remote. **Solo mode** không tạo PR: Agent kiểm định local delivery readiness và hướng dẫn Human tự `git push`. **Team mode** tạo Pull Request sau Human confirmation và remote diff; Agent không push branch thay Human.
+Prepares remote delivery. `Project Ownership: solo` does not create a PR: Agent validates local readiness and tells the Human owner how to push. `Project Ownership: team` creates a PR after Human confirmation and remote validation. Agent never pushes on behalf of a human. Agent Execution does not affect delivery behavior.
 
-## Solo mode detection
+## Project ownership detection
 
-Đọc `# Collaboration Mode: team|solo` trong `.sdd/shared_context.md`. `--team-size=solo|team` override explicit cho invocation hiện tại. Không suy mode từ sự tồn tại section mẫu 1A/1.
+Read `# Project Ownership: team|solo` and `# Agent Execution: direct|orchestrated` in `.sdd/shared_context.md`. `--project-ownership=solo|team` overrides delivery ownership only. Use canonical settings only when both headers exist exactly once and are valid. When both canonical headers are absent, use exactly one valid legacy source: exactly one `# Collaboration Mode: solo|team` header or exactly one `--team-size=solo|team`; duplicate, malformed or coexisting sources are `BLOCKED`. The valid source maps `solo` to solo/direct and `team` to team/orchestrated; emit a migration warning and do not silently rewrite governance. Missing, duplicate or malformed canonical headers are `BLOCKED`; never fallback legacy. When either canonical header exists, `--team-size` is `BLOCKED`; the alias is valid only when both canonical headers are absent. `--team-size` cannot be combined with `--project-ownership` or `--agent-execution`; the conflict is `BLOCKED`. A legacy header alongside canonical headers is ignored for resolution and recorded for migration cleanup.
 
-Solo mode bỏ qua PR creation flow, nhưng giữ validation và Human-owned push.
+## Parameters
 
-## Tham số
+- `--base=<branch>`: Target branch; default is `origin` default branch.
+- `--head=<branch>`: Source branch; default current branch.
+- `--feature=<feature-slug>`: Optional validator input.
+- `--draft`: Create draft PR (team ownership only).
+- `--issue=<id>`: Optional issue linked in PR body (team ownership only).
+- `--project-ownership=solo|team`: Optional delivery-policy override.
+- `--team-size=solo|team`: Deprecated composite alias for one transition release.
 
-- `--base=<branch>`: Target branch; mặc định là default branch của `origin`. Solo mode: dùng để báo target/delivery context, không push.
-- `--head=<branch>`: Source branch; mặc định branch hiện tại.
-- `--feature=<feature-slug>`: Tùy chọn, truyền tiếp cho validator.
-- `--draft`: Tạo draft PR (team mode only).
-- `--issue=<id>`: Tùy chọn, liên kết issue trong body (team mode only).
-- `--team-size=solo|team`: Tùy chọn; override solo detection từ shared_context.
+## Solo ownership flow
 
-## Quy trình — Solo mode
-
-Developer là Human Director và tự push. Agent không chạy `git push`.
-
-1. Kiểm tra trạng thái:
-
-   ```bash
-   git status --short
-   git branch --show-current
-   git remote -v
-   ```
-
-2. Block nếu detached HEAD, dirty worktree (unstaged/uncommitted), merge/rebase/cherry-pick chưa xử lý, hoặc branch là `main`/`master`/`production`/`prod`/`release/*`.
-3. Xác minh local commit và remote target; không fetch/push thay Human nếu outbound network action chưa được họ thực hiện.
-4. Trước Human push, chạy `/git-validate --scope=pr --team-size=solo` trên local source `origin/<base>...HEAD`. `READY` ở giai đoạn này xác nhận local pre-push readiness; remote verification vẫn pending.
-5. Khi local commit và validation evidence sẵn sàng, báo Human command, không thực thi:
+1. Check `git status --short`, `git branch --show-current`, and `git remote -v`.
+2. Block detached HEAD, dirty worktree, unfinished Git operation or protected delivery branch.
+3. Do not fetch/push for the Human. Validate local source with `/git-validate --scope=pr --project-ownership=solo` against `origin/<base>...HEAD`.
+4. After `READY`, provide but do not execute:
 
    ```bash
    git push -u origin <head>
    ```
 
-6. Sau khi Human push, họ có thể gọi lại `/git-pr --team-size=solo` để kiểm tra `HEAD == origin/<head>` và remote diff.
+5. After the Human push, a repeat invocation may verify `HEAD == origin/<head>` and remote diff.
 
-## Quy trình — Team mode
+## Team ownership flow
 
-Team mode tạo Pull Request. Luôn dùng remote diff và bắt buộc qua `/git-validate --scope=pr --strict` trước `gh pr create`.
+1. Check repository status, remote and `gh auth status`.
+2. Fetch remote, resolve base/head, and require local commit already pushed by a Human.
+3. Block protected head, detached/dirty/unfinished state, missing/empty remote diff, existing PR, conflict, failing required check or `CHANGES_REQUESTED`.
+4. Run `/git-validate --scope=pr --base=<base> --head=<head> --feature=<feature-slug> --strict --project-ownership=team`.
+5. Build conventional imperative title/body with summary, validation evidence, test plan and related issue.
+6. Ask the user to confirm the outward-facing PR content. Only after confirmation and `READY`, run `gh pr create`; never merge, close, force-push or bypass checks.
 
-1. Kiểm tra quyền và trạng thái trước thao tác outward-facing:
+## Failure handling
 
-   ```bash
-   git status --short
-   git branch --show-current
-   git remote -v
-   gh auth status
-   ```
-
-2. Xác định default branch và fetch remote:
-
-   ```bash
-   git fetch --prune origin
-   git symbolic-ref --short refs/remotes/origin/HEAD
-   git rev-parse --verify origin/<base>
-   git rev-parse --verify origin/<head>
-   ```
-
-3. Local commit chưa push: dừng và hướng dẫn Human push branch rồi chạy lại validation. Không tạo PR dựa trên local-only commit.
-4. Block nếu head là `main`, `master`, `production`, `prod` hoặc `release/*`; detached HEAD, dirty worktree, merge/rebase/cherry-pick chưa xử lý; remote base/head thiếu; remote diff rỗng; PR đã tồn tại; branch conflict với base; required check fail hoặc review state `CHANGES_REQUESTED`.
-5. Phân tích remote diff và chạy `/git-validate --scope=pr --base=<base> --head=<head> --feature=<feature-slug> --strict`.
-6. Title/body dùng conventional format, imperative, dưới 72 ký tự, không version number hoặc AI attribution. Body gồm Summary, Validation evidence, Test plan, Related issue.
-7. Kiểm tra PR chưa tồn tại; nếu request chưa chứa approval tạo PR, yêu cầu user xác nhận nội dung outward-facing.
-8. Sau confirmation và `READY`, chạy:
-
-   ```bash
-   gh pr create --base <base> --head <head> --title "..." --body-file <temporary-body-file>
-   ```
-
-   Dùng `--draft` khi user yêu cầu. Không merge, close, force-push hoặc bypass check.
-
-## Xử lý lỗi
-
-- Push bị từ chối: Human resolve theo repository policy, rồi validation lại.
-- Validation blocked: báo blocker và lệnh khắc phục, không push hoặc tạo PR.
-- `gh` auth/API failure (team mode): báo lỗi, không retry vô hạn.
-- Conflict: dừng; không tự resolve hoặc force-push.
+- Rejected push: Human resolves under repository policy, then revalidates.
+- Validation blocker: report remediation; do not push or create PR.
+- `gh` auth/API failure: report once; do not retry indefinitely.
+- Conflict: stop; do not auto-resolve or force-push.
 
 ## Output
 
-### Solo mode
-
 ```text
+✓ project ownership: solo | team
 ✓ validation: READY | BLOCKED
-✓ delivery: Human must run git push -u origin <head>
+✓ delivery: Human must run git push -u origin <head> | pull request: <url>
 ✓ remote verification: pending Human push | HEAD == origin/<head>
-```
-
-### Team mode
-
-```text
-✓ remote diff: origin/<base>...origin/<head>
-✓ validation: READY
-✓ checks: passed | pending | failed
-✓ pull request: <url>
 ```

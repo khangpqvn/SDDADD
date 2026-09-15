@@ -38,3 +38,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 ## AI Recommendation và Human Final Review
 
 Sau audit, tạo canonical recommendation gồm finding, severity, evidence, remediation option và residual risk. Lưu trong feature artifact hoặc `.sdd/reviews/audit-<slug>.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền quyết định disposition; `Tech Lead` có thể review architecture khi repository giao thẩm quyền. Layer 1 failure và blocker còn mở vẫn block. Agent không tự approve audit.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu audit scope, profile/binding state, `PASS`/`WARNING`/`FAIL`/`CONFIGURATION GAP`, report path và residual risk. Kết quả chỉ `PASS` không có warning/finding mới vẫn là `Human decision required` khi recommendation audit còn `PENDING HUMAN REVIEW`; Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --target=<feature artifact hoặc .sdd/reviews/audit-<slug>.md> --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. Chỉ follow-up đã persist mới chọn downstream route. Findings thay đổi behavior/governance/profile/contract là `Human decision required` với target review/update phù hợp; Layer 1 `FAIL` hoặc configuration gap là `BLOCKED`. Không claim `PASS` cho check chưa chạy và không tự remediation/bypass gate.

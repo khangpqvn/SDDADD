@@ -39,3 +39,7 @@ Dùng khi cập nhật `CLAUDE.md`, là bộ nhớ kiến trúc cho người đ�
 ## AI Recommendation và Human Final Review
 
 Trước khi sửa `CLAUDE.md`, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm architecture evidence, memory change đề xuất, alternative, drift risk và affected skill. Lưu tại `.sdd/reviews/claude-edit.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền phải `APPROVED` trước edit; `Tech Lead` có thể review architecture khi repository giao thẩm quyền. Sau edit refresh recommendation và không tự approve project memory mới.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu architecture evidence, proposed/reflected memory boundary, drift risk và `.sdd/reviews/claude-edit.md`. Trước edit chọn `Human decision required`; Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --target=.sdd/reviews/claude-edit.md --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. Sau edit nêu recommendation được refresh thay vì tự approve. Profile evidence thiếu/conflict là `BLOCKED`; không phản chiếu stack chưa `APPROVED`.

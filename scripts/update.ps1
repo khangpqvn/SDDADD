@@ -103,6 +103,32 @@ function Overwrite-File {
     $script:Updated++
 }
 
+function Retire-LegacyDispatchSkill {
+    $LegacyDir = Join-Path $TargetDir ".claude\skills\sdd-dispatch"
+    $LegacySkill = Join-Path $LegacyDir "SKILL.md"
+
+    if (-not (Test-Path -Path $LegacySkill)) {
+        return
+    }
+
+    if ($DryRun) {
+        Write-Host "  [~] Sẽ retire: .claude\skills\sdd-dispatch\SKILL.md" -ForegroundColor Green
+        return
+    }
+
+    Remove-Item -Path $LegacySkill -Force -Confirm:$false
+    Write-Host "  [+] Retired   : .claude\skills\sdd-dispatch\SKILL.md" -ForegroundColor Green
+    $script:Updated++
+
+    $Remaining = @(Get-ChildItem -Path $LegacyDir -Force -ErrorAction SilentlyContinue)
+    if ($Remaining.Count -eq 0) {
+        Remove-Item -Path $LegacyDir -Force -Confirm:$false
+        Write-Host "  [+] Removed empty legacy directory: .claude\skills\sdd-dispatch" -ForegroundColor Green
+    } else {
+        Write-Host "  [!] Giữ .claude\skills\sdd-dispatch vì còn custom content; Human cần review." -ForegroundColor Yellow
+    }
+}
+
 function Stage-GovernanceFile {
     param ([string]$SrcRel)
     $Src    = Join-Path $TemplateDir $SrcRel
@@ -150,6 +176,7 @@ if (Test-Path $SkillsSource) {
 } else {
     Write-Host "  [!] Không có .claude\skills\ trong template." -ForegroundColor Yellow
 }
+Retire-LegacyDispatchSkill
 
 # ─── 2. Safe-overwrite: docs và scripts hạ tầng ──────────────────────────────
 

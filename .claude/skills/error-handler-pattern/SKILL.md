@@ -69,3 +69,7 @@ REMEDIATION:
 ```
 
 Error code, visible message, retry hoặc idempotency change cần cập nhật `SPEC.md` trước code. Chỉ thay đổi chính `ENG-02` trong `CONSTITUTION.md` mới cần RFC; thay đổi feature dùng `/sdd-review` trước execution.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract) sau `ERROR HANDLING AUDIT REPORT`. Nêu audit/scaffold mode, profile/binding, findings, verification evidence và Spec/Plan impact. Kết quả audit sạch không có action scope mới chọn `continue` với action không-command: giữ evidence và chỉ theo persisted feature/delivery Follow-up hiện có. Feature behavior change là `Human decision required` để `/sdd-update --artifact=spec ...` rồi review; `ENG-02` Constitution change route qua RFC. `CONFIGURATION GAP` hoặc unresolved `CRITICAL` là `BLOCKED`; không scaffold framework/logger/retry command suy đoán.

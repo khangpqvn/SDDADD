@@ -108,6 +108,31 @@ overwrite_file() {
   UPDATED=$((UPDATED + 1))
 }
 
+retire_legacy_dispatch_skill() {
+  local legacy_dir="$TARGET_DIR/.claude/skills/sdd-dispatch"
+  local legacy_skill="$legacy_dir/SKILL.md"
+
+  if [ ! -f "$legacy_skill" ]; then
+    return
+  fi
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo -e "  ${GREEN}[~] Sẽ retire: .claude/skills/sdd-dispatch/SKILL.md${NC}"
+    return
+  fi
+
+  rm -f "$legacy_skill"
+  echo -e "  ${GREEN}[✓] Retired   : .claude/skills/sdd-dispatch/SKILL.md${NC}"
+  UPDATED=$((UPDATED + 1))
+
+  if [ -z "$(find "$legacy_dir" -mindepth 1 -print -quit)" ]; then
+    rmdir "$legacy_dir"
+    echo -e "  ${GREEN}[✓] Removed empty legacy directory: .claude/skills/sdd-dispatch${NC}"
+  else
+    echo -e "  ${YELLOW}[!] Giữ .claude/skills/sdd-dispatch vì còn custom content; Human cần review.${NC}"
+  fi
+}
+
 stage_governance_file() {
   local src_rel="$1"
   local src="$TEMPLATE_DIR/$src_rel"
@@ -155,6 +180,7 @@ if [ -d "$TEMPLATE_DIR/.claude/skills" ]; then
 else
   echo -e "  ${YELLOW}[!] Không có .claude/skills/ trong template.${NC}"
 fi
+retire_legacy_dispatch_skill
 
 # ─── 2. Safe-overwrite: docs và scripts hạ tầng ──────────────────────────────
 

@@ -4,7 +4,7 @@ Dùng trang này để hiểu artifact, ownership và gate. Khi cần thao tác 
 
 ## Ownership và execution
 
-`.sdd/shared_context.md` tách `Project Ownership` khỏi `Agent Execution`. `solo` là một Human project owner; `team` là nhiều Human collaborator. `direct` chạy task trong Agent hiện tại; `orchestrated` cho phép dispatcher dùng worker. Hai trục không suy ra nhau. Direct execution vẫn giữ toàn bộ gate; ownership chỉ quyết định review eligibility và delivery policy.
+`.sdd/shared_context.md` tách `Project Ownership` khỏi `Agent Execution`. `solo` là một Human project owner; `team` là nhiều Human collaborator. `/add-execute` chạy `direct` trong Agent hiện tại hoặc điều phối `orchestrated` worker sau observed runtime capability. Hai trục không suy ra nhau. Direct execution vẫn giữ toàn bộ gate; ownership chỉ quyết định review eligibility và delivery policy.
 
 ## Vai trò
 
@@ -48,6 +48,10 @@ Artifact và review report dùng canonical block trong `.claude/skills/_shared/a
 
 Dùng `/sdd-review` để ghi decision. Post-code report nằm tại `.sdd/reviews/post-code-<feature>-<delivery-or-timestamp>.md`; docs-only không cần report này.
 
+## Completion output của skill
+
+Sau mỗi skill, completion output tóm tắt state/evidence đã quan sát và đề xuất đúng một route an toàn: `continue`, `Human decision required` hoặc `BLOCKED`. Đây là trợ giúp đọc kết quả, không phải approval status và không thay thế artifact, `Human Final Review`, `Action Record` hoặc `Execution Record`. Xem [AI Review Protocol](../.claude/skills/_shared/ai-review-protocol.md#completion-output-contract) để biết format và precondition của lệnh tiếp theo.
+
 ## Delivery evidence
 
 Action Record phải liên kết scope, profile/exact command, checkpoint, changed/result, validation route, post-code review, blocker và sync-back. `/sdd-trace --diff` áp dụng khi requirement/code/test đổi. `/sdd-sync` áp dụng khi shared state/contract đổi. `/git-validate` chỉ `READY` khi gate applicable pass.
@@ -64,4 +68,4 @@ Action Record phải liên kết scope, profile/exact command, checkpoint, chang
 - [Tra cứu nhanh](./sdd-add-field-guide.md): tình huống → action.
 - [Sổ tay tình huống](./sdd-add-scenario-playbook.md): recovery, handoff và delivery.
 - [Hướng dẫn Hồ sơ kiến trúc](./architecture-profile-guide.md): binding/command.
-- [Hướng dẫn điều phối nhiều Agent](./multi-agent-orchestration-guide.md): ownership/dispatch.
+- [Hướng dẫn điều phối nhiều Agent](./multi-agent-orchestration-guide.md): ownership/worker orchestration.

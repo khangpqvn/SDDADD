@@ -17,20 +17,18 @@ Dùng trước khi kết thúc phiên có feature chưa hoàn thành. Skill tổ
 ## Quy trình
 
 1. Mở `.sdd/features/{feature-slug}/TASKS.md` và ghi đúng task status:
-   - `[x]`: Hoàn thành; required exact verification command đã pass, hoặc `N/A` với lý do hợp lệ; Action Record, checkpoint và sync-back cần thiết đã có.
+   - `[x]`: Hoàn thành; required exact verification command đã pass, hoặc `N/A` với lý do hợp lệ; Action Record, checkpoint, sync-back và post-code review `APPROVED` khi trigger delivery áp dụng đã có. Nếu post-code review còn thiếu, giữ `[/]`.
    - `[/]`: Đang thực hiện.
    - `[ ]`: Chưa thực hiện.
-2. Ghi feature/task đang dở, profile version/binding evidence, active contract version, approved scope/file boundary, state-change checkpoint, exact command đã chạy/kết quả, method đang dở, blocker và open question. Nếu có Dispatch Record, giữ dispatch ID, feature, selected task execution grant ID/attempt/route/state/consumption state, dispatcher-issued consumer reference, atomic execution claim evidence, consumer/consumption evidence, batch/state, worker reference, runtime identity/enforcement evidence, pending approval và exact resume operation.
-3. Thêm/cập nhật `## Current Handoff State` cuối `TASKS.md` với Action Record và Dispatch Record theo [AI Review Protocol](../_shared/ai-review-protocol.md), exact next decision/command và sync-back state. Agent/host task reference hết hạn hoặc unavailable phải được ghi rõ; không tự reassign ownership.
+2. Ghi feature/task đang dở, profile version/binding evidence, active contract version, approved scope/file boundary, state-change checkpoint, exact command đã chạy/kết quả, method đang dở, blocker và open question. Nếu có Execution Record, giữ execution ID, feature, selected task execution grant ID/attempt/route/state/consumption state, `/add-execute`-issued consumer reference, atomic execution claim evidence, consumer/consumption evidence, selection/state, worker reference, runtime identity/enforcement evidence, pending approval và exact resume operation. Historical Dispatch Record giữ nguyên như immutable evidence, không reuse cho execution mới.
+3. Thêm/cập nhật `## Current Handoff State` cuối `TASKS.md` với Action Record và Execution Record theo [AI Review Protocol](../_shared/ai-review-protocol.md), exact next decision/command và sync-back state. Agent/host task reference hết hạn hoặc unavailable phải được ghi rõ; không tự reassign ownership.
 4. Handoff ngay khi scope expansion, blocker, contract drift hoặc decision mới xuất hiện; không tiếp tục absorb unrelated cleanup.
-5. Xuất tóm tắt và hướng dẫn phiên sau:
-
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File .\scripts\start-claude.ps1 -Continue
-   ```
-
-   Sau đó dùng `/sdd-resume --feature={feature-slug}`.
+5. Xuất tóm tắt và hướng dẫn phiên sau. Human khởi động phiên Claude Code mới bằng launcher chuẩn không bỏ qua permission, rồi dùng `/sdd-resume --feature=<feature-slug>` sau khi xác nhận đúng repository.
 
 ## AI Recommendation và Human Final Review
 
-Trước khi kết thúc phiên, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm task tiếp theo, active contract version, approved scope, pending checkpoint, evidence gap, blocker, exact next decision/command và resume command. Lưu trong `TASKS.md` hoặc `.sdd/reviews/handoff-<slug>.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền xác nhận resume scope trước material state change hoặc strict-checkpoint task; Agent không tự đánh dấu handoff hoàn tất hoặc approve hành động tiếp theo.
+Trước khi kết thúc phiên, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm task tiếp theo, active contract version, approved scope, pending checkpoint, evidence gap, blocker, exact next decision/command và resume command. Lưu tại `.sdd/reviews/handoff-<slug>.md` với `PENDING HUMAN REVIEW`; chỉ cập nhật `TASKS.md` bằng `## Current Handoff State` và record không chứa thêm `Human Final Review` block. Human reviewer có thẩm quyền xác nhận resume scope trước material state change hoặc strict-checkpoint task; Agent không tự đánh dấu handoff hoàn tất hoặc approve hành động tiếp theo.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu feature/task marker, active contract/profile/review/checkpoint/grant state, Action/Execution Record, exact command/result và blocker đã persist. `continue` chỉ sau khi Human đã mở đúng repository trong một phiên Claude Code mới bằng launcher chuẩn không bỏ qua permission: `/sdd-resume --feature=<feature-slug>`, rồi chỉ dùng eligible `/add-execute --feature=<feature-slug> --task=<task-id> --resume` hoặc `/add-execute --feature=<feature-slug> --all` sau revalidation. Material checkpoint pending, drift hoặc incomplete evidence là `Human decision required` hoặc `BLOCKED`; không dùng script hoặc flag bỏ qua permission, không reassign ownership hay reuse grant cũ.

@@ -51,3 +51,7 @@ REMEDIATION:
 ```
 
 Nếu performance change đổi data contract, consistency, SLA hoặc schema behavior, cập nhật `SPEC.md`/`PLAN.md` trước code. Dùng `/sdd-review` cho profile/schema decision trước execution.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract) sau `PERSISTENCE PERFORMANCE AUDIT REPORT`. Nêu audited infra scope, approved DB/ORM binding, query-plan/index evidence, verification result và Spec/Plan impact. Kết quả audit sạch không có action scope mới chọn `continue` với action không-command: giữ evidence và chỉ theo persisted feature/delivery Follow-up hiện có. Data contract, SLA, schema hoặc migration change là `Human decision required` để update/review relevant artifact/profile; `CONFIGURATION GAP`, `ARCH-01` hoặc unresolved `CRITICAL` là `BLOCKED`. Không emit SQL/index/migration/ORM command khi binding chưa approved.

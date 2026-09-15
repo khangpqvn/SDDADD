@@ -57,3 +57,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 ## AI Recommendation và Human Final Review
 
 Sau khi tạo/sửa `CONTEXT.md`, lưu canonical recommendation trong artifact, gồm Intent Packet, Describe-back record, business question, assumption, stakeholder, constraint, exclusion, Methodology Profile và alternative. Giữ `Human Final Review.Status: PENDING`. Chỉ chuyển sang `/sdd-spec` sau `APPROVED` có decision, reviewer và timestamp. Agent phải dừng, không self-approve.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). `continue` chỉ sau `CONTEXT.md` có persisted `APPROVED`: `/sdd-spec --feature=<feature-slug>`. Với recommendation/review còn `PENDING`, chọn `Human decision required`; Human reviewer dùng `/sdd-review --feature=<feature-slug> --artifact=context --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"` sau khi chọn các giá trị thật, không dùng placeholder. Không gọi `/sdd-spec` trước persisted `APPROVED`. Intent/Describe-back/profile evidence mâu thuẫn là `BLOCKED`; nêu evidence và yêu cầu Human disposition, không tự chọn technology hoặc assumption.

@@ -69,3 +69,7 @@ Nếu validation fail, không sửa file và báo `HUMAN REVIEW: BLOCKED` kèm �
 - RFC chưa qua `/sdd-rfc --approve`.
 
 `/sdd-review` chỉ ghi nhận quyết định do người gọi cung cấp. Nó không xác minh quyền reviewer trong tổ chức.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md), giữ nguyên `HUMAN REVIEW: RECORDED | BLOCKED` report. Tóm tắt target, previous/new status, reviewer/timestamp, Spec lock và persisted Follow-up. `APPROVED` chỉ có thể `continue` theo Follow-up đã persist; `REVISE`/`REJECTED` là `Human decision required` hoặc `BLOCKED` theo Follow-up, không fabricated execution command. Validation failure là `BLOCKED`; không sửa recommendation/source/artifact ngoài năm review field.

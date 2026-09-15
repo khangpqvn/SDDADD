@@ -29,3 +29,7 @@ Dùng khi cần đề xuất thay đổi/bổ sung quy tắc trong `CONSTITUTION
 ## AI Recommendation và Human Final Review
 
 Sau khi soạn hoặc đánh giá RFC, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm motivation, alternative, security/architecture impact, migration risk và disposition đề xuất. Lưu trong RFC hoặc `.sdd/reviews/rfc-<number>.md` với `PENDING HUMAN REVIEW`. Chỉ Tech Lead/Human Director được ủy quyền có thể approve RFC và thay đổi Constitution; Agent không tự approve.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu RFC ID/status, Constitution/migration impact, evidence và review target. RFC `PROPOSED` là `Human decision required`; chỉ Tech Lead/Human Director được ủy quyền mới có thể chạy `/sdd-rfc --approve=<rfc-number>`. Thiếu authority, motivation/risk/migration hoặc conflicting rule là `BLOCKED`; không dùng `/sdd-review` để thay route approve RFC.

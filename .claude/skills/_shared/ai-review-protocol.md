@@ -104,7 +104,7 @@ Execution evidence hoặc handoff state ghi record tối thiểu:
 - Profile binding and exact commands: <approved evidence>
 - State-change category: <none or category list>
 - Human checkpoint: <review reference or N/A>
-- Task execution grant: <grant ID; route; dispatcher-issued opaque consumer reference; consumption evidence or N/A with reason>
+- Task execution grant: <grant ID; route; /add-execute-issued opaque consumer reference; consumption evidence or N/A with reason>
 - Host execution-claim evidence: <host-controlled claim reference or UNVERIFIED>
 - Actions and result: <what ran/changed and outcome>
 - Validation route: <lint/audit/trace/sync/git-validation result or N/A with reason>
@@ -121,19 +121,19 @@ Delivery thay đổi implementation behavior, test, API/public/shared contract, 
 
 Report dùng canonical block và phải nêu changed boundary, `REQ-XXX` coverage, exact approved command/result, lint/audit/trace/sync state, residual risk và required Human decision. Docs-only artifact work tiếp tục dùng artifact review thông thường; không cần post-code review chỉ vì có thay đổi Markdown.
 
-### Dispatch Record và retry evidence
+### Execution Record và retry evidence
 
-Dispatcher ghi một `## Dispatch Record — <dispatch-id>` dưới `## Current Handoff State` của feature `TASKS.md`. Record là additive evidence, không thay task marker, Action Record hoặc Human Final Review. `Project ownership` và `Agent execution` phải được ghi tách biệt; direct execution không phải bypass governance.
+`/add-execute` ghi một `## Execution Record — <execution-id>` dưới `## Current Handoff State` của feature `TASKS.md`. Record là additive evidence, không thay task marker, Action Record hoặc Human Final Review. `Project ownership` và `Agent execution` phải được ghi tách biệt; direct execution không phải bypass governance. Historical `Dispatch Record` vẫn là immutable evidence, nhưng không authorize execution mới.
 
 ```markdown
-## Dispatch Record — D-<feature>-<batch>-A<attempt>
-- Dispatcher: <Claude Code /sdd-dispatch or current Agent>
+## Execution Record — E-<feature>-<selection>-A<attempt>
+- Coordinator: <Claude Code /add-execute or current Agent>
 - Project ownership: solo | team
 - Agent execution: direct | orchestrated
-- Governance resolution: <canonical | legacy-header | legacy-alias>; invocation axis overrides: <none | project-ownership=<value> | agent-execution=<value> | both>
+- Governance resolution: <canonical | legacy-header>; invocation axis overrides: none
 - Feature: <feature-slug>
-- Batch/tasks/state: <batch, ordered task IDs; PLANNED | AWAITING_APPROVAL | READY | DISPATCHED | RUNNING | VERIFYING | RETRY_PENDING | COMPLETED | BLOCKED | ESCALATED>
-- Task execution grants: <one append-only entry per selected task: task ID; grant ID; grant attempt; route=direct|orchestrated; task grant state=DISPATCHED|RUNNING|RETIRED|REVOKED; consumption state=UNCONSUMED|CONSUMED; dispatcher-issued opaque consumer reference; consumption evidence; terminal/retry evidence>
+- Selection/tasks/state: <task=<T00X> | all snapshot; ordered task IDs; PLANNED | AWAITING_APPROVAL | READY | DISPATCHED | RUNNING | VERIFYING | RETRY_PENDING | COMPLETED | BLOCKED | ESCALATED>
+- Task execution grants: <one append-only entry per selected task: task ID; grant ID; grant attempt; route=direct|orchestrated; task grant state=DISPATCHED|RUNNING|RETIRED|REVOKED; consumption state=UNCONSUMED|CONSUMED; /add-execute-issued opaque consumer reference; consumption evidence; terminal/retry evidence>
 - Host execution-claim evidence: <host-controlled atomic claim reference or UNVERIFIED; matching feature/task/grant/route/consumer when available>
 - Ownership and frozen contracts: <boundary check; ID/version/owner or N/A>
 - Profile/checkpoint/commands: <approved evidence>
@@ -144,7 +144,7 @@ Dispatcher ghi một `## Dispatch Record — <dispatch-id>` dưới `## Current 
 - Results/integration/blocker/sync-back: <Action Record, command result, compatibility, blocker, decision>
 ```
 
-Runtime policy metadata does not prove host enforcement. Markdown grant state is cooperative evidence only: compliant routes must persist `RUNNING`/`CONSUMED` before action and reject consumed or mismatched grants, but this template cannot atomically prevent concurrent or malicious writers across sessions. `/sdd-dispatch` allocates an opaque consumer reference in every grant before handoff; `/add-execute` must match it before consumption. This is cooperative binding, not proof that a host prevented another session from replaying the reference. When an observed host provides an atomic execution claim, bind it to feature/task/grant/route/consumer and record the evidence; otherwise preserve `Runtime enforcement evidence: UNVERIFIED` and do not represent the grant as host-enforced replay protection. Task execution eligibility is controlled by the matching task execution grant, not aggregate batch state: only `DISPATCHED` with `UNCONSUMED` may start; `/add-execute` records `RUNNING` with `CONSUMED` before task action. A consumed, non-`DISPATCHED`, mismatched or missing grant is `BLOCKED`. Only `/sdd-dispatch` may allocate, revoke, retire or renew a grant. Automatic retry is limited to an implementation defect inside the unchanged approved task boundary, frozen contract, profile binding, exact command and checkpoint; it retires the consumed grant and creates a fresh eligible grant. A Spec/profile/command/checkpoint/contract/ownership/security/policy/dependency/runtime gap is `BLOCKED`, not retryable. At five consecutive failures, retain task marker `[/]`, set `ESCALATED`, persist a dispatch review report and require Human disposition.
+Runtime policy metadata does not prove host enforcement. Markdown grant state is cooperative evidence only: compliant routes must persist `RUNNING`/`CONSUMED` before action and reject consumed or mismatched grants, but this template cannot atomically prevent concurrent or malicious writers across sessions. `/add-execute` allocates an opaque consumer reference in every grant before direct execution or worker handoff and must match it before consumption. This is cooperative binding, not proof that a host prevented another session from replaying the reference. When an observed host provides an atomic execution claim, bind it to feature/task/grant/route/consumer and record the evidence; otherwise preserve `Runtime enforcement evidence: UNVERIFIED` and do not represent the grant as host-enforced replay protection. Task execution eligibility is controlled by the matching task execution grant, not aggregate selection state: only `DISPATCHED` with `UNCONSUMED` may start; `/add-execute` records `RUNNING` with `CONSUMED` before task action. A consumed, non-`DISPATCHED`, mismatched or missing grant is `BLOCKED`. Only `/add-execute` may allocate, revoke, retire or renew a grant. Automatic retry is limited to an implementation defect inside the unchanged approved task boundary, frozen contract, profile binding, exact command and checkpoint; it retires the consumed grant and creates a fresh eligible grant. A Spec/profile/command/checkpoint/contract/ownership/security/policy/dependency/runtime gap is `BLOCKED`, not retryable. At five consecutive failures, retain task marker `[/]`, set `ESCALATED`, persist an execution review report and require Human disposition.
 
 ### Consistency and sync-back
 
@@ -185,6 +185,34 @@ Human reviewer nên dùng `/sdd-review` để lưu decision thay vì sửa revie
 
 All skill output — section headers, status lines, descriptions, recommendations, and report bodies — must mirror the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical status tokens (`PASS`, `FAIL`, `BLOCKED`, `READY`, `PENDING`, `APPROVED`, `REJECTED`, `REVISE`, `PENDING HUMAN REVIEW`, `CONFIGURATION GAP`), code identifiers, file paths, and CLI commands are language-invariant.
 
+## Completion output contract
+
+Sau khi hoàn tất, dừng hoặc đến Human gate, mọi skill phải append một completion output theo ngôn ngữ prompt. Đây là hướng dẫn đọc state/evidence, không thay thế `Human Final Review`, `Action Record`, `Execution Record`, checkpoint, profile binding, exact approved command hoặc bất kỳ durable artifact nào.
+
+```text
+<Localized "Tổng kết thực thi" | "Execution summary">
+- <Localized "Kết quả" | "Outcome">: <status kết quả hiện có của skill; không dịch hoặc tự tạo canonical status>
+- <Localized "Trạng thái đã kiểm tra" | "State checked">: <artifact/review/task/grant/execution/delivery state, hoặc N/A kèm lý do>
+- <Localized "Evidence" | "Evidence">: <file, persisted record, exact command/result đã quan sát, hoặc N/A kèm lý do>
+- <Localized "Đã lưu hoặc thay đổi" | "Persisted or changed">: <path/record đã tạo hoặc cập nhật, hoặc none>
+- <Localized "Blocker còn lại" | "Remaining blockers">: <none hoặc từng blocker và evidence>
+
+<Localized "Hành động tiếp theo" | "Next action"> — <localized "Tiếp tục" | "continue" | localized "Cần quyết định Human" | "Human decision required" | BLOCKED>
+- <Localized "Lý do lúc này" | "Why now">: <state transition hoặc precondition không đạt>
+- <Localized "Người thực hiện" | "Actor">: <Agent | authorized Human reviewer | contract owner/Lead | Human delivery owner>
+- <Localized "Lệnh hoặc hành động" | "Command or action">: <một exact command hiện có với placeholder đã biết, hoặc quyết định không phải command khi chưa có route an toàn>
+- <Localized "Điều kiện trước" | "Preconditions">: <status/evidence phải còn đúng; chỉ dùng none khi đã verified>
+- <Localized "Không được" | "Do not">: <shortcut bị cấm khi cần ngăn misuse>
+```
+
+Quy tắc:
+
+1. `Outcome` giữ vocabulary hiện có của skill, ví dụ `READY`, `BLOCKED`, `NO-OP`, `PASS`, `FAIL`, `APPROVED`, `REVISE`, `REJECTED`, `UP-TO-DATE` hoặc `CONFIGURATION GAP`.
+2. Chọn đúng một lớp `Next action` từ state đã quan sát. `continue` chỉ được nêu command đang eligible; không được dự đoán binding, command, grant, profile hoặc runtime state.
+3. `Human decision required` phải nêu target/decision boundary, Human actor có thẩm quyền và `/sdd-review` khi target được hỗ trợ. `BLOCKED` phải nêu precondition thiếu và một remediation route an toàn, không tự repair hoặc bypass gate.
+4. Không completion output nào là approval hoặc execution grant. Agent không self-approve, không reuse consumed grant, không tự retry gap không eligible, không commit/push/merge/deploy ngoài boundary hiện có.
+5. Recommendation cho handoff/resume phải lưu tại `.sdd/reviews/handoff-<slug>.md` hoặc `.sdd/reviews/resume-<slug>.md`; `TASKS.md` chỉ giữ `## Current Handoff State`, Action/Execution Record và không được thêm `Human Final Review` block thứ hai. Historical Dispatch Record giữ nguyên nhưng không cấp authority mới.
+
 ## Skill integration contract
 
 Mỗi skill phải nêu:
@@ -194,4 +222,5 @@ Mỗi skill phải nêu:
 - quyết định Human cần đưa ra;
 - status bắt buộc trước hành động tiếp theo;
 - Agent phải dừng thay vì self-approve;
-- Human ghi decision qua `/sdd-review` khi target được hỗ trợ.
+- Human ghi decision qua `/sdd-review` khi target được hỗ trợ;
+- `## Completion output` ở cuối skill, tham chiếu `Completion output contract` và route `continue`, `Human decision required`, `BLOCKED` theo state cục bộ.

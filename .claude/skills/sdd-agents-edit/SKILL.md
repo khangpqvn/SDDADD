@@ -23,10 +23,10 @@ Dùng khi cập nhật `AGENTS.md`: vai trò, scope, tool permission, security h
 
 Read `.sdd/shared_context.md` before changing roles:
 
-- `Project Ownership: solo` means one Human project owner. It may simplify Human accountability, but never limits agent roles or prevents orchestrated dispatch.
+- `Project Ownership: solo` means one Human project owner. It may simplify Human accountability, but never limits agent roles or prevents worker orchestration.
 - `Project Ownership: team` means multiple Human collaborators.
 - `Agent Execution: direct` executes in the current agent session.
-- `Agent Execution: orchestrated` allows `/sdd-dispatch` to coordinate workers with exclusive boundaries.
+- `Agent Execution: orchestrated` allows `/add-execute` to coordinate workers with exclusive boundaries after observed runtime capability.
 
 Agent roles, worker count, Lead→worker escalation and ownership boundaries depend on approved execution/tasks, not Human ownership count. Direct execution retains Human gates, profile evidence, checkpoint and no-push restrictions.
 
@@ -36,9 +36,13 @@ Agent roles, worker count, Lead→worker escalation and ownership boundaries dep
 2. Identify the canonical section; do not expand permissions beyond safety boundaries.
 3. Update only that section and record execution/ownership effects where relevant.
 4. Bump SemVer and add a Changelog entry with reason and updater.
-5. For dispatcher changes, distinguish policy from observed host enforcement; record affected role, no-self-approval/no-commit-push, bounded retry and escalation behavior.
+5. For execution-orchestration changes, distinguish policy from observed host enforcement; record affected role, no-self-approval/no-commit-push, bounded retry and escalation behavior.
 6. Report permission impact, security risk, affected skill and escalation step.
 
 ## AI Recommendation and Human Final Review
 
 Before editing `AGENTS.md`, create the canonical recommendation at `.sdd/reviews/agents-edit.md` with permission impact, security risk, execution/ownership effect, alternative and affected skills. A Human review must be `APPROVED` before editing. A solo owner may persist their own Human Final Review; in team ownership an authorized Human collaborator persists it. Agent never self-approves permissions.
+
+## Completion output
+
+Use the [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Report affected section, permission/security impact, affected skills and persisted review path. Before edit, choose `Human decision required`; an authorized Human reviewer records the selected non-placeholder decision, reviewer identity and persisted Follow-up with `/sdd-review --target=.sdd/reviews/agents-edit.md --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. After bounded edit, report the refreshed recommendation and required review state. Missing approval or an unsafe permission expansion is `BLOCKED`; do not modify unrelated sections or self-approve.

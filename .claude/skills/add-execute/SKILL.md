@@ -1,102 +1,112 @@
 ---
 name: add-execute
-description: Pha 4–5 ADD — thực thi task theo Architecture Profile, governance và verification command đã approved
+description: Pha 4–5 ADD — preflight, điều phối và thực thi task/feature theo Architecture Profile và governance
 user-invocable: true
 ---
 
-# ADD Phase 4–5 — Agentic Execution và Validation (`/add-execute`)
+# ADD Phase 4–5 — Unified Execution và Validation (`/add-execute`)
 
 **Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`, `SHADOW PLAN`, `BLOCKED`), rule codes, `@ears` references, file paths, and CLI commands are language-invariant.
 
-Dùng để thực thi task trong `.sdd/features/{feature-slug}/TASKS.md`, theo **Fix the Spec, not the Code**, `CONSTITUTION.md` và Architecture Profile.
+`/add-execute` là entry point công khai duy nhất để preflight, cấp execution evidence, điều phối và thực thi task đã approved. `Dispatch Record`/grant/consumer là evidence nội bộ; user không copy hoặc truyền opaque token.
 
 ## Tham số
 
-- `--feature=<feature-slug>`: Feature identifier.
-- `--task=<task-id>`: Tùy chọn; task cụ thể.
-- `--dispatch-record=<reference>`: Required reference to a valid Dispatch Record created by `/sdd-dispatch`; with `orchestrated`, it also binds the immutable worker packet.
-- `--dispatch-grant=<grant-id>`: Required ID của task execution grant trong Dispatch Record.
-- `--dispatch-consumer=<consumer-ref>`: Required opaque consumer reference allocated by `/sdd-dispatch` for the matching grant.
-- `--strict-checkpoint`: Tùy chọn; project opt-in yêu cầu Human checkpoint trước mọi task. Không phải baseline.
+```text
+/add-execute --feature=<feature-slug> --task=<T00X> [--strict-checkpoint]
+/add-execute --feature=<feature-slug> --all [--strict-checkpoint]
+/add-execute --feature=<feature-slug> --task=<T00X> --retry [--strict-checkpoint]
+/add-execute --feature=<feature-slug> --task=<T00X> --resume [--strict-checkpoint]
+```
 
-## Execution resolver (BLOCKING)
+- `--feature=<feature-slug>`: Bắt buộc.
+- Chọn đúng một selector: `--task=<T00X>` cho một task, hoặc `--all` cho snapshot task eligible của feature.
+- `--retry` và `--resume` loại trừ nhau, chỉ dùng với `--task`, không kết hợp `--all`.
+- `--strict-checkpoint`: Tùy chọn, tăng gate Human checkpoint cho mọi task; không thay baseline material-state checkpoint.
+- Reject `--agent-execution`, `--project-ownership`, `--team-size`, `--dispatch-record`, `--dispatch-grant` và `--dispatch-consumer`. Không user nào chọn route hoặc tự cung cấp authority token.
 
-Đọc `.sdd/shared_context.md` trước execution. Canonical settings chỉ hợp lệ khi mỗi `# Project Ownership: solo|team` và `# Agent Execution: direct|orchestrated` tồn tại đúng một lần. Thiếu, trùng hoặc malformed canonical header là `BLOCKED`. Khi cả hai canonical header vắng mặt, legacy path chỉ hợp lệ với đúng một nguồn: đúng một `# Collaboration Mode: solo|team` hoặc đúng một `--team-size=solo|team`; header legacy thiếu, trùng hoặc malformed; alias lặp, malformed; hoặc cả header và alias cùng tồn tại là `BLOCKED`. `--team-size` không được kết hợp với canonical axis flag. Không fallback legacy khi canonical state invalid.
+## Governance và runtime resolver (BLOCKING)
 
-`/add-execute` không phải route discovery hoặc preflight. Mọi invocation phải có `--dispatch-record=<reference>`, `--dispatch-grant=<grant-id>` và `--dispatch-consumer=<consumer-ref>` do `/sdd-dispatch` tạo sau preflight. Thiếu hoặc không xác minh được record/grant/consumer là `BLOCKED`. Resolve record chỉ từ `TASKS.md` của `--feature`; `Feature` trong record phải bằng `--feature`. Grant phải xuất hiện đúng một lần, có task ID bằng `--task`, route bằng effective `Agent execution`, opaque consumer reference bằng `--dispatch-consumer`, và immutable boundary/frozen contract/profile/exact command/checkpoint khớp task approved. Markdown grant state không atomic; nó là cooperative evidence và không host-enforce replay prevention khi runtime enforcement là `UNVERIFIED`. Consumer reference là preallocated cooperative binding, không chứng minh host đã ngăn session khác replay reference. Nếu record có host-controlled execution claim, claim phải bound đúng feature/task/grant/route/consumer; stale hoặc mismatch là `BLOCKED`. Chỉ `task grant state=DISPATCHED` cùng `consumption state=UNCONSUMED` được bắt đầu. Với cả `direct` và `orchestrated`, trước Shadow Plan, command, edit hoặc action khác, persist transition matching grant sang `RUNNING`/`CONSUMED`, ghi consumer và consumption evidence. Grant consumed, non-`DISPATCHED`, missing, mismatched consumer, cross-feature, cross-task, cross-record hoặc replay là `BLOCKED`; `/add-execute` không allocate/reset grant hoặc authorize retry.
+1. Đọc `.sdd/shared_context.md`. Chỉ dùng canonical settings khi có đúng một `# Project Ownership: solo|team` và đúng một `# Agent Execution: direct|orchestrated` hợp lệ. Thiếu, trùng hoặc malformed canonical header là `BLOCKED`.
+2. Chỉ khi cả hai canonical header vắng mặt, dùng đúng một legacy source hợp lệ: `# Collaboration Mode: solo|team` hoặc legacy record hợp lệ. Legacy source duplicate, malformed hoặc coexist là `BLOCKED`; ghi migration warning và không rewrite governance.
+3. Không nhận invocation override. `Project Ownership` quyết định Human accountability/delivery; không quyết định Agent route.
+4. `direct` chạy trong session hiện tại. `orchestrated` chỉ launch worker khi Claude Code `Agent` availability đã được quan sát. Runtime worker unavailable là `BLOCKED`; không fallback sang `direct`.
+5. Runtime policy metadata không phải host enforcement. Persist `Runtime identity/enforcement: UNVERIFIED` khi không có host-controlled claim observed; không claim replay prevention từ Markdown, consumer reference hoặc YAML policy.
 
-Record phải có `Governance resolution: canonical | legacy-header | legacy-alias` và `invocation axis overrides`. Record `canonical` không được chứa `legacy-alias` hoặc `--team-size`; có một canonical header cùng alias là `BLOCKED`. Với `canonical`, re-resolve canonical shared-context pair rồi áp dụng đúng override đã record. Với `legacy-header`, canonical headers phải vắng mặt và đúng một header legacy hợp lệ phải map về pair trong record. Với `legacy-alias`, canonical và legacy headers phải vắng mặt; alias chỉ được tin cậy từ immutable Dispatch Record. Mọi source/override invalid, override không hợp lệ hoặc effective `Project ownership`/`Agent execution` không bằng record là `BLOCKED`. Không nhận override mới trong `/add-execute`.
+## Selection và preflight (BLOCKING)
 
-- `direct`: current Agent thực thi sau khi `/sdd-dispatch --agent-execution=direct` đã tạo Dispatch Record và matching unconsumed grant. Record phải có effective `Agent execution: direct` và preallocated consumer reference bằng `--dispatch-consumer`; không cần worker packet. Action Record phải echo consumed grant, consumer reference và consumption evidence.
-- `orchestrated`: `/add-execute` chỉ chạy trong worker packet được `/sdd-dispatch` tạo. Record phải có effective `Agent execution: orchestrated`; `DISPATCH ID`, `FEATURE`, `TASK ID`, `DISPATCH GRANT ID`, `GRANT ATTEMPT`, `GRANT STATE: DISPATCHED`, `CONSUMPTION STATE: UNCONSUMED`, `CONSUMER`, task/boundary/frozen contract/profile/exact command/checkpoint phải khớp packet, `--dispatch-consumer` và record. Thiếu hoặc mismatch là `BLOCKED`.
+Đọc `AGENTS.md`, `CONSTITUTION.md`, `CLAUDE.md`, Architecture Profile, constraints, `.sdd/mcp-config.yaml`, shared contract record, feature `CONTEXT.md`, `SPEC.md`, `PLAN.md`, `TASKS.md`, persisted reviews và handoff state.
 
-## Shared methodology contract
+- `TASKS.md` phải có `Human Final Review: APPROVED`.
+- `--task` chỉ chọn task được nêu. `--all` tạo snapshot theo thứ tự khai báo trong `TASKS.md` của task chưa complete và eligible tại lúc preflight bắt đầu; không tự thêm task mới eligible sau đó.
+- Với từng selected task, xác minh task marker/dependency, approved intent/file boundary, profile binding, exact verification command, checkpoint, frozen-contract owner/version, post-code route và no overlap/shared-contract authorization.
+- `--all` preflight toàn snapshot trước grant, worker launch, grant consumption, command, edit hay action. Bất kỳ failed precondition nào là `BLOCKED`; không cấp partial grant.
+- Classify selected work: `single-owned`, `parallel-owned`, `sequential-handoff` hoặc `blocked`. `parallel-owned` chỉ cho task không dependency, non-overlapping boundary và không shared-contract mutation. Shared work, retry, integration và dependent work luôn tuần tự.
+- Missing evidence, drift, unapproved command, scope expansion, package/config change, policy violation hoặc material decision mới là `BLOCKED`. Không suy đoán binding hay command.
 
-Đọc [AI Review Protocol](../_shared/ai-review-protocol.md) trước execution. Mọi task cần Shadow Plan và Action Record. Human checkpoint persisted chỉ bắt buộc trước material state change. `--strict-checkpoint` tăng gate cho mọi task nhưng không thay baseline mặc định.
+## Execution Record và task grant
 
-## Architecture Profile gate (BLOCKING)
+Trước action, `/add-execute` ghi `## Execution Record — E-<feature>-<selection>-A<attempt>` dưới `## Current Handoff State` của `TASKS.md`, theo [AI Review Protocol](../_shared/ai-review-protocol.md). Record có execution mode resolved, selected task order, classification, immutable inputs, one task execution grant per task attempt, opaque consumer, runtime/claim evidence, integration state, retry count và residual blocker.
 
-1. Đọc `AGENTS.md`, `CONSTITUTION.md`, `CLAUDE.md`, Architecture Profile, constraints, feature artifacts, shared contract record và review block liên quan.
-2. Xác minh profile binding bằng manifest/config/source evidence; mọi prerequisite review phải `APPROVED` cùng decision, reviewer và timestamp.
-3. Chỉ tạo/sửa adapter, package usage, migration, config, command và test đã có trong profile/Plan/Tasks approved.
-4. Task cần binding hoặc test/build/lint command chưa selected/evidenced thì dừng, lưu `PENDING HUMAN REVIEW`; không sinh code hoặc chạy placeholder command.
-5. Profile/evidence mâu thuẫn, contract version drift hoặc task lệch Shadow Plan thì dừng.
+Mỗi task chỉ eligible khi matching grant có `task grant state=DISPATCHED` và `consumption state=UNCONSUMED`. Trước Shadow Plan, command, edit hoặc bất kỳ action nào, persist matching grant thành `RUNNING`/`CONSUMED` với consumer/consumption evidence. Grant missing, consumed, cross-feature, cross-task, cross-record, stale/mismatched consumer hoặc claim mismatch là `BLOCKED`; không reset/reuse grant.
 
-## Quy trình
+Khi `--all` dừng vì sequential failure, Human gate, drift hoặc cancellation evidence, retire/revoke mọi selected grant chưa consumed và persist reason. Record/grant Markdown là cooperative evidence, không atomic cross-session lock.
 
-### 1. Atomic session và Shadow Plan bắt buộc
+## Direct và orchestrated execution
 
-Với `Agent Execution: orchestrated`, `/sdd-dispatch` là coordinator; worker chỉ bắt đầu `/add-execute` sau immutable dispatch packet và matching `DISPATCHED`/`UNCONSUMED` grant hợp lệ. Với cả hai route, `/add-execute` persist consumption của matching grant trước khi thực thi cùng Shadow Plan, Action Record, checkpoint và boundary. Mỗi session chỉ load task-scoped context và không absorb cleanup/scope ngoài task.
+### Direct
 
-Trước mỗi task, xuất Shadow Plan gồm Intent/DoD, scope/file boundary, profile binding/evidence, exact command, state-change/checkpoint, shared contract/version, risks, trace/sync decision và post-code review trigger.
+Với `Agent Execution: direct`, `/add-execute` cấp consumer reference cho session hiện tại, persist record/grant rồi consume matching grant trước task action. Direct không bypass Shadow Plan, checkpoint, Action Record, exact command, validation, post-code review hoặc integration checks.
 
-Nếu task có material state change hoặc `--strict-checkpoint`, dừng trước edit đến khi Human checkpoint persisted `APPROVED`. Read-only/low-risk task vẫn cần Shadow Plan và Action Record.
+### Orchestrated
 
-### 2. Thực thi theo boundary đã approved
+Với `Agent Execution: orchestrated`, `/add-execute` là coordinator. Sau observed `Agent` availability, cấp worker packet immutable cho từng task:
 
-- Domain: TypeScript thuần, không external dependency hoặc adapter import.
-- Usecase: business workflow và port; mọi business method có `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX`.
-- Interface/Infrastructure/Shared: chỉ dùng adapter, config và utility đã approved.
+```text
+EXECUTION ID: <id>
+FEATURE: <feature-slug>
+TASK ID: <T00X>
+EXECUTION GRANT ID: <grant-id>
+GRANT ATTEMPT: <n>
+GRANT STATE: DISPATCHED
+CONSUMPTION STATE: UNCONSUMED
+CONSUMER: <execution-issued opaque consumer reference>
+TASK: <ID, title, Intent/DoD and REQ references>
+OWNED FILE BOUNDARY: <exact paths only>
+FROZEN CONTRACT: <ID/version/owner or N/A>
+PROFILE EVIDENCE: <approved binding/version>
+ALLOWED COMMANDS: <exact approved commands only>
+STATE-CHANGE CATEGORY: <none/categories>
+CHECKPOINT: <review reference or N/A>
+AUDIT EVIDENCE REFERENCE: <Execution Record/review/action evidence>
+HOST EXECUTION-CLAIM EVIDENCE: <matching claim or UNVERIFIED>
+PROHIBITIONS: no out-of-boundary edits, package/config/contract changes, self-approval, commit or push.
+STOP CONDITIONS: drift, scope conflict, missing command/checkpoint, policy/security issue, retry ineligibility.
+```
 
-Dừng và handoff khi scope expansion, blocker, contract drift, material decision mới hoặc requirement/Spec gap xuất hiện.
+Worker phải đối chiếu packet với Execution Record trước consumption. Chỉ `parallel-owned` launch song song; `sequential-handoff`, shared work, retry và integration chạy theo thứ tự record. Worker trả Action-Record-compatible result, changed paths, command/result, requirement coverage, consumer/consumption evidence, blocker và sync-back decision. Coordinator xác minh boundary, contract compatibility, validation và integration trước complete.
 
-### 3. Self-check và verification
+## Quy trình mỗi task
 
-- [ ] Không hardcode secret (`SEC-01`).
-- [ ] Access control, data, dependency direction và error contract khớp Spec/constraints.
-- [ ] Chỉ chạy exact approved verification command đã nêu trong Task/Shadow Plan hoặc ghi `N/A` với lý do hợp lệ (`ENG-03`).
+1. Persist consume matching grant, rồi xuất Shadow Plan: Intent/DoD, scope/file boundary, profile evidence, exact command, state-change/checkpoint, contract/version, risk, trace/sync và post-code trigger.
+2. Nếu task material state change hoặc dùng `--strict-checkpoint`, dừng trước edit đến khi checkpoint persisted `APPROVED` tồn tại.
+3. Chỉ sửa trong boundary approved: domain không adapter/dependency; usecase có `@ears`; interface/infra/shared chỉ dùng adapter/config approved.
+4. Chạy exact approved verification command hoặc ghi `N/A` cùng lý do hợp lệ. Không thay bằng command suy đoán.
+5. Persist Action Record với grant/consumer/claim, changed boundary, command/result, validation route, residual blocker, sync-back và post-code review reference.
+6. Theo trigger, route `/sdd-lint`, `/sdd-audit`, `/sdd-trace`, `/sdd-sync`, `/git-validate`; task chỉ `[x]` khi checkpoint, verification, post-code review và sync-back required đã đủ.
+7. Dừng/handoff nếu scope expansion, Spec gap, profile/contract drift, material decision mới hoặc blocker xuất hiện.
 
-Command thiếu, không tồn tại hoặc profile mismatch là blocker. Không thay bằng command suy đoán.
+## Retry, resume và escalation
 
-### 4. Validation route, Action Record và sync-back
-
-Sau execution, ghi Action Record trong `## Current Handoff State`, execution evidence hoặc review report. Theo trigger, route delivery là:
-
-1. Chạy exact approved command của task.
-2. Chạy hoặc yêu cầu `/sdd-lint --feature=<slug>` khi Spec/artifact liên quan thay đổi.
-3. Chạy hoặc yêu cầu `/sdd-audit --feature=<slug>` khi source hoặc governance thay đổi.
-4. Chạy hoặc yêu cầu `/sdd-trace --feature=<slug> --diff` khi requirement, code hoặc tests thay đổi.
-5. Chạy hoặc yêu cầu `/sdd-sync --feature=<slug> --reason="..."` khi shared state/contract thay đổi.
-6. Chạy `/git-validate --scope=commit --feature=<slug>` trước commit hoặc PR.
-
-Action Record phải echo task execution grant ID, route, dispatcher-issued consumer reference, observed host-controlled atomic claim reference, consumer/consumption evidence, command/result, validation route, residual blocker, sync-back decision và post-code review reference hoặc `N/A` có lý do. Không đánh dấu task complete nếu required checkpoint, verification evidence, post-code review hoặc sync-back thiếu.
-
-### 5. Post-code Human review
-
-Tạo post-code review tại `.sdd/reviews/post-code-<feature>-<delivery-or-timestamp>.md` và dùng `/sdd-review` khi delivery thay đổi implementation behavior, tests, API/public/shared contract, runtime/dependency/security configuration, persistence schema hoặc business state. Report cần changed boundary, `REQ-XXX` coverage, exact command/result, validation states, residual risk và required Human decision.
-
-Docs-only artifact work không cần post-code review chỉ vì thay Markdown. `REVISE`, `REJECTED` hoặc thiếu report required block delivery; Agent không tự complete, commit hoặc push.
-
-### 6. Test failure và Spec gap
-
-Nếu test fail, phân loại implementation defect, Spec gap, profile/configuration gap hoặc prohibited/high-risk mutation.
-
-- Spec/profile gap: dừng, đề xuất `/sdd-update` hoặc Architecture Profile review và chờ Human.
-- Implementation defect: chỉ bounded recovery trong approved task/file scope; không auto-retry mutation prohibited/high-risk.
-- Dispatcher chỉ retry packet immutable không đổi; maximum 5 consecutive failures trước `ESCALATED`.
-
-Không tạo repair loop, không retry chung chung, không để validation failure tự mở rộng scope.
+- `--retry` chỉ dành cho named task `RETRY_PENDING` do implementation defect trong immutable task boundary, frozen contract, profile binding, exact command và checkpoint không đổi. Retire grant consumed rồi create grant ID/attempt mới; không reuse/reset grant cũ.
+- `--resume` chỉ dành cho named interrupted `RUNNING`, resolved `BLOCKED` hoặc Human-dispositioned `ESCALATED` task, sau revalidation và close/retire stale execution evidence. Resume không phải retry.
+- Spec/profile/command/checkpoint/contract/ownership/security/policy/dependency/runtime gap là `BLOCKED`, không retryable.
+- Sau 5 consecutive implementation failures, giữ `[/]`, persist `ESCALATED` và review report, yêu cầu Human disposition explicit. `--all` không implicit retry hoặc resume.
 
 ## AI Recommendation và Human Final Review
 
-Trước execution, lưu canonical recommendation với Intent/DoD, profile evidence, approach, file boundary, exact command, state-change category, checkpoint, risk và sync-back. Sau execution, tạo completion recommendation với Action Record và delivery/post-code review evidence. Agent không tự complete, commit hoặc push.
+Trước execution, lưu canonical recommendation với Intent/DoD, profile evidence, approach, file boundary, exact command, state-change category, checkpoint, risk và sync-back. Sau execution, refresh recommendation cùng Action Record, Execution Record và delivery/post-code review evidence. Agent không self-approve, complete ngoài evidence, commit hoặc push.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Tóm tắt selected task/snapshot, resolved execution mode/runtime evidence, Execution Record, grant/consumer consumption, Shadow Plan, changed boundary, Action Record, exact command/result, validation, post-code review và residual blocker. `continue` chỉ dùng `/add-execute --feature=<feature-slug> --all` cho feature snapshot mới khi prior selection completed và all preconditions được revalidated; retry/resume chỉ dùng command public với named task sau conditions tương ứng. Required checkpoint/review hoặc post-code evidence thiếu là `Human decision required`; Spec/profile/contract/command gap, worker unavailable cho orchestrated route, validation fail hoặc consumed/mismatched grant là `BLOCKED`. Không expose/reuse authority token, không tự retry, complete, commit hoặc push.

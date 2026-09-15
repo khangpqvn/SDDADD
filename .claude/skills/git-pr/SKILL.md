@@ -61,3 +61,7 @@ Read `# Project Ownership: team|solo` and `# Agent Execution: direct|orchestrate
 ✓ delivery: Human must run git push -u origin <head> | pull request: <url>
 ✓ remote verification: pending Human push | HEAD == origin/<head>
 ```
+
+## Completion output
+
+Use the [Completion output contract](../_shared/ai-review-protocol.md). Summarize ownership, branch/remote state, validation evidence, PR/remote verification state and unresolved delivery condition. Solo `READY` may only `continue` with the displayed Human `git push -u origin <head>` command. Team PR creation is `Human decision required` until outward-facing title/body is confirmed; auth/API/conflict/protected branch/required-check failure is `BLOCKED`. Never auto-push, force-push, merge, close or resolve conflicts.

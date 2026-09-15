@@ -1,6 +1,6 @@
 # Phiên bản template SDD + ADD (Template Version)
 
-template-version: 1.3.0
+template-version: 2.0.0
 adopted-at:
 last-updated:
 template-source:

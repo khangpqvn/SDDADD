@@ -103,8 +103,28 @@ copy_folder() {
   echo -e "  ${GREEN}[✓] Đã xử lý nội dung thư mục: $dest_rel/${NC}"
 }
 
+retire_legacy_dispatch_skill() {
+  local legacy_dir="$TARGET_DIR/.claude/skills/sdd-dispatch"
+  local legacy_skill="$legacy_dir/SKILL.md"
+
+  if [ ! -f "$legacy_skill" ]; then
+    return
+  fi
+
+  rm -f "$legacy_skill"
+  echo -e "  ${GREEN}[✓] Đã retire: .claude/skills/sdd-dispatch/SKILL.md${NC}"
+
+  if [ -z "$(find "$legacy_dir" -mindepth 1 -print -quit)" ]; then
+    rmdir "$legacy_dir"
+    echo -e "  ${GREEN}[✓] Đã xóa thư mục legacy trống: .claude/skills/sdd-dispatch${NC}"
+  else
+    echo -e "  ${YELLOW}[!] Giữ .claude/skills/sdd-dispatch vì còn custom content; Human cần review.${NC}"
+  fi
+}
+
 echo -e "${BOLD}${BLUE}📦 Bước 1: Sao chép slash commands trong .claude/skills/...${NC}"
 copy_folder ".claude/skills" ".claude/skills"
+retire_legacy_dispatch_skill
 copy_file ".claude/skills/_shared/ai-review-protocol.md" ".claude/skills/_shared/ai-review-protocol.md"
 copy_file ".claude/skills/_shared/architecture-profile-protocol.md" ".claude/skills/_shared/architecture-profile-protocol.md"
 

@@ -1,16 +1,16 @@
 # Ngữ cảnh ownership, execution và API contract
 
-# Version: 1.2.0
-# Last-Updated: 2026-09-06
+# Version: 2.0.0
+# Last-Updated: 2026-09-16
 # Lead Agent: Orchestrator (@main-agent)
 # Project Ownership: team
 # Agent Execution: orchestrated
 
-> `Project Ownership` là nguồn canonical cho human governance và delivery: `solo` có một Human project owner; `team` có nhiều Human collaborator và là mặc định. `Agent Execution` là nguồn canonical cho cách thực thi: `direct` chạy task trong session hiện tại; `orchestrated` cho phép `/sdd-dispatch` điều phối một hoặc nhiều worker. Hai trục độc lập; không suy số Human từ số Agent hoặc ngược lại.
+> `Project Ownership` là nguồn canonical cho human governance và delivery: `solo` có một Human project owner; `team` có nhiều Human collaborator và là mặc định. `Agent Execution` là nguồn canonical cho cách thực thi: `direct` chạy task trong session hiện tại; `orchestrated` cho phép `/add-execute` điều phối một hoặc nhiều worker sau khi runtime capability được quan sát. Hai trục độc lập; không suy số Human từ số Agent hoặc ngược lại.
 >
-> Trong một transition release, legacy `# Collaboration Mode: solo|team` chỉ được đọc khi **cả hai** header mới không tồn tại: `solo` map thành `solo/direct`, `team` map thành `team/orchestrated`. Legacy state phải báo migration warning và không được tự rewrite. `--team-size=solo|team` có cùng mapping khi được dùng như alias deprecated.
+> Trong một transition release, legacy `# Collaboration Mode: solo|team` chỉ được đọc khi **cả hai** header mới không tồn tại: `solo` map thành `solo/direct`, `team` map thành `team/orchestrated`. Legacy state phải báo migration warning và không được tự rewrite. Invocation mới không nhận `--team-size`, `--project-ownership` hoặc `--agent-execution`.
 >
-> **Resolver bắt buộc cho mọi consumer:** (1) chỉ dùng canonical khi có đúng một header hợp lệ cho mỗi trục; canonical flag chỉ override trục tương ứng. (2) Khi cả hai canonical header vắng mặt, chỉ dùng đúng một legacy source hợp lệ: đúng một header `# Collaboration Mode: solo|team` hoặc đúng một `--team-size=solo|team`; source duplicate, malformed hoặc coexist là `BLOCKED`. Map source hợp lệ thành legacy pair rồi báo migration warning. (3) Thiếu, trùng, malformed canonical header là `BLOCKED`; không fallback legacy. (4) Khi có một trong hai canonical header, `--team-size` là `BLOCKED`; alias chỉ hợp lệ khi cả hai canonical header đều vắng mặt. `--team-size` cũng không được kết hợp với `--project-ownership` hoặc `--agent-execution`; conflict là `BLOCKED`. Legacy header tồn tại cùng canonical pair không được dùng để resolve và phải được ghi migration cleanup.
+> **Resolver bắt buộc cho mọi consumer:** (1) chỉ dùng canonical khi có đúng một header hợp lệ cho mỗi trục. (2) Khi cả hai canonical header vắng mặt, chỉ dùng đúng một legacy header `# Collaboration Mode: solo|team`; header duplicate hoặc malformed là `BLOCKED`. Map header hợp lệ thành legacy pair rồi báo migration warning. (3) Thiếu, trùng hoặc malformed canonical header là `BLOCKED`; không fallback legacy. (4) Khi có canonical header, legacy header không được dùng để resolve và phải được ghi migration cleanup. `/add-execute` persist source của resolution trong Execution Record, không ghi invocation override.
 
 ---
 
@@ -24,7 +24,7 @@
 | Agent execution | Hành vi |
 | :--- | :--- |
 | `direct` | Agent hiện tại thực thi `/add-execute`; vẫn cần Shadow Plan, Action Record, checkpoint, exact command và validation. |
-| `orchestrated` | Lead/dispatcher điều phối worker qua `/sdd-dispatch`; chỉ dùng worker khi runtime tool đã được quan sát. |
+| `orchestrated` | `/add-execute` điều phối worker sau khi runtime Claude Code `Agent` availability được quan sát; unavailable là `BLOCKED`, không fallback sang direct. |
 
 Human Final Review, Architecture Profile, shared-contract ownership, material-state checkpoint, validation và delivery safety không bị nới bởi bất kỳ combination nào. Agent không self-approve hoặc `git push`.
 
@@ -42,9 +42,9 @@ Các role dưới đây là mẫu cho `Agent Execution: orchestrated`, dùng đ�
 | `@interface-agent` | HTTP/event adapter, DTO và presenter | `src/interface/` |
 | `@tester-agent` | Verification và E2E | `tests/unit/`, `tests/e2e/` |
 
-Dispatcher tạo Dispatch Record, chọn batch, issue task execution grant, invoke worker, validate integration và chỉ contract owner được mutate shared artifact. Mỗi grant có opaque consumer reference do dispatcher cấp trước handoff; mỗi worker nhận feature, task ID, task execution grant ID/attempt, consumer reference, `DISPATCHED` lifecycle eligibility, `UNCONSUMED` consumption state, any host execution-claim evidence bound to feature/task/grant/route/consumer, frozen contract version, profile version, binding liên quan, evidence, exact command được phép chạy, ownership/file boundary, allowed action/checkpoint, audit evidence reference và MCP policy profile. Markdown record chỉ là cooperative evidence; consumer reference không chứng minh host đã ngăn replay. Khi host claim unavailable, runtime enforcement phải ghi `UNVERIFIED` và không claim host-level replay prevention; stale/mismatch recorded claim là `BLOCKED`. Worker trả consumer và consumption evidence; chỉ dispatcher được allocate, revoke, retire hoặc renew grant. Worker chỉ request contract change, không tự apply; Agent không được thêm package, adapter, path hoặc command ngoài profile đã approved.
+`/add-execute` tạo Execution Record, chọn task hoặc feature snapshot, cấp task execution grant, invoke worker khi route orchestrated được persisted và runtime capability đã observed, rồi validate integration. Chỉ contract owner được mutate shared artifact. Mỗi grant có opaque consumer reference do `/add-execute` cấp trước direct action hoặc handoff; mỗi worker nhận feature, task ID, task execution grant ID/attempt, consumer reference, `DISPATCHED` lifecycle eligibility, `UNCONSUMED` consumption state, host execution-claim evidence bound to feature/task/grant/route/consumer khi có, frozen contract version, profile version, binding liên quan, evidence, exact command được phép chạy, ownership/file boundary, allowed action/checkpoint, audit evidence reference và MCP policy profile. Markdown record chỉ là cooperative evidence; consumer reference không chứng minh host đã ngăn replay. Khi host claim unavailable, runtime enforcement phải ghi `UNVERIFIED` và không claim host-level replay prevention; stale/mismatch recorded claim là `BLOCKED`. Worker trả consumer và consumption evidence; chỉ `/add-execute` được allocate, revoke, retire hoặc renew grant. Worker chỉ request contract change, không tự apply; Agent không được thêm package, adapter, path hoặc command ngoài profile đã approved.
 
-Dispatch evidence lưu dưới `## Current Handoff State` của feature `TASKS.md`. Runtime identity/enforcement phải ghi `VERIFIED` hoặc `UNVERIFIED` theo observed host evidence; `.sdd/mcp-config.yaml` là policy specification, không phải chứng cứ enforcement.
+Execution evidence lưu dưới `## Current Handoff State` của feature `TASKS.md`. Runtime identity/enforcement phải ghi `VERIFIED` hoặc `UNVERIFIED` theo observed host evidence; `.sdd/mcp-config.yaml` là policy specification, không phải chứng cứ enforcement. Historical Dispatch Record giữ immutable evidence nhưng không cấp authority cho invocation mới.
 
 ## 2. Quy tắc thay đổi shared contract (Shared-contract mutation rule)
 

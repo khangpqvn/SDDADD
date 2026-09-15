@@ -99,4 +99,4 @@ src/
 | Tình huống → command | `docs/sdd-add-field-guide.md` |
 | Recovery, handoff, delivery | `docs/sdd-add-scenario-playbook.md` |
 | Binding/command | `docs/architecture-profile-guide.md` |
-| Agent execution và dispatch | `docs/multi-agent-orchestration-guide.md` |
+| Agent execution và worker orchestration | `docs/multi-agent-orchestration-guide.md` |

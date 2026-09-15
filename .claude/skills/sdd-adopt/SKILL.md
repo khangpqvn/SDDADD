@@ -33,7 +33,7 @@ Dùng để adopt SDD+ADD vào repository có source hoặc tạo Reverse Spec c
 
 Generate `AGENTS.md`, `CLAUDE.md`, `.agentignore` and `.gitignore` from observed convention, paths, commands and secret boundaries. Persist `Project Ownership` and `Agent Execution` independently in shared context. If a legacy collaboration header is found and new headers are absent, create a durable `PENDING HUMAN REVIEW` migration recommendation; never rewrite it silently.
 
-`/sdd-dispatch` maps to Claude Code `Agent` only with observed host evidence. Adoption does not copy assumed settings, identity provider or permission configuration. A solo Human owner may persist review; a team review must be persisted by an authorized Human collaborator. Agents never self-approve or push.
+`/add-execute` maps persisted orchestrated execution to Claude Code `Agent` only with observed host evidence; unavailable runtime is `BLOCKED`, not direct fallback. Adoption does not copy assumed settings, identity provider or permission configuration. A solo Human owner may persist review; a team review must be persisted by an authorized Human collaborator. Agents never self-approve or push.
 
 ## Reverse Spec
 
@@ -44,10 +44,14 @@ With `--reverse-feature` and `--path`:
 3. Include Intent Packet, Methodology Profile, Feature Lock/deferred-work decision, state-change classification and trace/sync implications.
 4. Add `@ears` or change source only after explicit scope approval and relevant profile gate.
 
-## Shared contract and dispatch
+## Shared contract and execution
 
 Only the named contract owner changes frozen shared contracts. Direct execution retains the same ownership/checkpoint constraints. Orchestrated execution requires task ID, frozen version, ownership boundary, selected binding/evidence, exact commands, checkpoint and audit reference in every worker packet.
 
 ## AI Recommendation and Human Final Review
 
 Create `.sdd/reviews/adopt-<slug>.md` with canonical protocol block. Include discovered evidence, unresolved/conflicting binding, governance impact, selected ownership/execution settings, migration impact, recommendation and required Human decision. Agent does not self-approve or treat reverse-engineered behavior as approved business intent.
+
+## Completion output
+
+Use the [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Summarize observed repository evidence, generated/reconciled governance, profile conflicts and reverse-spec state when applicable. Adoption review is `Human decision required`; an authorized Human reviewer records the selected non-placeholder decision, reviewer identity and persisted Follow-up with `/sdd-review --target=.sdd/reviews/adopt-<slug>.md --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. Only the persisted Follow-up can select a next feature command. Conflicting/missing binding evidence is `BLOCKED`; do not infer a stack or treat reverse-engineered behavior as approved intent.

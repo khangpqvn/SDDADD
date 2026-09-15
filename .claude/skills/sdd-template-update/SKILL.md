@@ -92,3 +92,7 @@ Sau khi chạy `--review`, tạo canonical recommendation từ `.claude/skills/_
 - `AGENTS.md` thay đổi permission cần Human reviewer có thẩm quyền approval theo `/sdd-agents-edit`.
 - Agent không tự chạy update script mà không có xác nhận explicit của Human reviewer có thẩm quyền.
 - Nếu `template-source` không xác định được và không có `--template`, dừng và yêu cầu Human cung cấp path.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Tóm tắt `UP-TO-DATE`/`OUTDATED`, `SAFE`/`STAGED`/`NEVER`, staged file và review evidence. `OUTDATED` có template source hợp lệ chỉ có thể `continue` bằng update command đã hiển thị sau explicit Human confirmation; staged governance là `Human decision required`, Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --target=.sdd/reviews/update-<timestamp>.md --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. Missing source, merge conflict hoặc `NEVER` write attempt là `BLOCKED`; không tự chạy update, merge, overwrite hoặc xóa staged files.

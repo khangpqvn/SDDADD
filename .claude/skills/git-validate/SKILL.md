@@ -91,3 +91,7 @@ next step:
 ```
 
 `READY` requires no `FAIL`, non-empty diff, valid reasons for every `N/A`, required post-code review `APPROVED`, and no unresolved warnings for team PR validation.
+
+## Completion output
+
+Use the [Completion output contract](../_shared/ai-review-protocol.md), preserving the existing `GIT VALIDATION` report. Summarize scope/diff source, every `PASS`/`FAIL`/`N/A`, post-code review, exact command results, warnings and blockers. `READY` may only `continue` to the existing Human-confirmed delivery route; `BLOCKED` names the observed remediation from the report and does not auto-fix. Do not commit, push, merge, reset, checkout, stash, amend or discard changes.

@@ -16,7 +16,7 @@ Dùng cho greenfield hoặc bootstrap SDD+ADD trong repository hiện có.
 - `--agent-execution=direct|orchestrated`: Optional execution setting; default `orchestrated`.
 - `--team-size=solo|team`: Deprecated composite alias for one transition release. `solo` maps to `solo/direct`; `team` maps to `team/orchestrated`. Emit a migration warning.
 
-`solo` means one Human project owner; `team` means multiple Human collaborators. `direct` executes in the current Agent session; `orchestrated` allows `/sdd-dispatch` to coordinate one or more workers. The axes are independent.
+`solo` means one Human project owner; `team` means multiple Human collaborators. `direct` executes in the current Agent session; `orchestrated` allows `/add-execute` to coordinate one or more workers only after runtime capability is observed. The axes are independent.
 
 Reject `--team-size` when combined with `--project-ownership` or `--agent-execution`. When canonical shared-context headers already exist, reject `--team-size`; the alias is valid only while both headers are absent. A deprecated alias may set only its documented composite pair; a canonical flag selects only its own axis.
 
@@ -44,9 +44,13 @@ Reject `--team-size` when combined with `--project-ownership` or `--agent-execut
 - `.agentignore` and `.gitignore` use observed patterns and protect secret files.
 - `CONSTITUTION.md` Layer 1/2 changes require approved RFC.
 - `Project Ownership: solo` allows the sole Human owner to persist Human Final Review; `team` allows an authorized Human collaborator. Agents never self-approve.
-- `Agent Execution: direct` retains Intent Packet, Methodology Profile, Feature Lock, Shadow Plan, Action Record, Architecture Profile, material checkpoint and validation. `orchestrated` adds bounded worker dispatch; it does not reduce or replace the same gates.
+- `Agent Execution: direct` retains Intent Packet, Methodology Profile, Feature Lock, Shadow Plan, Action Record, Architecture Profile, material checkpoint and validation. `orchestrated` lets `/add-execute` add bounded worker orchestration after observed runtime capability; it does not reduce or replace the same gates.
 - Solo delivery removes PR overhead only. Agent never `git push`; Human handles remote delivery after validation and commit.
 
 ## AI Recommendation and Human Final Review
 
 Use `.claude/skills/_shared/ai-review-protocol.md`. Recommendation includes bootstrap scope, profile evidence/unknowns, methodology defaults, selected ownership/execution settings, migration warning if applicable, missing decisions and next command. Human Final Review remains `PENDING` until a human records a durable decision.
+
+## Completion output
+
+Use the [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Summarize generated governance, selected ownership/execution axes and Architecture Profile evidence. Bootstrap review `PENDING` is `Human decision required`; an authorized Human reviewer records the selected non-placeholder decision, reviewer identity and persisted Follow-up with `/sdd-review --target=.sdd/reviews/init.md --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. `continue` only after its persisted `APPROVED`: `/sdd-context --feature=<feature-slug>`. Missing/conflicting stack evidence is `BLOCKED`; request the exact Human binding decision rather than inventing a framework or verification command.

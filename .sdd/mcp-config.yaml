@@ -2,7 +2,7 @@
 # Version: 1.1.0
 # Tham chiếu: Slide 11.6 — MCP Access Control và Tool Borrowing
 #
-# Đây là policy specification cho dispatch/audit. Runtime host phải thực thi hoặc
+# Đây là policy specification cho execution/audit. Runtime host phải thực thi hoặc
 # map policy này theo capability của host; file không tự chứng minh host enforcement.
 # Nguyên tắc: Principle of Least Privilege — chỉ cấp quyền đúng scope.
 
@@ -96,10 +96,10 @@ global_denied:
   - network:external_post
   - eval_execution
 
-# Dispatch payload phải include frozen contract version, ownership/file boundary,
+# Execution worker packet phải include frozen contract version, ownership/file boundary,
 # selected Architecture Profile bindings, exact commands, allowed action/checkpoint
 # và audit evidence. Lead là owner/arbitrator của shared artifact.
-dispatch:
+execution_packet:
   required_fields:
     - task_id
     - frozen_contract_version
@@ -110,7 +110,7 @@ dispatch:
     - audit_evidence_reference
 
 # Claude Code mapping is policy metadata only. It does not prove host enforcement.
-claude_code_dispatch:
+claude_code_execution:
   preferred_worker_invocation: Agent
   optional_task_mirror_tools:
     - TaskCreate
@@ -143,7 +143,7 @@ tool_borrowing:
 audit:
   log_path: ".sdd/reviews/mcp-audit-{date}.log"
   log_events:
-    - dispatch_created
+    - execution_created
     - tool_denied
     - tool_borrowed
     - global_denied_attempt

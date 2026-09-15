@@ -55,6 +55,26 @@ function Copy-FolderSafely {
     Write-Host ("  [+] Đã xử lý nội dung thư mục: {0}" -f $DestFolderRel) -ForegroundColor Green
 }
 
+function Retire-LegacyDispatchSkill {
+    $LegacyDir = Join-Path $script:TargetDir ".claude\skills\sdd-dispatch"
+    $LegacySkill = Join-Path $LegacyDir "SKILL.md"
+
+    if (-not (Test-Path -Path $LegacySkill)) {
+        return
+    }
+
+    Remove-Item -Path $LegacySkill -Force -Confirm:$false
+    Write-Host "  [+] Đã retire: .claude\skills\sdd-dispatch\SKILL.md" -ForegroundColor Green
+
+    $Remaining = @(Get-ChildItem -Path $LegacyDir -Force -ErrorAction SilentlyContinue)
+    if ($Remaining.Count -eq 0) {
+        Remove-Item -Path $LegacyDir -Force -Confirm:$false
+        Write-Host "  [+] Đã xóa thư mục legacy trống: .claude\skills\sdd-dispatch" -ForegroundColor Green
+    } else {
+        Write-Host "  [!] Giữ .claude\skills\sdd-dispatch vì còn custom content; Human cần review." -ForegroundColor Yellow
+    }
+}
+
 if ($Help -or [string]::IsNullOrWhiteSpace($TargetPath)) {
     Write-Host ""
     Write-Host "=== Công cụ tích hợp SDD + ADD bằng PowerShell (Windows) ===" -ForegroundColor Cyan
@@ -92,6 +112,7 @@ Write-Host ""
 
 Write-Host "Bước 1: Sao chép slash commands trong .claude\skills\..." -ForegroundColor Blue
 Copy-FolderSafely ".claude\skills" ".claude\skills"
+Retire-LegacyDispatchSkill
 Copy-FileSafely ".claude\skills\_shared\ai-review-protocol.md" ".claude\skills\_shared\ai-review-protocol.md"
 Copy-FileSafely ".claude\skills\_shared\architecture-profile-protocol.md" ".claude\skills\_shared\architecture-profile-protocol.md"
 

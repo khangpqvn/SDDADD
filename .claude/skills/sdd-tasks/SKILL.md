@@ -38,16 +38,16 @@ An independent implementation task should generally fit about four hours. Split 
 - Shared contract and sync-back: <contract responsibility; /sdd-trace and /sdd-sync decision>
 - High-risk review route: <approved route or N/A>
 - Post-code review: required | N/A; <trigger/review route>
-- Dispatch readiness: <single-owned | parallel-owned | sequential-handoff; approved agent role or direct; exclusive boundary>
+- Execution readiness: <single-owned | parallel-owned | sequential-handoff; approved agent role or direct; exclusive boundary>
 ```
 
 ## Procedure
 
 1. Decompose tasks as Atomic, Independent and Verifiable.
 2. Attach `@ears .sdd/features/{slug}/SPEC.md#REQ-XXX` to business behavior.
-3. Record all required fields, including explicit human/accountable owner and dispatch readiness.
+3. Record all required fields, including explicit human/accountable owner and execution readiness.
 4. `parallel-owned` tasks cannot overlap paths, dependencies or shared-contract mutation. Shared/integration work is `sequential-handoff`.
-5. `Project Ownership` does not select the execution route: solo and team both may use `direct` or `orchestrated` execution. `Dispatch readiness` authorizes task selection only; it is not a task execution grant. Only `/sdd-dispatch` may issue a feature- and task-bound grant after preflight, with immutable boundary and route evidence. The named frozen-contract owner alone mutates shared contract; a sole solo Human owner may be named, while team ownership follows named delegation.
+5. `Project Ownership` does not select the execution route: solo and team both may use `direct` or `orchestrated` execution. `Execution readiness` authorizes task selection only; it is not a task execution grant. Only `/add-execute` may issue a feature- and task-bound grant after preflight, with immutable boundary and route evidence resolved from persisted governance. The named frozen-contract owner alone mutates shared contract; a sole solo Human owner may be named, while team ownership follows named delegation.
 6. Record risks and create recommendation.
 
 ## DoD
@@ -56,10 +56,14 @@ An independent implementation task should generally fit about four hours. Split 
 - [ ] Each task has Intent/input/outcome/path/layer/owner/profile binding/requirement/exact command.
 - [ ] Sizing signal is present; exceptions have evidence.
 - [ ] Scope category, checkpoint, post-code route and high-risk route are recorded where applicable.
-- [ ] Contract/sync-back and dispatch readiness are explicit.
+- [ ] Contract/sync-back and execution readiness are explicit.
 - [ ] No task exceeds Feature Lock or Out of Scope.
-- [ ] Human Final Review is `APPROVED` before `/add-execute` or `/sdd-dispatch`.
+- [ ] Human Final Review is `APPROVED` before `/add-execute`.
 
 ## AI Recommendation and Human Final Review
 
 Record the canonical recommendation with task order, dependencies, boundaries, sizing, verification, checkpoints, review routes, contract/sync-back, execution readiness and delivery risk. Keep review `PENDING` until a human persists `APPROVED`; agents never approve task plans.
+
+## Completion output
+
+Use the [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). A complete task plan with review `PENDING` is `Human decision required`; an authorized Human reviewer records the selected non-placeholder decision, reviewer identity and persisted Follow-up with `/sdd-review --feature=<feature-slug> --artifact=tasks --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. `continue` only after `TASKS.md` is `APPROVED`: `/add-execute --feature=<feature-slug> --all`. Missing profile binding, exact verification command, checkpoint, ownership or frozen-contract evidence is `BLOCKED`; report the failed precondition and do not invoke execution.

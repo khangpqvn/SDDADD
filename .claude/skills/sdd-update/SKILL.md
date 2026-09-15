@@ -130,3 +130,7 @@ Sau khi cập nhật artifact, tạo canonical recommendation từ `.claude/skil
 /sdd-update --feature=feat-user-register --artifact=plan --reason="Add Redis session risk and mitigation after security review"
 /sdd-update --feature=feat-user-register --artifact=tasks --reason="Add T009 for concurrent registration dedup check"
 ```
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Tóm tắt `Change Impact Record`, artifact/task/code/test/contract invalidated và review target. Update xong luôn là `Human decision required`; Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --feature=<feature-slug> --artifact=<context|spec|plan|tasks> --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. Chỉ sau review mới chọn command downstream mà Follow-up đã persist. Clarification, profile gap hoặc breaking impact chưa có migration/rollback là `BLOCKED`; không resume task hoặc execution.

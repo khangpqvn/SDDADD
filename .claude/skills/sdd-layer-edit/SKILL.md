@@ -35,3 +35,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 ## AI Recommendation và Human Final Review
 
 Trước edit, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm requirement, boundary, file, risk, alternative và verification. Lưu trong feature artifact/review với `Human Final Review.Status: PENDING`. Human reviewer có thẩm quyền phải `APPROVED` execution scope; sau edit refresh recommendation và không tự approve.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu requirement, layer/file boundary, profile binding, Shadow Plan, exact command, checkpoint/review state và changed evidence. Pre-edit luôn là `Human decision required` cho review target đã persist; sau bounded edit, nêu refreshed recommendation và validation route. Binding/exact command/review thiếu là `BLOCKED`; không sinh controller, repository, migration, decorator, cache client hoặc command adapter-specific.

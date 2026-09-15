@@ -10,7 +10,7 @@
 - [`architecture-profile.md`](./architecture-profile.md): tech binding, evidence và exact verification command canonical.
 - [`shared_context.md`](./shared_context.md): shared contract/state.
 - [`constraints/`](./constraints/): global, business và safety constraints.
-- [`mcp-config.yaml`](./mcp-config.yaml): MCP/dispatch policy, không phải runtime enforcement evidence.
+- [`mcp-config.yaml`](./mcp-config.yaml): MCP/worker-execution policy, không phải runtime enforcement evidence.
 
 ## Sổ đăng ký feature
 

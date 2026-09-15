@@ -125,3 +125,7 @@ Sau `APPROVED & LOCKED`, behavior hoặc contract chỉ thay đổi qua `/sdd-up
 ## AI Recommendation và Human Final Review
 
 Sau khi tạo/sửa `SPEC.md`, lưu canonical recommendation gồm Methodology Profile, requirement gap, EARS risk, adversarial findings/disposition, high-risk review route, edge case, Out of Scope, Feature Lock và SemVer impact. Giữ `Human Final Review.Status: PENDING`; `/sdd-plan` bị block đến khi Human reviewer có thẩm quyền ghi `APPROVED`. Agent không được đặt `APPROVED & LOCKED` thay con người.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Sau DoD pass nhưng Spec chưa lock, chọn `Human decision required`; Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --feature=<feature-slug> --artifact=spec --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. `continue` chỉ sau `APPROVED & LOCKED`: `/sdd-plan --feature=<feature-slug>`. Clarification, EARS, high-risk route hoặc binding evidence còn thiếu là `BLOCKED`; nêu gap/disposition, không sinh Plan hoặc command adapter-specific.

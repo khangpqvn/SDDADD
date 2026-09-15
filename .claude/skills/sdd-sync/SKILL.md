@@ -30,7 +30,7 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 2. Phân loại thay đổi dự kiến. Chỉ cập nhật registry không làm thay đổi contract có thể tiếp tục với Action Record. Mọi shared/public contract change là material state change.
 3. Trước shared-contract write, xác minh checkpoint persisted đã `APPROVED` cho feature/contract, cùng decision, reviewer và timestamp. Nếu thiếu, tạo recommendation `PENDING HUMAN REVIEW`, lưu tại `.sdd/reviews/sync-<slug>.md`, rồi dừng; recommendation sau action không thể hợp thức hóa write trước đó.
 4. Trước khi sửa shared contract, đọc ownership và frozen contract record trong `.sdd/shared_context.md`. Chỉ contract owner hoặc Lead được sửa; actor khác dừng và gửi change request.
-5. Sau checkpoint hợp lệ, cập nhật `.sdd/README.md`; tổng hợp contract được evidence xác nhận; ghi producer, contract ID/version/status, owner, linked `REQ-XXX`/task/review/Dispatch Record evidence, consumers, compatibility, unresolved decision, last sync và Action Record reference.
+5. Sau checkpoint hợp lệ, cập nhật `.sdd/README.md`; tổng hợp contract được evidence xác nhận; ghi producer, contract ID/version/status, owner, linked `REQ-XXX`/task/review/Execution Record evidence, consumers, compatibility, unresolved decision, last sync và Action Record reference.
 6. Ghi hoặc đề xuất `/sdd-trace` khi contract version, requirement hoặc implementation evidence thay đổi. Action Record phải tham chiếu checkpoint đã tồn tại trước action.
 
 ## Output
@@ -52,3 +52,7 @@ Next trace/sync step: <command or N/A>
 ## AI Recommendation và Human Final Review
 
 Nếu sync chỉ cập nhật registry không thay đổi contract, ghi Action Record và recommendation theo protocol nếu artifact scope thay đổi. Nếu shared contract đã thay đổi, checkpoint phải tồn tại trước action; Action Record sau sync tham chiếu checkpoint đó và nêu changed producer/version/status/owner/consumer/compatibility, drift evidence, unresolved decision và residual integration risk. Agent không tự kết luận registry hoặc contract đã `APPROVED`.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Giữ `SDD SYNC` report hiện có và tóm tắt registry-only hay shared-contract mutation, owner/checkpoint, compatibility, evidence và unresolved decision. Registry-only sync có thể `continue` theo `Next trace/sync step` đã observed; shared-contract write cần checkpoint/review là `Human decision required`. Missing binding, owner, checkpoint hoặc contract drift là `BLOCKED`; không rewrite contract hoặc suy đoán adapter syntax.

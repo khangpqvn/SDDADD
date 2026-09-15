@@ -58,3 +58,7 @@ REMEDIATION:
 ```
 
 Nếu finding đổi business behavior, cập nhật `SPEC.md` trước code. Governance change cần RFC. Binding gap phải lưu `PENDING HUMAN REVIEW`; không remediation framework-specific.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract) sau `API SECURITY AUDIT REPORT`. Nêu audit scope/profile, severity/finding evidence, recommendation/report path, exact verification result và residual risk. Kết quả không có finding/blocker mới chọn `continue` với action không-command: giữ audit evidence và chỉ theo persisted feature/delivery Follow-up hiện có; không tự suy ra route mới. Business behavior change là `Human decision required` để update/review Spec; governance change route qua RFC; `CONFIGURATION GAP` hoặc unresolved `CRITICAL`/`HIGH` là `BLOCKED`. Không generate framework/package/scan command chưa approved và không tự apply remediation.

@@ -62,7 +62,7 @@ Dùng **một feature slug xuyên suốt**. Với ví dụ này, mọi artifact 
 | Trục | Giá trị | Quyết định điều gì? |
 | :--- | :--- | :--- |
 | `Project Ownership` | `solo` hoặc `team` | Ai được ghi Human Final Review và Git delivery policy. |
-| `Agent Execution` | `direct` hoặc `orchestrated` | Task chạy trong Agent hiện tại hay được dispatcher điều phối worker. |
+| `Agent Execution` | `direct` hoặc `orchestrated` | Task chạy trong Agent hiện tại hay được `/add-execute` điều phối worker. |
 
 Bốn combination đều hợp lệ:
 
@@ -298,92 +298,69 @@ Human review `TASKS.md` bằng `/sdd-review --artifact=tasks` trước execution
 
 > **DỪNG:** Task chưa có exact command, boundary overlap, dependency chưa hoàn tất hoặc checkpoint chưa xác định. Dispatch readiness chỉ cho phép chọn task; nó không phải execution grant.
 
-### Bước 5 — Dispatch: cấp quyền thực thi cho đúng task
+### Bước 5 — Execute: một entry point cho task hoặc feature
 
-**Mục đích:** `/sdd-dispatch` kiểm tra task trước khi thực thi và cấp quyền cho **đúng một task, đúng attempt, đúng bên thực thi**. `/add-execute` chỉ bắt đầu sau bước này; nó không tạo grant mới, reset grant cũ hay tự cho phép retry.
-
-#### Luồng chuẩn cho người mới: một task, route `direct`
-
-Đây là đường mặc định khi `T001` là một task atomic, boundary đã approved và Agent hiện tại có thể thực hiện.
+**Mục đích:** `/add-execute` là command công khai duy nhất cho preflight, cấp Execution Record/grant nội bộ, chọn direct hoặc orchestrated route, thực thi và validation. Người dùng không chọn route, không copy grant/consumer và không truyền Dispatch Record.
 
 ```text
 TASKS.md đã APPROVED
-→ /sdd-dispatch --agent-execution=direct
-→ Dispatch Record + grant + consumer được tạo
-→ /add-execute với đúng ba giá trị vừa nhận
-→ grant bị consume trước mọi action
+→ /add-execute chọn task hoặc snapshot feature
+→ resolver đọc Agent Execution persisted
+→ preflight + Execution Record + task grant nội bộ
+→ consume DISPATCHED/UNCONSUMED grant trước action
+→ direct execution hoặc immutable worker packet
 → validation và Action Record
 ```
 
-Chạy dispatch:
+#### Chạy một task
 
 ```text
-/sdd-dispatch --feature=feat-user-register --task=T001 --agent-execution=direct
+/add-execute --feature=feat-user-register --task=T001
 ```
 
-`direct` nghĩa là không launch worker khác. Nó **không** bỏ preflight, Shadow Plan, Action Record, checkpoint, exact approved command hoặc validation.
-
-#### Alternative flow: khi nào chọn `orchestrated`?
-
-| Route | Chọn khi | Dispatcher làm thêm | Không dùng khi |
-| :--- | :--- | :--- | :--- |
-| `direct` | Một task atomic, Agent hiện tại thực hiện trong boundary rõ ràng. Đây là lựa chọn đầu tiên cho người mới. | Tạo Dispatch Record, grant và consumer; không launch worker. | Task chưa approved hoặc có blocker. |
-| `orchestrated` | Có một hoặc nhiều task độc lập, boundary độc quyền không overlap, runtime quan sát được worker dispatch. | Cấp immutable worker packet, worker reference và integration validation. | Shared file/contract, dependency, retry hoặc integration cần thứ tự; các trường hợp này phải tuần tự. |
-
-Ví dụ alternative route:
+Dùng khi chỉ muốn thực thi `T001` đã eligible. `--strict-checkpoint` thêm Human checkpoint trước mọi task:
 
 ```text
-/sdd-dispatch --feature=feat-user-register --task=T001 --agent-execution=orchestrated
+/add-execute --feature=feat-user-register --task=T001 --strict-checkpoint
 ```
 
-`Project Ownership` không chọn route: solo vẫn có thể `orchestrated`; team vẫn có thể `direct`.
-
-#### Dispatcher tạo gì, và bạn dùng chúng thế nào?
-
-**Artifact/evidence tạo ra:** Dispatch Record dưới `## Current Handoff State` của `TASKS.md`.
-
-| Giá trị | Có ở đâu? | Dùng để làm gì? | Người mới không được làm |
-| :--- | :--- | :--- | :--- |
-| Dispatch Record `--dispatch-record=<reference>` | Dispatch Record trong `TASKS.md`. | Chỉ đúng evidence/preflight của lần dispatch này. | Tự viết reference hoặc dùng record của feature/task khác. |
-| Task grant `--dispatch-grant=<grant-id>` | Entry grant khớp `T001` trong Dispatch Record. | Quyền thực thi một lần cho task/attempt/route đó. | Tạo grant thủ công, reset hoặc dùng lại grant đã consumed. |
-| Consumer `--dispatch-consumer=<consumer-ref>` | Cùng entry grant do dispatcher cấp. | Gắn grant với đúng bên thực thi được chỉ định. | Tự đoán, copy sang task khác hoặc dùng consumer của attempt cũ. |
-
-Ba giá trị opaque này được `/sdd-dispatch` tạo cho đúng feature/task. Hãy copy nguyên vẹn vào Bước 6.
-
-> **DỪNG trước dispatch:** `TASKS.md` chưa `APPROVED`, dependency chưa xong, boundary overlap, frozen contract/profile/exact command/checkpoint thiếu hoặc drift, hay material batch chưa có Human checkpoint. Quay lại artifact/profile/review phù hợp; không gọi `/add-execute` để “thử trước”.
-
-### Bước 6 — Execute: thực thi một task trong grant đã cấp
-
-**Mục đích:** Agent thực hiện đúng task đã dispatch, trong boundary đã approved, rồi lưu Action Record. Bước này không phải là “chạy lại cho đến khi pass”; mỗi grant chỉ là một lần thực thi có kiểm soát.
-
-#### Thứ tự bắt buộc trong execution
+#### Chạy snapshot task eligible của cả feature
 
 ```text
-Đọc Dispatch Record
-→ xác minh record/grant/consumer và immutable task inputs
-→ consume matching DISPATCHED/UNCONSUMED grant thành RUNNING/CONSUMED
+/add-execute --feature=feat-user-register --all
+```
+
+`--all` snapshot task eligible theo thứ tự trong `TASKS.md`, preflight toàn snapshot trước action và chạy theo dependency. Nó dừng ngay tại blocker, Human gate, drift, failure tuần tự hoặc cancellation evidence; không tự thêm task mới vừa eligible. Sau khi snapshot hoàn tất, gọi lại cùng command để tạo snapshot mới.
+
+#### Route được tự phát hiện
+
+| Persisted `Agent Execution` | `/add-execute` làm gì |
+| :--- | :--- |
+| `direct` | Thực thi trong session hiện tại; không launch worker. Shadow Plan, Action Record, checkpoint, exact approved command và validation vẫn bắt buộc. |
+| `orchestrated` | Chỉ launch Claude Code `Agent` worker khi runtime capability đã observed; tạo immutable worker packet và validate integration. Runtime unavailable là `BLOCKED`, không fallback sang direct. |
+
+`Project Ownership` không chọn route: solo vẫn có thể orchestrated; team vẫn có thể direct.
+
+#### Execution Record và grant nội bộ
+
+**Artifact/evidence tạo ra:** `Execution Record` dưới `## Current Handoff State` của `TASKS.md`.
+
+`/add-execute` tự cấp một task grant và opaque consumer reference cho từng attempt sau preflight. Đây là evidence nội bộ: không tự viết, copy, reset hoặc reuse. Grant phải được consume **trước** Shadow Plan, command, edit hoặc action khác:
+
+```text
+Execution Record + matching DISPATCHED/UNCONSUMED grant
+→ persist RUNNING/CONSUMED
 → Shadow Plan
-→ checkpoint nếu task có material state change
+→ checkpoint nếu applicable
 → action trong boundary
-→ exact approved command và validation
-→ Action Record
-```
-
-Grant phải được consume **trước** Shadow Plan, command, edit hoặc action khác. Khi grant đã `CONSUMED`, không gọi lại `/add-execute` với cùng grant để “thử lại”.
-
-Sau khi lấy ba giá trị từ Bước 5, gọi:
-
-```text
-/add-execute --feature=feat-user-register --task=T001 \
-  --dispatch-record=<reference> \
-  --dispatch-grant=<grant-id> \
-  --dispatch-consumer=<consumer-ref>
+→ exact approved command + validation
+→ Action Record + integration evidence
 ```
 
 Trước edit, Agent phải:
 
-1. Xác minh record, grant, consumer, route, boundary, frozen contract, profile, exact command và checkpoint khớp task.
-2. Persist transition của matching grant sang `RUNNING`/`CONSUMED` trước Shadow Plan, command, edit hoặc action khác.
+1. Xác minh Execution Record, immutable boundary, frozen contract, profile, exact command và checkpoint khớp task.
+2. Persist `RUNNING`/`CONSUMED` cho matching grant trước Shadow Plan, command, edit hoặc action khác.
 3. Tạo Shadow Plan: Intent/DoD, boundary, profile evidence, exact command, risk, trace/sync và post-code review trigger.
 4. Dừng trước material state change cho đến khi checkpoint persisted `APPROVED` tồn tại.
 
@@ -391,18 +368,19 @@ Material state change gồm shared/public contract, schema hoặc business-data 
 
 Sau execution, Action Record lưu changed path, `REQ-XXX` coverage, command/result, residual blocker và sync-back decision. Action Record là evidence sau action, không phải quyền để bắt đầu action.
 
-#### Alternative và exception flow: gặp tình huống này thì làm gì?
+#### Retry, resume và blocker
 
 | Tình huống | Làm đúng | Không được làm |
 | :--- | :--- | :--- |
-| Blocker trước dispatch: task chưa approved, dependency chưa xong, boundary overlap, profile/contract/checkpoint/command thiếu | Dừng trước `/sdd-dispatch`; quay lại `TASKS.md`, artifact, Architecture Profile hoặc Human review đúng chỗ. | Tạo grant thủ công hoặc gọi `/add-execute`. |
-| Blocker khi execute: record/grant/consumer mismatch, grant consumed, requirement mới hoặc scope/contract/profile drift | Dừng, giữ evidence; handoff hoặc để owner/Lead resolve rồi revalidate. | Dùng grant cũ, đổi command để bypass hoặc tự mở rộng task. |
-| Implementation defect sau execution, immutable task inputs không đổi và state là `RETRY_PENDING` | Dùng `/sdd-dispatch --feature=feat-user-register --retry`. Dispatcher retire grant consumed và cấp grant mới nếu retry đủ điều kiện. | Gọi lại `/add-execute` với grant đã consumed. |
-| Session bị ngắt hoặc blocker đã được resolve | Dùng `/sdd-handoff --feature=feat-user-register`, rồi `/sdd-resume --feature=feat-user-register`. Sau revalidation, dispatcher route tiếp theo có thể là `/sdd-dispatch --feature=feat-user-register --resume`. | Giả định grant, worker reference hoặc permission cũ vẫn hợp lệ. |
-| Task là `ESCALATED` | Chờ Human disposition explicit rồi mới recovery/resume. | Tự retry hoặc tự chuyển task về `PLANNED`. |
+| Blocker trước execution: task chưa approved, dependency chưa xong, boundary overlap, profile/contract/checkpoint/command thiếu | Dừng; quay lại `TASKS.md`, artifact, Architecture Profile hoặc Human review đúng chỗ. | Gọi execution để “thử trước” hoặc tạo grant thủ công. |
+| Blocker khi execute: grant consumed/mismatch, requirement mới hoặc scope/contract/profile drift | Dừng, giữ evidence; handoff hoặc để owner/Lead resolve rồi revalidate. | Dùng grant cũ, đổi command để bypass hoặc tự mở rộng task. |
+| Implementation defect và task là `RETRY_PENDING`, immutable inputs không đổi | `/add-execute --feature=feat-user-register --task=T001 --retry`. Skill retire grant consumed và cấp attempt mới khi eligible. | Reuse grant consumed hoặc retry Spec/profile/checkpoint gap. |
+| Session bị ngắt hoặc blocker đã resolve | `/sdd-handoff --feature=feat-user-register`, rồi `/sdd-resume --feature=feat-user-register`; sau revalidation dùng `/add-execute --feature=feat-user-register --task=T001 --resume`. | Giả định grant, worker reference hoặc permission cũ vẫn hợp lệ. |
+| Task là `ESCALATED` | Chờ Human disposition explicit rồi mới dùng named `--resume`. | Tự retry hoặc tự chuyển task về `PLANNED`. |
+| Orchestrated runtime unavailable | Giữ runtime evidence `UNVERIFIED` và resolve host capability trước invocation mới. | Fallback direct hoặc giả claim host enforcement. |
 | Exact command thiếu, không tồn tại hoặc mâu thuẫn profile | Ghi command/result; quay lại Architecture Profile evidence và Human review để chọn/duyệt command đúng. | Thay bằng lệnh quen thuộc để lấy `PASS`. |
 
-> **DỪNG:** Grant missing, consumed, không `DISPATCHED`, mismatched consumer, cross-feature/cross-task/cross-record hoặc replay là `BLOCKED`. Retry và resume là hai flow khác nhau: `--retry` chỉ cho implementation defect `RETRY_PENDING`; `--resume` chỉ sau interruption hoặc blocker đã resolve và luôn cần revalidation.
+> **DỪNG:** Grant missing, consumed, không `DISPATCHED`, mismatched consumer, cross-feature/cross-task/cross-record hoặc stale claim là `BLOCKED`. Retry và resume là hai flow khác nhau: `--retry` chỉ cho implementation defect `RETRY_PENDING`; `--resume` chỉ sau interruption hoặc blocker đã resolve và luôn cần revalidation.
 
 Xem [Hướng dẫn điều phối nhiều Agent](./multi-agent-orchestration-guide.md) khi cần lifecycle, retry hoặc runtime evidence chi tiết.
 
@@ -498,8 +476,8 @@ Dù ownership/execution là combination nào, Agent không `git push`. Human t�
 | Contract/task/boundary drift | Dừng; để contract owner/Lead resolve, sau đó trace/sync khi phù hợp. | Mở rộng task hay sửa shared contract không quyền. |
 | Exact command fail hoặc environment mismatch | Giữ command/result; quay lại Architecture Profile evidence và Human review để chọn/duyệt command đúng. | Thay bằng command khác cho “pass”. |
 | Grant consumed/mismatch hoặc execution drift | Dừng, giữ evidence; resolve đúng artifact/owner rồi revalidate route. | Gọi lại `/add-execute` với grant cũ. |
-| Implementation defect `RETRY_PENDING` | Chỉ dùng `/sdd-dispatch --feature=<slug> --retry` khi immutable inputs không đổi. | Nhầm retry với resume hoặc tự cấp grant mới. |
-| Session bị ngắt hoặc context pressure | `/sdd-handoff --feature=<slug>` → `/sdd-resume --feature=<slug>` → revalidation → `/sdd-dispatch --feature=<slug> --resume` khi phù hợp. | Reset scope hoặc giả định grant/worker cũ còn hợp lệ. |
+| Implementation defect `RETRY_PENDING` | Chỉ dùng `/add-execute --feature=<slug> --task=<T001> --retry` khi immutable inputs không đổi. | Nhầm retry với resume hoặc tự cấp/reuse grant. |
+| Session bị ngắt hoặc context pressure | `/sdd-handoff --feature=<slug>` → `/sdd-resume --feature=<slug>` → revalidation → `/add-execute --feature=<slug> --task=<T001> --resume` khi phù hợp. | Reset scope hoặc giả định grant/worker cũ còn hợp lệ. |
 | Task `ESCALATED` | Chờ Human disposition explicit trước recovery/resume. | Tự retry hoặc tự chuyển task về `PLANNED`. |
 
 `scripts/self-heal.sh` chỉ thu thập evidence cho implementation defect theo approved environment; nó không repair, retry, self-approve, commit, push hoặc deploy. Không dùng nó như cách thay gate hay tự khắc phục lỗi.
@@ -511,6 +489,6 @@ Xem [Sổ tay tình huống](./sdd-add-scenario-playbook.md) cho brownfield, fai
 ## 5. Đọc tiếp khi cần
 
 - [Hướng dẫn Hồ sơ kiến trúc](./architecture-profile-guide.md): bị block vì thiếu binding hoặc exact command.
-- [Hướng dẫn điều phối nhiều Agent](./multi-agent-orchestration-guide.md): worker dispatch, grants, retry và runtime evidence.
+- [Hướng dẫn điều phối nhiều Agent](./multi-agent-orchestration-guide.md): worker orchestration, grants, retry và runtime evidence.
 - [Sổ tay tình huống](./sdd-add-scenario-playbook.md): recovery, handoff, brownfield và exception.
 - [Tra cứu nhanh](./sdd-add-field-guide.md): đã biết tình huống và cần command phù hợp.

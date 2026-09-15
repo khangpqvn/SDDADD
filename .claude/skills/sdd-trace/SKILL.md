@@ -43,3 +43,8 @@ Broken consistency block delivery của phần affected. Không tự sửa artif
 ## AI Recommendation và Human Final Review
 
 Sau report traceability/impact, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm coverage gap, stale artifact, missing execution/sync evidence, contract drift, severity, remediation option và residual risk. Lưu trong feature artifact hoặc `.sdd/reviews/trace-<slug>.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền quyết định disposition hoặc yêu cầu remediation; broken trace hoặc consistency chưa xử lý vẫn bị block. Agent không tự đánh dấu coverage `APPROVED`.
+
+## Completion output
+
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu feature/REQ scope, coverage matrix, stale artifact, Action/Dispatch/sync evidence và contract drift. Fully covered evidence vẫn cần persisted disposition khi recommendation pending; chọn `Human decision required` với trace report target. `MISSING TEST`, `IMPL OUTDATED`, `STALE`, `DRIFT` hoặc missing execution evidence là `BLOCKED`; không tiếp tục delivery, complete task hay tự sửa artifact.

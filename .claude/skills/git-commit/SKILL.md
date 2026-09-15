@@ -85,3 +85,7 @@ Solo ownership bỏ PR overhead; Agent Execution không ảnh hưởng Git deliv
 ✓ commit: HASH type(scope): description
 ✓ delivery: Human must run git push after reviewing remote target
 ```
+
+## Completion output
+
+Use the [Completion output contract](../_shared/ai-review-protocol.md). Summarize staged scope, validation evidence, commit hash/branch when created and the Human-owned delivery route. No staged changes remains `NO-OP` with no further command; a missing user confirmation, secret/forbidden path, validation failure or hook failure is `BLOCKED`, reported without resetting, amending or retrying blindly. `continue` after commit is only the displayed Human `git push -u origin <head>` command; the Agent never runs it.

@@ -89,3 +89,7 @@ Nếu sau khi đọc Spec kỹ AI không có câu hỏi nào, phải **chủ đ�
 ## AI Recommendation và Human Final Review
 
 Sau khi tạo/sửa `PLAN.md`, lưu canonical recommendation gồm locked scope, inherited depth, architecture option, `REQ-XXX` mapping, dependency direction, state-change/checkpoint, shared-contract impact, risk, mitigation, decision kỹ thuật mở, delivery validation/post-code review trigger và requirement bị ảnh hưởng. Human review giữ `PENDING`; task decomposition/execution cần `APPROVED`. Agent phải dừng, không self-approve.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Plan hoàn chỉnh nhưng review `PENDING` chọn `Human decision required`; Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --feature=<feature-slug> --artifact=plan --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. `continue` chỉ sau Plan `APPROVED`: `/sdd-tasks --feature=<feature-slug>`. Missing binding/exact command, conflicting evidence hoặc unresolved Human question là `BLOCKED`; nêu profile evidence và không sinh task adapter-specific.

@@ -15,7 +15,7 @@ CONTEXT → SPEC → PLAN → TASKS → execute → verify → sync
 Template tách hai trục độc lập trong `.sdd/shared_context.md`:
 
 - `Project Ownership: solo|team`: `solo` là một Human project owner; `team` là nhiều Human collaborator và là mặc định. Trục này quyết định Human review eligibility và Git delivery policy.
-- `Agent Execution: direct|orchestrated`: `direct` chạy trong Agent hiện tại; `orchestrated` dùng `/sdd-dispatch` cho một hoặc nhiều worker. Solo và team đều dùng được cả hai route.
+- `Agent Execution: direct|orchestrated`: `/add-execute` chạy `direct` trong Agent hiện tại hoặc điều phối `orchestrated` worker sau khi runtime capability được quan sát. Solo và team đều dùng được cả hai route.
 
 Direct execution không bỏ Shadow Plan, Action Record, checkpoint, Architecture Profile hay validation. Agent không self-approve hoặc `git push`.
 

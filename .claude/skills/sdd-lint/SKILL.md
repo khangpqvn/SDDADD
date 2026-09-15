@@ -34,3 +34,7 @@ Dùng để lint và kiểm định `.sdd/features/{feature-slug}/SPEC.md`, phá
 ## AI Recommendation và Human Final Review
 
 Sau lint, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm error, warning, EARS correction đề xuất, edge-case gap và residual risk. Lưu trong feature `SPEC.md` hoặc `.sdd/reviews/lint-<slug>.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền quyết định có chấp thuận correction hay không; lint failure vẫn bị block đến khi được khắc phục hoặc disposition rõ ràng. Agent không tự approve Spec.
+
+## Completion output
+
+Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu feature/Spec version, EARS/REQ/edge-case findings, recommendation location và residual risk. Lint pass nhưng recommendation pending là `Human decision required`; Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --target=<SPEC.md hoặc lint report> --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. Lint failure là `BLOCKED` với correction/disposition route. Không tự sửa hoặc approve Spec; chỉ sau persisted Follow-up mới tiếp tục.

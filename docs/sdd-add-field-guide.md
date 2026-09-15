@@ -4,7 +4,7 @@ Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới b�
 
 ## Quy tắc nhớ nhanh
 
-`Project Ownership` và `Agent Execution` là hai trục độc lập: solo là một Human owner, team là nhiều Human collaborator; direct chạy trong Agent hiện tại, orchestrated dùng `/sdd-dispatch`. Solo vẫn có thể dispatch nhiều Agent; team vẫn có thể direct execution.
+`Project Ownership` và `Agent Execution` là hai trục độc lập: solo là một Human owner, team là nhiều Human collaborator; `/add-execute` chạy direct trong Agent hiện tại hoặc điều phối orchestrated worker theo persisted route. Solo vẫn có thể dùng worker; team vẫn có thể direct execution.
 
 1. Agent đề xuất; Human ghi decision persisted bằng `/sdd-review`.
 2. Context/Spec có thể business-neutral; Plan/Tasks/execute không đoán binding hay command.
@@ -26,7 +26,7 @@ Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới b�
 | Validation fail | Giữ evidence; sửa trong scope hoặc quay lại Spec/Profile | Tất cả route applicable pass |
 | Post-code review pending | Tạo post-code report rồi `/sdd-review` | Report `APPROVED` nếu trigger áp dụng |
 | Shared contract đổi | Owner/Lead cập nhật shared context → trace → sync | Contract owner/version khớp |
-| Orchestrated Agent execution | `/sdd-dispatch --feature=<slug> --agent-execution=orchestrated` | Boundary không overlap, packet/evidence đủ; dùng được cho solo hoặc team |
+| Orchestrated Agent execution | `/add-execute --feature=<slug> --task=<T001>` hoặc `--all` | Persisted route là `orchestrated`, runtime worker observed, boundary/packet/evidence đủ; dùng được cho solo hoặc team |
 | Session dừng | `/sdd-handoff --feature=<slug>` | Next decision/command được ghi |
 | Session tiếp tục | `/sdd-resume --feature=<slug>` | Review/profile/command/contract/checkpoint đủ |
 | Git delivery | `/git-validate --scope=commit` | `GIT VALIDATION: READY` |
@@ -43,9 +43,9 @@ Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới b�
 /sdd-review ... --artifact=plan --status=APPROVED
 /sdd-tasks --feature=<slug>
 /sdd-review ... --artifact=tasks --status=APPROVED
-/sdd-dispatch --feature=<slug> --task=<T001> --agent-execution=direct
-# Execution only after dispatch; use the matching grant issued in the record:
-/add-execute --feature=<slug> --task=<T001> --dispatch-record=<reference> --dispatch-grant=<grant-id> --dispatch-consumer=<consumer-ref>
+/add-execute --feature=<slug> --task=<T001>
+# Or run the current eligible feature snapshot:
+/add-execute --feature=<slug> --all
 <exact approved command>
 /sdd-audit --feature=<slug>
 /sdd-trace --feature=<slug> --diff
@@ -59,7 +59,7 @@ Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới b�
 | :--- | :--- | :--- |
 | Missing binding/command | Guess package/command | Add evidence, review profile, refresh downstream work |
 | Spec gap | Patch code | Update/review/lock Spec rồi resume |
-| Contract drift | Continue dispatch | Stop; owner/Lead resolve, trace/sync |
+| Contract drift | Continue execution | Stop; owner/Lead resolve, trace/sync |
 | Material mutation thiếu checkpoint | Execute | Persist Human checkpoint trước |
 | Thiếu Action Record | Mark `[x]` | Record command/result/validation/sync |
 | Thiếu post-code review | Commit/PR | Tạo report, Human review |

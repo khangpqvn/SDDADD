@@ -3,7 +3,7 @@
 Tài liệu này hướng dẫn người mới hoàn thành **một feature** từ ý tưởng đến Git delivery. Đi lần lượt từng bước; không nhảy từ ý tưởng sang code.
 
 ```text
-CONTEXT → SPEC → PLAN → TASKS → dispatch → execute → validation → delivery
+CONTEXT → SPEC → PLAN → TASKS → execute → validation → delivery
 ```
 
 Mục tiêu không phải tạo nhiều tài liệu. Mỗi artifact trả lời một câu hỏi trước khi bước tiếp theo được phép bắt đầu:
@@ -14,7 +14,7 @@ Mục tiêu không phải tạo nhiều tài liệu. Mỗi artifact trả lời 
 | Hệ thống phải làm gì và không làm gì? | `SPEC.md` |
 | Sẽ thay đổi phần nào, kiểm tra ra sao? | `PLAN.md` |
 | Ai làm từng phần, trong boundary nào? | `TASKS.md` |
-| Có đủ evidence để thực thi và delivery không? | Dispatch/Action Record, review và validation evidence |
+| Có đủ evidence để thực thi và delivery không? | `Execution Record`, `Action Record`, review và validation evidence |
 
 > **Nguyên tắc:** Human quyết định business, risk và approval. Agent đề xuất cách làm, chỉ thực thi scope đã duyệt, rồi ghi evidence. Chat không thay thế approval đã lưu trong Git.
 
@@ -76,7 +76,7 @@ team + orchestrated
 - `solo` là một Human project owner. Solo **vẫn có thể** dùng nhiều Agent qua `orchestrated`.
 - `team` là nhiều Human collaborator. Team **vẫn có thể** dùng `direct`.
 - `direct` phù hợp với một task atomic mà Agent hiện tại thực hiện được trong boundary rõ ràng.
-- `orchestrated` phù hợp khi task độc lập, worker boundary không overlap và runtime hỗ trợ worker dispatch.
+- `orchestrated` phù hợp khi task độc lập, worker boundary không overlap và runtime có Claude Code `Agent` capability đã được quan sát.
 
 `direct` không bỏ Shadow Plan, Action Record, checkpoint, profile hay validation. Execution route không thay delivery policy.
 
@@ -296,11 +296,13 @@ Một task tốt trả lời được:
 
 Human review `TASKS.md` bằng `/sdd-review --artifact=tasks` trước execution.
 
-> **DỪNG:** Task chưa có exact command, boundary overlap, dependency chưa hoàn tất hoặc checkpoint chưa xác định. Dispatch readiness chỉ cho phép chọn task; nó không phải execution grant.
+> **DỪNG:** Task chưa có exact command, boundary overlap, dependency chưa hoàn tất hoặc checkpoint chưa xác định. Execution readiness chỉ cho phép chọn task; nó không phải execution grant.
 
 ### Bước 5 — Execute: một entry point cho task hoặc feature
 
-**Mục đích:** `/add-execute` là command công khai duy nhất cho preflight, cấp Execution Record/grant nội bộ, chọn direct hoặc orchestrated route, thực thi và validation. Người dùng không chọn route, không copy grant/consumer và không truyền Dispatch Record.
+> **Chọn đúng form:** `--task=<T00X>` cho một task; `--all` cho snapshot task eligible của feature. `--retry` và `--resume` chỉ dùng với một task đã có state phù hợp. Không truyền `--agent-execution`, `--project-ownership`, `--team-size`, `--dispatch-record`, `--dispatch-grant` hoặc `--dispatch-consumer`.
+
+**Mục đích:** `/add-execute` là command công khai duy nhất cho preflight, cấp Execution Record/grant nội bộ, tự resolve direct hoặc orchestrated route, thực thi và validation. Người dùng không chọn route, không copy grant/consumer và không truyền authority token.
 
 ```text
 TASKS.md đã APPROVED
@@ -330,7 +332,7 @@ Dùng khi chỉ muốn thực thi `T001` đã eligible. `--strict-checkpoint` th
 /add-execute --feature=feat-user-register --all
 ```
 
-`--all` snapshot task eligible theo thứ tự trong `TASKS.md`, preflight toàn snapshot trước action và chạy theo dependency. Nó dừng ngay tại blocker, Human gate, drift, failure tuần tự hoặc cancellation evidence; không tự thêm task mới vừa eligible. Sau khi snapshot hoàn tất, gọi lại cùng command để tạo snapshot mới.
+`--all` snapshot task chưa complete và eligible theo thứ tự khai báo trong `TASKS.md`, preflight toàn snapshot trước grant, worker, command, edit hay action. Nó dừng ngay tại blocker, Human gate, drift, failure tuần tự hoặc cancellation evidence; không tự thêm task mới vừa eligible. Khi dừng, grant chưa consumed của snapshot bị retire/revoke cùng reason. Sau khi snapshot hoàn tất, gọi lại cùng command để tạo snapshot mới.
 
 #### Route được tự phát hiện
 
@@ -339,7 +341,7 @@ Dùng khi chỉ muốn thực thi `T001` đã eligible. `--strict-checkpoint` th
 | `direct` | Thực thi trong session hiện tại; không launch worker. Shadow Plan, Action Record, checkpoint, exact approved command và validation vẫn bắt buộc. |
 | `orchestrated` | Chỉ launch Claude Code `Agent` worker khi runtime capability đã observed; tạo immutable worker packet và validate integration. Runtime unavailable là `BLOCKED`, không fallback sang direct. |
 
-`Project Ownership` không chọn route: solo vẫn có thể orchestrated; team vẫn có thể direct.
+`Project Ownership` không chọn route: solo vẫn có thể orchestrated; team vẫn có thể direct. Runtime policy YAML, Markdown record và consumer reference không tự chứng minh host enforcement; khi không có atomic claim đã quan sát, evidence phải là `UNVERIFIED`.
 
 #### Execution Record và grant nội bộ
 
@@ -364,7 +366,7 @@ Trước edit, Agent phải:
 3. Tạo Shadow Plan: Intent/DoD, boundary, profile evidence, exact command, risk, trace/sync và post-code review trigger.
 4. Dừng trước material state change cho đến khi checkpoint persisted `APPROVED` tồn tại.
 
-Material state change gồm shared/public contract, schema hoặc business-data mutation, permission/security/dependency/runtime configuration, và external/irreversible side effect.
+`--strict-checkpoint` tăng gate này cho **mọi** task, kể cả task không thuộc material-state category. Nó không thay baseline checkpoint bắt buộc cho shared/public contract, schema hoặc business-data mutation, permission/security/dependency/runtime configuration, và external/irreversible side effect.
 
 Sau execution, Action Record lưu changed path, `REQ-XXX` coverage, command/result, residual blocker và sync-back decision. Action Record là evidence sau action, không phải quyền để bắt đầu action.
 
@@ -384,7 +386,7 @@ Sau execution, Action Record lưu changed path, `REQ-XXX` coverage, command/resu
 
 Xem [Hướng dẫn điều phối nhiều Agent](./multi-agent-orchestration-guide.md) khi cần lifecycle, retry hoặc runtime evidence chi tiết.
 
-### Bước 7 — Validation: chứng minh task/feature đạt yêu cầu
+### Bước 6 — Validation: chứng minh task/feature đạt yêu cầu
 
 **Mục đích:** lưu evidence cho requirement, command, contract và delivery readiness.
 
@@ -415,7 +417,7 @@ Các route sau chỉ chạy khi trigger áp dụng và phải ghi command/result
 
 Route không áp dụng phải ghi `N/A` cùng lý do; không ghi giả `PASS`. Command bị thiếu, không chạy được hoặc mâu thuẫn profile là configuration/profile gap, không phải lý do đổi sang command suy đoán.
 
-### Bước 8 — Review sau code khi cần
+### Bước 7 — Review sau code khi cần
 
 Post-code review cần khi delivery thay đổi:
 
@@ -436,7 +438,7 @@ Docs-only change không cần post-code review chỉ vì thay Markdown.
 
 > **DỪNG:** Nếu post-code review bắt buộc nhưng report thiếu, `REVISE` hoặc `REJECTED`, delivery bị block.
 
-### Bước 9 — Delivery Git
+### Bước 8 — Delivery Git
 
 **Mục đích:** chỉ chuyển thay đổi đã đủ evidence sang Git delivery.
 

@@ -8,7 +8,7 @@ Dùng khi đã biết tình huống và cần các bước thao tác. Với flow
 2. Tạo Context; kiểm tra Intent Packet, Describe-back và question disposition.
 3. Review Context, tạo/review/lock Spec business-neutral.
 4. Khi feature cần kỹ thuật, ghi binding + evidence + exact command vào Architecture Profile và review.
-5. Chỉ sau đó tạo Plan, Tasks và execute.
+5. Chỉ sau đó tạo Plan, Tasks và chạy `/add-execute` cho task hoặc feature snapshot eligible.
 
 **Dừng khi:** binding/command thiếu hoặc evidence mâu thuẫn. Không sinh adapter-specific plan trong core-only baseline.
 
@@ -48,10 +48,12 @@ Trước shared/public contract, schema/business-data, permission/security/depen
 3. Thực thi đúng file boundary đã approved.
 4. Ghi evidence, compatibility/recovery information khi applicable, rồi trace/sync.
 
-## Handoff và resume
+## Handoff, retry và resume
 
 - `/sdd-handoff --feature=<slug>` ghi Intent/DoD, active contract version, scope, profile/exact command/result, checkpoint, blocker và next command.
-- `/sdd-resume --feature=<slug>` chỉ tiếp tục khi gate còn hiệu lực. Context pressure, stuck loop hoặc environment mismatch phải được ghi như blocker/evidence, không reset ngầm scope.
+- `/sdd-resume --feature=<slug>` chỉ revalidate context và gợi ý command public khi gate còn hiệu lực. Context pressure, stuck loop hoặc environment mismatch phải được ghi như blocker/evidence, không reset ngầm scope.
+- Chỉ dùng `/add-execute --feature=<slug> --task=<T00X> --retry` cho implementation defect ở task `RETRY_PENDING` khi boundary, frozen contract, profile, exact command và checkpoint không đổi. Grant đã consumed bị retire; không reuse/reset.
+- Chỉ dùng `/add-execute --feature=<slug> --task=<T00X> --resume` sau interruption, resolved `BLOCKED`, hoặc Human-dispositioned `ESCALATED`, rồi revalidate record/grant/runtime evidence. Spec/profile/command/checkpoint/contract/ownership/runtime gap là `BLOCKED`, không phải retry.
 
 ## Delivery
 

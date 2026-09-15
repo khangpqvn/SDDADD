@@ -34,7 +34,7 @@ Direct execution không bỏ Shadow Plan, Action Record, checkpoint, Architectur
 | Chọn command theo tình huống | [Tra cứu nhanh](docs/sdd-add-field-guide.md) |
 | Xử lý greenfield, brownfield, lỗi, handoff | [Sổ tay tình huống](docs/sdd-add-scenario-playbook.md) |
 | Chọn binding và command kỹ thuật | [Hướng dẫn Hồ sơ kiến trúc](docs/architecture-profile-guide.md) |
-| Dispatch nhiều Agent | [Hướng dẫn điều phối nhiều Agent](docs/multi-agent-orchestration-guide.md) |
+| Thực thi task/feature và worker orchestration | [Hướng dẫn execution](docs/multi-agent-orchestration-guide.md) |
 
 ## Nguồn chuẩn
 

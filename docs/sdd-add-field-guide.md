@@ -26,7 +26,11 @@ Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới b�
 | Validation fail | Giữ evidence; sửa trong scope hoặc quay lại Spec/Profile | Tất cả route applicable pass |
 | Post-code review pending | Tạo post-code report rồi `/sdd-review` | Report `APPROVED` nếu trigger áp dụng |
 | Shared contract đổi | Owner/Lead cập nhật shared context → trace → sync | Contract owner/version khớp |
-| Orchestrated Agent execution | `/add-execute --feature=<slug> --task=<T001>` hoặc `--all` | Persisted route là `orchestrated`, runtime worker observed, boundary/packet/evidence đủ; dùng được cho solo hoặc team |
+| Chạy một task eligible | `/add-execute --feature=<slug> --task=<T001>` | `TASKS.md` approved; task/dependency/boundary/profile/command/checkpoint/contract evidence hợp lệ |
+| Chạy snapshot feature eligible | `/add-execute --feature=<slug> --all` | Preflight toàn snapshot; chạy theo declaration order và dừng ở blocker/Human gate/drift/failure/cancellation |
+| Orchestrated execution | Gọi cùng `/add-execute` command; không thêm route flag | Persisted route là `orchestrated`, runtime Claude Code `Agent` observed, boundary/packet/evidence đủ; runtime unavailable là `BLOCKED`, không fallback direct |
+| Retry implementation defect | `/add-execute --feature=<slug> --task=<T001> --retry` | Named task là `RETRY_PENDING`; immutable inputs không đổi |
+| Resume task bị gián đoạn/đã resolve | `/sdd-resume --feature=<slug>` rồi `/add-execute --feature=<slug> --task=<T001> --resume` | Record, review/profile/command/contract/checkpoint và runtime evidence revalidated |
 | Session dừng | `/sdd-handoff --feature=<slug>` | Next decision/command được ghi |
 | Session tiếp tục | `/sdd-resume --feature=<slug>` | Review/profile/command/contract/checkpoint đủ |
 | Git delivery | `/git-validate --scope=commit` | `GIT VALIDATION: READY` |
@@ -63,6 +67,7 @@ Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới b�
 | Material mutation thiếu checkpoint | Execute | Persist Human checkpoint trước |
 | Thiếu Action Record | Mark `[x]` | Record command/result/validation/sync |
 | Thiếu post-code review | Commit/PR | Tạo report, Human review |
+| Grant consumed/mismatch hoặc runtime unavailable | Reuse grant, supply token hoặc fallback direct | Giữ Execution Record evidence; resolve đúng blocker rồi revalidate public route |
 | Loop/context/environment issue | Lặp command hoặc mở rộng scope | Handoff evidence, classify blocker, Human decision |
 
 ## Self-heal

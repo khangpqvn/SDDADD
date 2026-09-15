@@ -48,6 +48,10 @@ Artifact và review report dùng canonical block trong `.claude/skills/_shared/a
 
 Dùng `/sdd-review` để ghi decision. Post-code report nằm tại `.sdd/reviews/post-code-<feature>-<delivery-or-timestamp>.md`; docs-only không cần report này.
 
+## Execution entry point
+
+`/add-execute` là public entry point duy nhất sau khi `TASKS.md` được review `APPROVED`. Nó nhận `--feature` cùng một selector `--task=<T00X>` hoặc `--all`; `--retry` và `--resume` chỉ dành cho named task ở state tương ứng. Route direct/orchestrated luôn resolve từ `.sdd/shared_context.md`, không từ invocation. Chi tiết selector, snapshot, grant lifecycle, runtime evidence và worker packet nằm trong [Hướng dẫn execution](./multi-agent-orchestration-guide.md); command contract chuẩn nằm tại `.claude/skills/add-execute/SKILL.md`.
+
 ## Completion output của skill
 
 Sau mỗi skill, completion output tóm tắt state/evidence đã quan sát và đề xuất đúng một route an toàn: `continue`, `Human decision required` hoặc `BLOCKED`. Đây là trợ giúp đọc kết quả, không phải approval status và không thay thế artifact, `Human Final Review`, `Action Record` hoặc `Execution Record`. Xem [AI Review Protocol](../.claude/skills/_shared/ai-review-protocol.md#completion-output-contract) để biết format và precondition của lệnh tiếp theo.

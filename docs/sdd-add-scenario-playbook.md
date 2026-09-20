@@ -1,71 +1,112 @@
 # Sổ tay tình huống SDD + ADD
 
-Dùng khi đã biết tình huống và cần các bước thao tác. Với flow đầy đủ, đọc [Bắt đầu nhanh](./sdd-add-quickstart.md).
+Dùng tài liệu này khi feature bị block, repository là brownfield, session bị ngắt hoặc cần delivery. Flow chuẩn nằm trong [Bắt đầu nhanh](./sdd-add-quickstart.md).
 
-## Dự án mới chưa chọn stack
+## 1. Repository mới chưa chọn stack
 
-1. `/sdd-init --project-name="<name>"`.
-2. Tạo Context; kiểm tra Intent Packet, Describe-back và question disposition.
-3. Review Context, tạo/review/lock Spec business-neutral.
-4. Khi feature cần kỹ thuật, ghi binding + evidence + exact command vào Architecture Profile và review.
-5. Chỉ sau đó tạo Plan, Tasks và chạy `/add-execute` cho task hoặc feature snapshot eligible.
+1. Chạy `/sdd-init --project-name="<name>"`.
+2. Kiểm tra bootstrap scope và review `.sdd/reviews/init.md`.
+3. Tạo Context, review; tạo Spec technology-neutral, review và lock.
+4. Xác định behavior kỹ thuật cần thiết.
+5. Ghi binding, evidence và exact verification command vào `.sdd/architecture-profile.md`.
+6. Human review Profile.
+7. Chỉ sau đó chạy `/sdd-plan`, `/sdd-tasks` và `/add-execute`.
 
-**Dừng khi:** binding/command thiếu hoặc evidence mâu thuẫn. Không sinh adapter-specific plan trong core-only baseline.
+**Dừng khi:** binding/command thiếu hoặc evidence mâu thuẫn. Không tạo adapter-specific Plan dựa trên suy đoán.
 
-## Đưa template vào dự án sẵn có
+## 2. Đưa template vào repository có sẵn
 
 1. Chạy `scripts/adopt.sh <target>` hoặc `scripts/adopt.ps1 -TargetPath <target>`.
 2. Trong repository đích, chạy `/sdd-adopt`.
-3. Đối chiếu manifest, CI, source và configuration với Architecture Profile.
-4. Mâu thuẫn giữ `PENDING HUMAN REVIEW`; Human review adoption scope trước feature work.
+3. Đối chiếu manifest, lockfile, CI, runtime bootstrap, test config và source layout với Profile.
+4. Giữ `PENDING HUMAN REVIEW` nếu evidence mâu thuẫn.
+5. Chỉ làm feature sau khi adoption scope và Profile được review.
 
-`adopt` không overwrite file hiện hữu nếu không explicit force.
+Script adopt không được overwrite file hiện hữu nếu chưa có explicit force. Xem contract của `sdd-adopt` trước khi chạy.
 
-## Requirement hoặc contract thay đổi
+## 3. Requirement hoặc contract thay đổi
+
+Dùng:
 
 ```text
-/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --reason="..."
+/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --reason="<lý do>"
 ```
 
-1. Ghi Change Impact: scope/assumption/lock impact, downstream artifact invalid, trace/test/sync và review follow-up.
-2. Refresh recommendation; approval cũ không còn hiệu lực khi field scope material đổi.
-3. Với Spec đổi, review/lock lại rồi mới resume code.
+Sau đó:
 
-## Test hoặc validation fail
+1. Kiểm tra Change Impact: scope, assumption, lock, downstream artifact, trace/test/sync.
+2. Review lại recommendation và artifact bị ảnh hưởng.
+3. Nếu Spec đổi, review và lock lại trước khi resume code.
+4. Không giữ approval cũ khi material field đã đổi.
 
-1. Lưu exact command/result, không lọc test/skip/mock để ép success.
-2. Phân loại: implementation defect, Spec gap, profile/configuration gap, hoặc prohibited/high-risk mutation.
-3. Defect chỉ sửa trong approved task/file boundary; sau đó chạy lại exact command.
-4. Spec/Profile gap: dừng, update/review đúng artifact.
-5. Cập nhật Action Record, trace/sync decision và post-code review nếu trigger áp dụng.
+## 4. Test hoặc validation fail
 
-## Material state change
+1. Lưu exact command và kết quả đầy đủ cần thiết; không skip test hoặc đổi command để tạo `PASS`.
+2. Phân loại failure: implementation defect, Spec gap, Profile/configuration gap hoặc prohibited/high-risk mutation.
+3. Implementation defect chỉ sửa trong approved task/file boundary.
+4. Spec/Profile gap thì dừng và update/review đúng artifact.
+5. Chạy lại exact approved command sau khi nguyên nhân đã được xử lý.
+6. Cập nhật Action Record, trace/sync và post-code review nếu trigger áp dụng.
 
-Trước shared/public contract, schema/business-data, permission/security/dependency/runtime config hoặc external/irreversible action:
+## 5. Material state change
+
+Trước khi đổi public/shared contract, schema/business data, permission/security, dependency/runtime config hoặc tạo external/irreversible action:
 
 1. Xác nhận scope category trong Task/Shadow Plan.
-2. Lưu persisted Human checkpoint.
-3. Thực thi đúng file boundary đã approved.
-4. Ghi evidence, compatibility/recovery information khi applicable, rồi trace/sync.
+2. Persist Human checkpoint `APPROVED`.
+3. Kiểm tra immutable file boundary và exact command.
+4. Thực thi đúng scope.
+5. Ghi evidence, compatibility/recovery information nếu cần, rồi trace/sync.
 
-## Handoff, retry và resume
+Nếu checkpoint thiếu, execution bị `BLOCKED`.
 
-- `/sdd-handoff --feature=<slug>` ghi Intent/DoD, active contract version, scope, profile/exact command/result, checkpoint, blocker và next command.
-- `/sdd-resume --feature=<slug>` chỉ revalidate context và gợi ý command public khi gate còn hiệu lực. Context pressure, stuck loop hoặc environment mismatch phải được ghi như blocker/evidence, không reset ngầm scope.
-- Chỉ dùng `/add-execute --feature=<slug> --task=<T00X> --retry` cho implementation defect ở task `RETRY_PENDING` khi boundary, frozen contract, profile, exact command và checkpoint không đổi. Grant đã consumed bị retire; không reuse/reset.
-- Chỉ dùng `/add-execute --feature=<slug> --task=<T00X> --resume` sau interruption, resolved `BLOCKED`, hoặc Human-dispositioned `ESCALATED`, rồi revalidate record/grant/runtime evidence. Spec/profile/command/checkpoint/contract/ownership/runtime gap là `BLOCKED`, không phải retry.
+## 6. Handoff và resume
 
-## Delivery
+Khi session sắp dừng:
 
-`Project Ownership: solo` dùng Human-owned direct delivery sau validation/review; `team` dùng PR/review flow. `Agent Execution: direct|orchestrated` không thay đổi delivery policy.
+```text
+/sdd-handoff --feature=<slug>
+```
 
-1. Chạy exact approved command và validation route applicable.
-2. Tạo/approve post-code report khi source/test/contract/config/schema/state đổi.
-3. `/git-validate --scope=commit` phải `READY`.
-4. Agent chỉ commit khi Human yêu cầu; Human tự `git push`.
-5. Team chạy `/git-validate --scope=pr --strict` trước `/git-pr`; solo bỏ PR overhead.
+Handoff phải nêu Intent/DoD, contract version, scope, Profile/exact command/result, checkpoint, blocker và next command.
 
-## Self-heal evidence-only
+Khi tiếp tục:
+
+```text
+/sdd-resume --feature=<slug>
+```
+
+Sau resume, chỉ gọi public `/add-execute` khi record, review, Profile, command, contract, checkpoint, ownership và runtime evidence còn hợp lệ.
+
+Không giả định worker identity, permission hoặc grant của session cũ vẫn hợp lệ.
+
+## 7. Retry và resume task
+
+- `--retry`: chỉ cho implementation defect khi task là `RETRY_PENDING` và immutable inputs không đổi.
+- `--resume`: cho task bị interruption, `BLOCKED` đã resolve hoặc `ESCALATED` đã có Human disposition.
+- Spec/Profile/command/checkpoint/contract/ownership/security/dependency/runtime gap là `BLOCKED`, không phải retry.
+- Grant đã consumed phải retire; không reset hoặc reuse.
+- Sau nhiều failure liên tiếp theo threshold của skill, task phải `ESCALATED` và chờ Human disposition.
+
+Ví dụ:
+
+```text
+/add-execute --feature=<slug> --task=<T001> --retry
+/add-execute --feature=<slug> --task=<T001> --resume
+```
+
+## 8. Delivery
+
+1. Chạy exact approved command và các route validation áp dụng.
+2. Tạo và xin duyệt post-code report nếu thay đổi source, test, contract, config, schema hoặc state.
+3. Chạy `/git-validate --scope=commit --feature=<slug>`.
+4. Chỉ khi có `GIT VALIDATION: READY` và Human yêu cầu mới commit.
+5. Human tự `git push`; Agent không push.
+6. `team` dùng PR flow; `solo` có thể delivery trực tiếp theo policy repository.
+
+`Agent Execution: direct|orchestrated` không thay đổi delivery policy.
+
+## 9. Self-heal chỉ để thu thập evidence
 
 ```bash
 ./scripts/self-heal.sh --feature=<slug> --task=<task-id> \
@@ -75,4 +116,4 @@ Trước shared/public contract, schema/business-data, permission/security/depen
   --scope-category=implementation-defect
 ```
 
-Script chỉ thu thập evidence một lần. Nó không repair/retry, edit, approve, commit, push, deploy hoặc thực hiện external action.
+Script không repair, retry, edit, approve, commit, push, deploy hoặc thực hiện external action.

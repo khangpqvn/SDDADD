@@ -1,52 +1,31 @@
 # Starter Template SDD + ADD
 
-Template khởi tạo dự án theo **Spec-Driven Development (SDD)** và **Agent-Driven Development (ADD)**. Requirement, quyết định Human, evidence và contract được lưu trong Git. Agent chỉ hành động trong scope đã được duyệt.
+Template khởi tạo dự án theo **Spec-Driven Development (SDD)** và **Agent-Driven Development (ADD)**. Quy trình đảm bảo: Requirement rõ ràng $\rightarrow$ Human duyệt $\rightarrow$ Agent thực thi có evidence.
 
-## Bắt đầu tại đây
+## 🚀 Bắt đầu ngay
+Nếu bạn là người mới hoặc muốn triển khai feature đầu tiên, hãy đi theo lộ trình:
+👉 **[Bắt đầu nhanh: Làm feature đầu tiên](docs/sdd-add-quickstart.md)**
 
-Làm feature đầu tiên theo từng bước trong [Bắt đầu nhanh SDD + ADD](docs/sdd-add-quickstart.md). Đây là lộ trình chính cho người mới và đủ checkpoint để đi từ ý tưởng đến delivery.
+## 📚 Hệ thống tài liệu (Điều hướng)
+Thay vì đọc hết, hãy chọn tài liệu theo nhu cầu hiện tại của bạn:
 
-```text
-CONTEXT → SPEC → PLAN → TASKS → execute → verify → sync
-```
+| Bạn cần làm gì? | Đọc tài liệu này | Mục tiêu |
+| :--- | :--- | :--- |
+| **Đi từng bước làm feature** | [Quickstart](./docs/sdd-add-quickstart.md) | Hoàn thành 1 feature từ ý tưởng $\rightarrow$ Git delivery. |
+| **Hiểu artifact, gate & ownership** | [Hướng dẫn vận hành](./docs/sdd-add-guide.md) | Hiểu tại sao phải có Spec/Plan và ai là người duyệt. |
+| **Tra cứu command theo tình huống** | [Tra cứu nhanh](./docs/sdd-add-field-guide.md) | Tìm đúng lệnh `/sdd-...` cho tình huống cụ thể. |
+| **Xử lý lỗi, handoff, resume** | [Sổ tay tình huống](./docs/sdd-add-scenario-playbook.md) | Recovery khi bị block hoặc chuyển giao session. |
+| **Thiết lập tech stack & command** | [Hồ sơ kiến trúc](./docs/architecture-profile-guide.md) | Cách định nghĩa binding và lệnh verify trong Profile. |
+| **Điều phối nhiều Agent (Worker)** | [Hướng dẫn Execution](./docs/multi-agent-orchestration-guide.md) | Hiểu route `direct` vs `orchestrated` của `/add-execute`. |
 
-## Ownership và execution
+## 🛠️ Nguồn chuẩn (Canonical Sources)
+Khi có mâu thuẫn, hãy tin vào các tệp này thay vì prose trong docs:
+- `.sdd/architecture-profile.md`: Tech binding và exact verification command.
+- `.claude/skills/`: Contract của các slash command.
+- `CONSTITUTION.md` & `AGENTS.md`: Quy tắc vận hành và quyền hạn Agent.
+- `.sdd/shared_context.md`: Cấu hình Ownership và Execution route.
 
-Template tách hai trục độc lập trong `.sdd/shared_context.md`:
-
-- `Project Ownership: solo|team`: `solo` là một Human project owner; `team` là nhiều Human collaborator và là mặc định. Trục này quyết định Human review eligibility và Git delivery policy.
-- `Agent Execution: direct|orchestrated`: `/add-execute` chạy `direct` trong Agent hiện tại hoặc điều phối `orchestrated` worker sau khi runtime capability được quan sát. Solo và team đều dùng được cả hai route.
-
-Direct execution không bỏ Shadow Plan, Action Record, checkpoint, Architecture Profile hay validation. Agent không self-approve hoặc `git push`.
-
-## Ba quy tắc cốt lõi
-
-1. **Fix the Spec, not the Code.** Requirement thiếu hoặc mơ hồ: dùng `/sdd-update`, review lại rồi mới đổi behavior.
-2. **Không suy đoán kỹ thuật.** Plan, Tasks và execution chỉ dùng binding cùng exact verification command đã `APPROVED` trong `.sdd/architecture-profile.md`.
-3. **Human quyết định.** Agent không self-approve, không `git push`, không deploy và không tự thực hiện material state change.
-
-## Chọn tài liệu theo nhu cầu
-
-| Bạn cần | Đọc |
-| :--- | :--- |
-| Đi từng bước làm feature | [Bắt đầu nhanh](docs/sdd-add-quickstart.md) |
-| Hiểu artifact, gate và ownership | [Hướng dẫn vận hành](docs/sdd-add-guide.md) |
-| Chọn command theo tình huống | [Tra cứu nhanh](docs/sdd-add-field-guide.md) |
-| Xử lý greenfield, brownfield, lỗi, handoff | [Sổ tay tình huống](docs/sdd-add-scenario-playbook.md) |
-| Chọn binding và command kỹ thuật | [Hướng dẫn Hồ sơ kiến trúc](docs/architecture-profile-guide.md) |
-| Thực thi task/feature và worker orchestration | [Hướng dẫn execution](docs/multi-agent-orchestration-guide.md) |
-
-## Nguồn chuẩn
-
-- `.claude/skills/`: command contract.
-- `.claude/skills/_shared/ai-review-protocol.md`: review, methodology và Action Record.
-- `.sdd/architecture-profile.md`: tech binding và exact verification command.
-- `CONSTITUTION.md`: hard rule về security, architecture và quality.
-- `AGENTS.md`: phạm vi/quyền của Agent.
-
-## Tiện ích template
-
-- `scripts/self-heal.sh`: chạy một exact approved command để thu thập evidence; không sửa source hay retry.
-- `scripts/template-smoke.sh` / `.ps1`: static check file, links và policy contract.
-- `scripts/adopt.*`: đưa template vào repository có sẵn.
-- `scripts/update.*`: nhận template-owned update; governance files được stage để Human review.
+## ⚠️ Ba nguyên tắc "sống còn"
+1. **Fix the Spec, not the Code**: Thấy requirement thiếu/sai $\rightarrow$ update Spec $\rightarrow$ review $\rightarrow$ mới sửa code.
+2. **Không suy đoán kỹ thuật**: Chỉ dùng binding và command đã được `APPROVED` trong Architecture Profile.
+3. **Human quyết định**: Agent đề xuất và thực thi; chỉ Human mới được ghi `APPROVED` và `git push`.

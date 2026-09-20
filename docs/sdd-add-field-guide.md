@@ -1,39 +1,33 @@
 # Tra cứu nhanh SDD + ADD
 
-Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới bắt đầu, đọc [Bắt đầu nhanh](./sdd-add-quickstart.md). `.claude/skills/` là command contract.
+Dùng bảng này khi bạn biết tình huống nhưng chưa biết bước tiếp theo. Nếu chưa từng làm feature, bắt đầu bằng [Bắt đầu nhanh](./sdd-add-quickstart.md). Command contract chính thức nằm trong `.claude/skills/`.
 
 ## Quy tắc nhớ nhanh
 
-`Project Ownership` và `Agent Execution` là hai trục độc lập: solo là một Human owner, team là nhiều Human collaborator; `/add-execute` chạy direct trong Agent hiện tại hoặc điều phối orchestrated worker theo persisted route. Solo vẫn có thể dùng worker; team vẫn có thể direct execution.
+1. Human duyệt; Agent đề xuất, thực thi và ghi evidence.
+2. Context/Spec có thể technology-neutral; Plan/Tasks/execution không được đoán binding hoặc command.
+3. Requirement thiếu hoặc sai: update Spec trước, không vá code.
+4. Mỗi task có Shadow Plan và Action Record.
+5. Agent không self-approve, không `git push`, không deploy.
 
-1. Agent đề xuất; Human ghi decision persisted bằng `/sdd-review`.
-2. Context/Spec có thể business-neutral; Plan/Tasks/execute không đoán binding hay command.
-3. Spec thiếu rule: `/sdd-update`, không vá behavior.
-4. Mỗi task cần Shadow Plan và Action Record.
-5. Agent không `git push`.
+## Tình huống → việc cần làm
 
-## Tình huống → hành động
-
-| Tình huống | Action ngay | Chỉ tiếp tục khi |
+| Tình huống | Làm ngay | Chỉ đi tiếp khi |
 | :--- | :--- | :--- |
-| Greenfield chưa chọn stack | `/sdd-init` → Context/Spec business-neutral | Profile có binding/command trước Plan |
-| Brownfield | `scripts/adopt.*` → `/sdd-adopt` | Evidence profile không mâu thuẫn |
-| Feature mới | `/sdd-context` → review → `/sdd-spec` → lock → Plan → Tasks | Gate artifact hợp lệ |
-| Describe-back mâu thuẫn | Sửa Context/glossary/constraint, disposition lại question | Human review Context `APPROVED` |
-| Requirement/contract đổi | `/sdd-update --artifact=<...> --reason="..."` | Downstream review đã refresh |
-| Task > khoảng bốn giờ | Tách task; hoặc ghi `approved-exception` | Exception có evidence/risk/command/checkpoint |
-| Test fail | Phân loại defect, Spec gap, profile gap, prohibited mutation | Exact command và approved scope còn hợp lệ |
-| Validation fail | Giữ evidence; sửa trong scope hoặc quay lại Spec/Profile | Tất cả route applicable pass |
-| Post-code review pending | Tạo post-code report rồi `/sdd-review` | Report `APPROVED` nếu trigger áp dụng |
-| Shared contract đổi | Owner/Lead cập nhật shared context → trace → sync | Contract owner/version khớp |
-| Chạy một task eligible | `/add-execute --feature=<slug> --task=<T001>` | `TASKS.md` approved; task/dependency/boundary/profile/command/checkpoint/contract evidence hợp lệ |
-| Chạy snapshot feature eligible | `/add-execute --feature=<slug> --all` | Preflight toàn snapshot; chạy theo declaration order và dừng ở blocker/Human gate/drift/failure/cancellation |
-| Orchestrated execution | Gọi cùng `/add-execute` command; không thêm route flag | Persisted route là `orchestrated`, runtime Claude Code `Agent` observed, boundary/packet/evidence đủ; runtime unavailable là `BLOCKED`, không fallback direct |
-| Retry implementation defect | `/add-execute --feature=<slug> --task=<T001> --retry` | Named task là `RETRY_PENDING`; immutable inputs không đổi |
-| Resume task bị gián đoạn/đã resolve | `/sdd-resume --feature=<slug>` rồi `/add-execute --feature=<slug> --task=<T001> --resume` | Record, review/profile/command/contract/checkpoint và runtime evidence revalidated |
-| Session dừng | `/sdd-handoff --feature=<slug>` | Next decision/command được ghi |
-| Session tiếp tục | `/sdd-resume --feature=<slug>` | Review/profile/command/contract/checkpoint đủ |
-| Git delivery | `/git-validate --scope=commit` | `GIT VALIDATION: READY` |
+| Repository chưa có governance | `/sdd-init --project-name="<name>"` | Bootstrap review đã `APPROVED`. |
+| Repository có code nhưng chưa adopt | `scripts/adopt.*` rồi `/sdd-adopt` | Profile có evidence rõ, mâu thuẫn đã được Human xử lý. |
+| Feature mới | `/sdd-context` → review → `/sdd-spec` → review/lock → `/sdd-plan` → `/sdd-tasks` | Artifact gate đúng thứ tự đã đạt. |
+| Describe-back mâu thuẫn | Sửa Context, disposition question, review lại | Context `APPROVED`. |
+| Requirement/contract đổi | `/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --reason="..."` | Downstream artifact được refresh/review. |
+| Task lớn hơn khoảng bốn giờ | Tách task hoặc ghi `approved-exception` | Exception có lý do, risk và Human evidence. |
+| Chạy một task | `/add-execute --feature=<slug> --task=<T001>` | Task eligible, dependency, boundary, profile, command, checkpoint và contract đều hợp lệ. |
+| Chạy snapshot feature | `/add-execute --feature=<slug> --all` | Toàn snapshot được preflight; dừng tại blocker/failure/drift. |
+| Retry implementation defect | `/add-execute --feature=<slug> --task=<T001> --retry` | Task là `RETRY_PENDING`, immutable inputs không đổi. |
+| Resume sau gián đoạn | `/sdd-handoff` → `/sdd-resume` → `/add-execute ... --resume` | Execution Record, review, profile, command, contract, checkpoint và runtime được revalidate. |
+| Session kết thúc giữa chừng | `/sdd-handoff --feature=<slug>` | Next decision và command đã được ghi. |
+| Shared contract thay đổi | Owner/Lead cập nhật shared context → `/sdd-trace` → `/sdd-sync` | Owner/version và evidence khớp. |
+| Validation hoặc test fail | Giữ exact command/result và phân loại nguyên nhân | Đã sửa đúng boundary hoặc đã update/review artifact cần thiết. |
+| Chuẩn bị Git delivery | `/git-validate --scope=commit --feature=<slug>` | Kết quả là `GIT VALIDATION: READY`. |
 
 ## Chuỗi command tối thiểu
 
@@ -48,8 +42,6 @@ Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới b�
 /sdd-tasks --feature=<slug>
 /sdd-review ... --artifact=tasks --status=APPROVED
 /add-execute --feature=<slug> --task=<T001>
-# Or run the current eligible feature snapshot:
-/add-execute --feature=<slug> --all
 <exact approved command>
 /sdd-audit --feature=<slug>
 /sdd-trace --feature=<slug> --diff
@@ -57,19 +49,21 @@ Dùng khi đang làm việc và cần chọn bước tiếp theo. Nếu mới b�
 /git-validate --scope=commit --feature=<slug>
 ```
 
+Chỉ chạy route khi trigger áp dụng. Route không áp dụng phải ghi `N/A` trong Action Record, không ghi giả `PASS`.
+
 ## Blocker → không làm / làm đúng
 
 | Blocker | Không làm | Làm đúng |
 | :--- | :--- | :--- |
-| Missing binding/command | Guess package/command | Add evidence, review profile, refresh downstream work |
-| Spec gap | Patch code | Update/review/lock Spec rồi resume |
-| Contract drift | Continue execution | Stop; owner/Lead resolve, trace/sync |
-| Material mutation thiếu checkpoint | Execute | Persist Human checkpoint trước |
-| Thiếu Action Record | Mark `[x]` | Record command/result/validation/sync |
-| Thiếu post-code review | Commit/PR | Tạo report, Human review |
-| Grant consumed/mismatch hoặc runtime unavailable | Reuse grant, supply token hoặc fallback direct | Giữ Execution Record evidence; resolve đúng blocker rồi revalidate public route |
-| Loop/context/environment issue | Lặp command hoặc mở rộng scope | Handoff evidence, classify blocker, Human decision |
+| Thiếu binding/command | Đoán package hoặc command | Bổ sung evidence, review Profile, refresh downstream artifact. |
+| Spec gap | Patch code để né gap | Update/review/lock Spec rồi resume. |
+| Contract drift | Tiếp tục execution | Dừng; owner/Lead resolve, trace/sync, revalidate. |
+| Thiếu checkpoint | Thực hiện material state change | Persist Human checkpoint `APPROVED`. |
+| Thiếu Action Record | Đánh dấu task complete | Ghi changed path, command/result, validation và sync-back. |
+| Thiếu post-code review | Commit/PR | Tạo report và chờ Human review khi trigger áp dụng. |
+| Grant consumed/mismatch | Reuse grant hoặc tự cấp token | Giữ evidence, resolve blocker, gọi lại public route sau revalidation. |
+| Orchestrated runtime unavailable | Fallback direct | Giữ `BLOCKED`, resolve runtime evidence. |
 
 ## Self-heal
 
-`self-heal.sh` chỉ chạy một exact approved command với `--max-attempts=1` và ghi evidence. Không edit, repair, retry, self-approve, commit, push hoặc deploy.
+`scripts/self-heal.sh` chỉ chạy một exact approved command với `--max-attempts=1` để thu thập evidence cho `implementation-defect`. Script không edit, repair, retry, self-approve, commit, push hoặc deploy.

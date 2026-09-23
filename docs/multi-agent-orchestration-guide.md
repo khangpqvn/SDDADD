@@ -98,6 +98,67 @@ Sau execution:
 4. Chạy `/git-validate` trước commit.
 5. Human xử lý commit/push theo `Project Ownership`; Agent không `git push`.
 
+## 8. Hai cách tổ chức nhiều Agent
+
+| Kiểu | Cấu trúc | Phù hợp khi | Rủi ro chính |
+| :--- | :--- | :--- | :--- |
+| Vertical | Một coordinator giao việc cho worker, worker không nói chuyện với nhau | Task có dependency, cần integration một chỗ | Coordinator thành điểm nghẽn |
+| Horizontal | Nhiều Agent ngang cấp làm phần độc lập | File boundary tách bạch, không shared contract mutation | Xung đột ghi và drift nếu boundary không rõ |
+
+Route `orchestrated` trong template này là vertical: `/add-execute` giữ vai trò coordinator, tạo worker packet immutable và validate integration. Không có kênh worker-to-worker.
+
+Điều kiện để chạy song song: task không overlap file, không dependency, không mutation shared contract. Việc dùng chung, retry, integration và dependency handoff luôn tuần tự.
+
+## 9. Đồng bộ shared context
+
+`.sdd/shared_context.md` là nơi duy nhất ghi state dùng chung. Quy tắc:
+
+- Mỗi Agent chỉ ghi vào phần thuộc boundary của nó; không ghi chèn vào phần của Agent khác.
+- Shared contract có owner và version. Worker nhận contract ở dạng frozen; muốn đổi thì dừng và để owner xử lý.
+- Phát hiện lệch bằng `/sdd-trace`, hợp nhất lại bằng `/sdd-sync` sau khi owner đã quyết.
+- Xung đột giữa hai Agent không được tự hòa giải bằng cách chọn một bên. Giữ evidence, đánh `BLOCKED`, đưa Human hoặc owner quyết định.
+
+Markdown record không phải atomic lock giữa các session. Khi chưa quan sát được host-controlled claim, ghi `UNVERIFIED` thay vì coi là đã khóa.
+
+## 10. Skill: định dạng và vòng đời
+
+Mỗi slash command trong `.claude/skills/<name>/SKILL.md` là một contract đọc được bởi cả người và Agent. Một `SKILL.md` dùng được cần nêu rõ:
+
+- khi nào skill được kích hoạt và khi nào không;
+- input bắt buộc, input tùy chọn và input bị cấm;
+- precondition phải đạt trước khi hành động;
+- output và evidence để lại ở đâu;
+- điều kiện dừng và trạng thái blocker.
+
+Vòng đời một skill: đề xuất → viết contract → Human review → dùng → sửa khi contract đổi → retire khi không còn chủ. Skill bị retire phải được ghi trong changelog của `AGENTS.md` và loại khỏi `.claude/skills/`, để không ai còn gọi một command đã mất contract.
+
+Trước khi tạo skill mới, kiểm tra skill hiện hữu đã phủ chưa. Thêm skill trùng chức năng làm tăng bề mặt cần bảo trì mà không thêm năng lực.
+
+## 11. Hook và ranh giới tự sửa
+
+Hook là điểm móc tự động quanh vòng thực thi: trước khi hành động, sau khi hành động, hoặc khi validation fail. Dùng hook cho kiểm tra dự đoán được và rủi ro thấp: format, lint, kiểm tra file bị cấm sửa, chạy test đã được duyệt.
+
+Ranh giới của tự sửa trong template này rất hẹp:
+
+- `scripts/self-heal.sh` chỉ chạy **một** exact approved command với `--max-attempts=1` để thu evidence cho `implementation-defect`.
+- Script không sửa source, không repair, không retry, không self-approve, không commit, không push, không deploy.
+- Vượt ngưỡng attempt của contract thì task phải `ESCALATED` và chờ Human disposition, không tự thử cách khác.
+- Không hook nào được sửa governance file, tự ghi `APPROVED`, hay bỏ qua checkpoint.
+
+Tự sửa vượt khỏi phạm vi dự đoán được là cách nhanh nhất tạo ra thay đổi không ai review.
+
+## 12. Quyền tool cho từng Agent
+
+`.sdd/mcp-config.yaml` khai báo policy truy cập tool và resource. Nguyên tắc vận hành:
+
+- **Least privilege:** worker nhận đúng quyền cần cho boundary của nó, không nhận quyền của cả dự án.
+- **Có thời hạn và ngân sách:** quyền nên hết hạn theo attempt và có giới hạn sử dụng, thay vì mở vô thời hạn.
+- **Không cho mượn quyền:** một Agent không được nhờ Agent khác làm hộ việc mà quyền của nó không cho phép. Đây là cách vô hiệu hóa quyết định phân quyền của Human.
+- **Evidence khi dùng tool rủi ro:** mỗi lần dùng phải để lại dấu trong Action Record để audit được.
+- **Policy không phải enforcement:** `.sdd/mcp-config.yaml` là khai báo; nó không chứng minh host đang áp đặt giới hạn. Chưa có runtime evidence thì giữ `UNVERIFIED`.
+
+Nguyên tắc chọn công cụ và ba mức riêng tư nằm trong [Hồ sơ kiến trúc](./architecture-profile-guide.md).
+
 ## Contract owner
 
 Chi tiết preflight, transition, grant lifecycle và packet phải khớp `.claude/skills/add-execute/SKILL.md`. Tài liệu này chỉ giúp chọn route và nhận biết blocker; không thay thế skill contract.

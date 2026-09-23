@@ -1,104 +1,104 @@
-# Bắt đầu nhanh SDD + ADD
+# Báº¯t Ä‘áº§u nhanh SDD + ADD
 
-Tài liệu này hướng dẫn bạn hoàn thành **một feature** từ ý tưởng đến Git delivery. Hãy đi tuần tự từng bước; tuyệt đối không nhảy từ ý tưởng sang viết code.
+TÃ i liá»‡u nÃ y hÆ°á»›ng dáº«n báº¡n hoÃ n thÃ nh **má»™t feature** tá»« Ã½ tÆ°á»Ÿng Ä‘áº¿n Git delivery. HÃ£y Ä‘i tuáº§n tá»± tá»«ng bÆ°á»›c; tuyá»‡t Ä‘á»‘i khÃ´ng nháº£y tá»« Ã½ tÆ°á»Ÿng sang viáº¿t code.
 
-**Lộ trình:** `CONTEXT` $\rightarrow$ `SPEC` $\rightarrow$ `PLAN` $\rightarrow$ `TASKS` $\rightarrow$ `execute` $\rightarrow$ `validation` $\rightarrow$ `delivery`
-
----
-
-## Bước 0: Chuẩn bị và Định danh
-Trước khi bắt đầu, bạn cần:
-1. **Feature Slug**: Một tên viết bằng kebab-case (ví dụ: `feat-user-register`). Dùng slug này xuyên suốt mọi command.
-2. **Outcome mong muốn**: Mô tả ngắn gọn kết quả cuối cùng (ví dụ: "Người dùng đăng nhập được bằng email").
-3. **Kiểm tra Governance**: Đảm bảo `.sdd/shared_context.md` đã xác định `Project Ownership` (solo/team) và `Agent Execution` (direct/orchestrated).
+**Lá»™ trÃ¬nh:** `CONTEXT` → `SPEC` → `PLAN` → `TASKS` → `execute` → `validation` → `delivery`
 
 ---
 
-## Bước 1: Thống nhất bài toán (`CONTEXT`)
-**Mục tiêu:** Xác định "Chúng ta đang làm gì, cho ai, và ranh giới ở đâu?" để không làm sai hướng.
-
-- **Việc cần làm:**Chạy `/sdd-context --feature=feat-user-register`
-- **Kết quả kiểm chứng:** Tệp `.sdd/features/feat-user-register/CONTEXT.md` được tạo.
-- **Điểm mấu chốt:**
-    - `Intent Packet` phải rõ ràng.
-    - Mọi câu hỏi mơ hồ phải được disposition (`resolved`, `approved assumption`, hoặc `blocking decision`).
-- **Gate:** Human đọc và ghi `/sdd-review ... --artifact=context --status=APPROVED`.
-- **Tiếp theo:** Sang Bước 2.
+## BÆ°á»›c 0: Chuáº©n bá»‹ vÃ  Äá»‹nh danh
+TrÆ°á»›c khi báº¯t Ä‘áº§u, báº¡n cáº§n:
+1. **Feature Slug**: Má»™t tÃªn viáº¿t báº±ng kebab-case (vÃ­ dá»¥: `feat-user-register`). DÃ¹ng slug nÃ y xuyÃªn suá»‘t má»i command.
+2. **Outcome mong muá»‘n**: MÃ´ táº£ ngáº¯n gá»n káº¿t quáº£ cuá»‘i cÃ¹ng (vÃ­ dá»¥: "NgÆ°á»i dÃ¹ng Ä‘Äƒng nháº­p Ä‘Æ°á»£c báº±ng email").
+3. **Kiá»ƒm tra Governance**: Äáº£m báº£o `.sdd/shared_context.md` Ä‘Ã£ xÃ¡c Ä‘á»‹nh `Project Ownership` (solo/team) vÃ  `Agent Execution` (direct/orchestrated).
 
 ---
 
-## Bước 2: Định nghĩa behavior (`SPEC`)
-**Mục tiêu:** Chuyển ý tưởng thành yêu cầu kỹ thuật có thể kiểm tra (không gắn với framework cụ thể).
+## BÆ°á»›c 1: Thá»‘ng nháº¥t bÃ i toÃ¡n (`CONTEXT`)
+**Má»¥c tiÃªu:** XÃ¡c Ä‘á»‹nh "ChÃºng ta Ä‘ang lÃ m gÃ¬, cho ai, vÃ  ranh giá»›i á»Ÿ Ä‘Ã¢u?" Ä‘á»ƒ khÃ´ng lÃ m sai hÆ°á»›ng.
 
-- **Việc cần làm:**Chạy `/sdd-spec --feature=feat-user-register`
-- **Kết quả kiểm chứng:** Tệp `.sdd/features/feat-user-register/SPEC.md` được tạo.
-- **Điểm mấu chốt:**
-    - Dùng EARS để viết `REQ-XXX`.
-    - Phải có Acceptance Criteria cho mỗi requirement.
-    - **Clarification-First**: Agent phải liệt kê gap/edge case $\rightarrow$ Human trả lời $\rightarrow$ mới viết REQ.
-- **Gate:** Human ghi `/sdd-review ... --artifact=spec --status=APPROVED`. Spec lúc này được **LOCKED**.
-- **Tiếp theo:** Kiểm tra Architecture Profile rồi sang Bước 3.
+- **Viá»‡c cáº§n lÃ m:**Cháº¡y `/sdd-context --feature=feat-user-register`
+- **Káº¿t quáº£ kiá»ƒm chá»©ng:** Tá»‡p `.sdd/features/feat-user-register/CONTEXT.md` Ä‘Æ°á»£c táº¡o.
+- **Äiá»ƒm máº¥u chá»‘t:**
+    - `Intent Packet` pháº£i rÃµ rÃ ng.
+    - Má»i cÃ¢u há»i mÆ¡ há»“ pháº£i Ä‘Æ°á»£c disposition (`resolved`, `approved assumption`, hoáº·c `blocking decision`).
+- **Gate:** Human Ä‘á»c vÃ  ghi `/sdd-review ... --artifact=context --status=APPROVED`.
+- **Tiáº¿p theo:** Sang BÆ°á»›c 2.
 
 ---
 
-## Bước 3: Thiết kế kỹ thuật (`PLAN`)
-**Mục tiêu:** Xác định "Sẽ sửa file nào, dùng lệnh gì để verify, rủi ro ở đâu?".
+## BÆ°á»›c 2: Äá»‹nh nghÄ©a behavior (`SPEC`)
+**Má»¥c tiÃªu:** Chuyá»ƒn Ã½ tÆ°á»Ÿng thÃ nh yÃªu cáº§u ká»¹ thuáº­t cÃ³ thá»ƒ kiá»ƒm tra (khÃ´ng gáº¯n vá»›i framework cá»¥ thá»ƒ).
 
-- **⚠️ Điều kiện tiên quyết:** Mở `.sdd/architecture-profile.md`. Nếu feature cần DB/API/Library mà Profile chưa có binding `APPROVED`, bạn phải cập nhật Profile và xin duyệt trước.
-- **Việc cần làm:**Chạy `/sdd-plan --feature=feat-user-register`
-- **Kết quả kiểm chứng:** Tệp `.sdd/features/feat-user-register/PLAN.md` được tạo.
-- **Điểm mấu chốt:**
-    - Map mỗi `REQ-XXX` vào component/file cụ thể.
-    - Sử dụng **Exact approved command** từ Profile (không dùng lệnh đoán).
+- **Viá»‡c cáº§n lÃ m:**Cháº¡y `/sdd-spec --feature=feat-user-register`
+- **Káº¿t quáº£ kiá»ƒm chá»©ng:** Tá»‡p `.sdd/features/feat-user-register/SPEC.md` Ä‘Æ°á»£c táº¡o.
+- **Äiá»ƒm máº¥u chá»‘t:**
+    - DÃ¹ng EARS Ä‘á»ƒ viáº¿t `REQ-XXX`.
+    - Pháº£i cÃ³ Acceptance Criteria cho má»—i requirement.
+    - **Clarification-First**: Agent pháº£i liá»‡t kÃª gap/edge case → Human tráº£ lá»i → má»›i viáº¿t REQ.
+- **Gate:** Human ghi `/sdd-review ... --artifact=spec --status=APPROVED`. Spec lÃºc nÃ y Ä‘Æ°á»£c **LOCKED**.
+- **Tiáº¿p theo:** Kiá»ƒm tra Architecture Profile rá»“i sang BÆ°á»›c 3.
+
+---
+
+## BÆ°á»›c 3: Thiáº¿t káº¿ ká»¹ thuáº­t (`PLAN`)
+**Má»¥c tiÃªu:** XÃ¡c Ä‘á»‹nh "Sáº½ sá»­a file nÃ o, dÃ¹ng lá»‡nh gÃ¬ Ä‘á»ƒ verify, rá»§i ro á»Ÿ Ä‘Ã¢u?".
+
+- **âš ï¸ Äiá»u kiá»‡n tiÃªn quyáº¿t:** Má»Ÿ `.sdd/architecture-profile.md`. Náº¿u feature cáº§n DB/API/Library mÃ  Profile chÆ°a cÃ³ binding `APPROVED`, báº¡n pháº£i cáº­p nháº­t Profile vÃ  xin duyá»‡t trÆ°á»›c.
+- **Viá»‡c cáº§n lÃ m:**Cháº¡y `/sdd-plan --feature=feat-user-register`
+- **Káº¿t quáº£ kiá»ƒm chá»©ng:** Tá»‡p `.sdd/features/feat-user-register/PLAN.md` Ä‘Æ°á»£c táº¡o.
+- **Äiá»ƒm máº¥u chá»‘t:**
+    - Map má»—i `REQ-XXX` vÃ o component/file cá»¥ thá»ƒ.
+    - Sá»­ dá»¥ng **Exact approved command** tá»« Profile (khÃ´ng dÃ¹ng lá»‡nh Ä‘oÃ¡n).
 - **Gate:** Human ghi `/sdd-review ... --artifact=plan --status=APPROVED`.
-- **Tiếp theo:** Sang Bước 4.
+- **Tiáº¿p theo:** Sang BÆ°á»›c 4.
 
 ---
 
-## Bước 4: Chia nhỏ công việc (`TASKS`)
-**Mục tiêu:** Biến bản thiết kế thành danh sách việc cần làm (Atomic tasks).
+## BÆ°á»›c 4: Chia nhá» cÃ´ng viá»‡c (`TASKS`)
+**Má»¥c tiÃªu:** Biáº¿n báº£n thiáº¿t káº¿ thÃ nh danh sÃ¡ch viá»‡c cáº§n lÃ m (Atomic tasks).
 
-- **Việc cần làm:**Chạy `/sdd-tasks --feature=feat-user-register`
-- **Kết quả kiểm chứng:** Tệp `.sdd/features/feat-user-register/TASKS.md` được tạo.
-- **Điểm mấu chốt:**
-    - Mỗi task có: Boundary (file được sửa), Dependency, và Exact command để verify.
-    - Task lớn (> 4h) phải được tách nhỏ hoặc có `approved-exception`.
+- **Viá»‡c cáº§n lÃ m:**Cháº¡y `/sdd-tasks --feature=feat-user-register`
+- **Káº¿t quáº£ kiá»ƒm chá»©ng:** Tá»‡p `.sdd/features/feat-user-register/TASKS.md` Ä‘Æ°á»£c táº¡o.
+- **Äiá»ƒm máº¥u chá»‘t:**
+    - Má»—i task cÃ³: Boundary (file Ä‘Æ°á»£c sá»­a), Dependency, vÃ  Exact command Ä‘á»ƒ verify.
+    - Task lá»›n (> 4h) pháº£i Ä‘Æ°á»£c tÃ¡ch nhá» hoáº·c cÃ³ `approved-exception`.
 - **Gate:** Human ghi `/sdd-review ... --artifact=tasks --status=APPROVED`.
-- **Tiếp theo:** Sang Bước 5 (Thực thi).
+- **Tiáº¿p theo:** Sang BÆ°á»›c 5 (Thá»±c thi).
 
 ---
 
-## Bước 5: Thực thi và Xác minh (`EXECUTE`)
-**Mục tiêu:** Viết code và chứng minh code chạy đúng.
+## BÆ°á»›c 5: Thá»±c thi vÃ  XÃ¡c minh (`EXECUTE`)
+**Má»¥c tiÃªu:** Viáº¿t code vÃ  chá»©ng minh code cháº¡y Ä‘Ãºng.
 
-- **Việc cần làm:**
-    - Chạy một task: `/add-execute --feature=feat-user-register --task=T001`
-    - Chạy toàn bộ feature: `/add-execute --feature=feat-user-register --all`
-- **Luồng hoạt động:**
-    1. Agent tạo **Shadow Plan** $\rightarrow$ Consumer Grant $\rightarrow$ Thực thi $\rightarrow$ Ghi **Action Record**.
-    2. Chạy exact approved command để verify.
-- **Điểm mấu chốt:**
-    - Không tự ý sửa file ngoài boundary.
-    - Không tự ý đổi command verify.
-    - Mọi material state change (đổi DB schema, v.v.) cần **Human Checkpoint** trước khi làm.
-- **Tiếp theo:** Sang Bước 6.
-
----
-
-## Bước 6: Kiểm tra cuối và Delivery (`GIT`)
-**Mục tiêu:** Đảm bảo không có regression và chuyển giao vào Git.
-
-- **Việc cần làm:**
-    1. Chạy `/sdd-audit` và `/sdd-trace` để kiểm tra độ phủ requirement.
-    2. Tạo **Post-code review report** (nếu có thay đổi source/contract).
-    3. Chạy `/git-validate --scope=commit --feature=feat-user-register`.
-- **Kết quả cuối cùng:** Khi nhận được `GIT VALIDATION: READY`, Human yêu cầu Agent commit.
-- **Delivery:** Human tự thực hiện `git push`.
+- **Viá»‡c cáº§n lÃ m:**
+    - Cháº¡y má»™t task: `/add-execute --feature=feat-user-register --task=T001`
+    - Cháº¡y toÃ n bá»™ feature: `/add-execute --feature=feat-user-register --all`
+- **Luá»“ng hoáº¡t Ä‘á»™ng:**
+    1. Agent táº¡o **Shadow Plan** → Consumer Grant → Thá»±c thi → Ghi **Action Record**.
+    2. Cháº¡y exact approved command Ä‘á»ƒ verify.
+- **Äiá»ƒm máº¥u chá»‘t:**
+    - KhÃ´ng tá»± Ã½ sá»­a file ngoÃ i boundary.
+    - KhÃ´ng tá»± Ã½ Ä‘á»•i command verify.
+    - Má»i material state change (Ä‘á»•i DB schema, v.v.) cáº§n **Human Checkpoint** trÆ°á»›c khi lÃ m.
+- **Tiáº¿p theo:** Sang BÆ°á»›c 6.
 
 ---
 
-## 🛑 Khi nào phải DỪNG?
-- Thiếu review `APPROVED` cho bất kỳ artifact nào.
-- Spec bị mâu thuẫn hoặc thiếu rule $\rightarrow$ Quay lại Bước 2.
-- Architecture Profile thiếu binding/command $\rightarrow$ Cập nhật Profile.
-- Test fail $\rightarrow$ Phân tích defect, không vá code tùy tiện.
+## BÆ°á»›c 6: Kiá»ƒm tra cuá»‘i vÃ  Delivery (`GIT`)
+**Má»¥c tiÃªu:** Äáº£m báº£o khÃ´ng cÃ³ regression vÃ  chuyá»ƒn giao vÃ o Git.
+
+- **Viá»‡c cáº§n lÃ m:**
+    1. Cháº¡y `/sdd-audit` vÃ  `/sdd-trace` Ä‘á»ƒ kiá»ƒm tra Ä‘á»™ phá»§ requirement.
+    2. Táº¡o **Post-code review report** (náº¿u cÃ³ thay Ä‘á»•i source/contract).
+    3. Cháº¡y `/git-validate --scope=commit --feature=feat-user-register`.
+- **Káº¿t quáº£ cuá»‘i cÃ¹ng:** Khi nháº­n Ä‘Æ°á»£c `GIT VALIDATION: READY`, Human yÃªu cáº§u Agent commit.
+- **Delivery:** Human tá»± thá»±c hiá»‡n `git push`.
+
+---
+
+## ðŸ›‘ Khi nÃ o pháº£i Dá»ªNG?
+- Thiáº¿u review `APPROVED` cho báº¥t ká»³ artifact nÃ o.
+- Spec bá»‹ mÃ¢u thuáº«n hoáº·c thiáº¿u rule → Quay láº¡i BÆ°á»›c 2.
+- Architecture Profile thiáº¿u binding/command → Cáº­p nháº­t Profile.
+- Test fail → PhÃ¢n tÃ­ch defect, khÃ´ng vÃ¡ code tÃ¹y tiá»‡n.

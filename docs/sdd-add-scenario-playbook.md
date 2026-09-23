@@ -106,7 +106,71 @@ Ví dụ:
 
 `Agent Execution: direct|orchestrated` không thay đổi delivery policy.
 
-## 9. Self-heal chỉ để thu thập evidence
+## 9. Khi không nên dùng full SDD
+
+SDD trả giá trước để giảm rủi ro sau. Khi chưa biết mình muốn gì, cái giá đó không mua được gì.
+
+| Tình huống | Vì sao full SDD không phù hợp | Làm gì thay thế |
+| :--- | :--- | :--- |
+| R&D, thăm dò kỹ thuật | Requirement chưa tồn tại; Spec sẽ bị viết lại nhiều lần | Ghi hypothesis và cách đo, chạy thử, rồi mới viết Spec |
+| Prototype, hackathon | Mục tiêu là học nhanh, không phải bảo trì lâu dài | Giữ ghi chú ngắn; nêu rõ đây là throwaway |
+| Landing page, nội dung tĩnh | Rủi ro thấp, hành vi ít | `SKETCH`: mục tiêu và acceptance criteria |
+| Script dùng một lần | Không có downstream consumer | Ghi mục đích và exact command; không tạo feature artifact |
+
+Ranh giới: khi hypothesis được xác nhận và code sẽ được giữ lại, phải chuyển sang Spec đầy đủ trước khi mở rộng. Prototype đi vào production mà không qua Spec là nợ kỹ thuật ngay từ ngày đầu.
+
+Khi cần ghi lại một thăm dò, một file `EXPERIMENT.md` ngắn là đủ: hypothesis cần kiểm chứng, cách đo kết quả, phạm vi code bị ảnh hưởng, và điều kiện dừng. **`EXPERIMENT.md` không phải Spec, không được review như Spec, và không đủ để delivery.** Nếu kết quả được giữ lại, viết `CONTEXT.md` và `SPEC.md` thật rồi đi qua gate bình thường.
+
+## 10. Khi Spec có vấn đề
+
+Spec sai thì Agent thực thi sai một cách rất thuyết phục. Rác vào, rác ra — và rác đi ra nhanh hơn.
+
+Dấu hiệu Spec chưa dùng được:
+
+- Requirement không nêu cách kiểm tra, nên không ai biết khi nào đạt.
+- Mô tả HOW thay vì WHAT: đã chọn sẵn class, file, thư viện trước khi hiểu vấn đề.
+- Không có Out of Scope, nên scope phình trong lúc thực thi.
+- Nhánh lỗi trống, nên hành vi lỗi do Agent tự quyết.
+- Requirement mâu thuẫn với `CONSTITUTION.md` hoặc `.sdd/constraints/`.
+
+Bốn cách review Spec trước khi lock:
+
+| Cách | Câu hỏi đặt ra |
+| :--- | :--- |
+| Domain walkthrough | Kể lại luồng bằng ngôn ngữ nghiệp vụ; người hiểu nghiệp vụ có thấy đúng không? |
+| Defensive review | Với mỗi requirement, sai ở đâu thì không ai phát hiện? |
+| Pre-mortem | Giả sử feature này đã thất bại; nguyên nhân khả dĩ nhất là gì? |
+| Adversarial review | Requirement này có thể hiểu theo nghĩa khác mà vẫn "đúng" không? |
+
+Kết quả review đi vào Spec như requirement hoặc approved assumption, không để trong chat.
+
+## 11. Spec-code drift
+
+Drift là khi code và Spec nói hai điều khác nhau. Phát hiện bằng `/sdd-trace --feature=<slug> --diff`.
+
+| Trường hợp | Xử lý |
+| :--- | :--- |
+| Code sai so với Spec đã duyệt | Sửa code trong task boundary; chạy lại exact approved command. |
+| Spec sai so với thực tế Human đã chấp nhận | `/sdd-update` để sync-back, review lại, lock lại, rồi mới tiếp tục. |
+| Lệch có chủ ý nhưng chưa được ghi | Dừng; ghi lý do và trade-off vào artifact, xin Human review; không để lệch ngầm. |
+| `@ears` annotation trỏ tới requirement đã đổi nghĩa | Cập nhật annotation cùng lúc với Spec; annotation lệch nặng hơn thiếu annotation. |
+
+Drift không được ghi lại sẽ tích thành spec debt: test xanh nhưng không chứng minh điều gì, và không ai còn tin `SPEC.md`.
+
+## 12. Sửa hay viết lại
+
+Khi một phần code đã lệch xa Spec, chọn giữa sửa và viết lại bằng tiêu chí, không bằng cảm giác:
+
+| Chọn sửa khi | Chọn viết lại khi |
+| :--- | :--- |
+| Nguyên nhân đã được chứng minh và khu trú | Nguyên nhân rải khắp nhiều layer |
+| Boundary hiện tại vẫn khớp Spec | Boundary hiện tại sai so với Plan đã duyệt |
+| Có test chứng minh không hồi quy | Không có test đáng tin để bảo vệ hành vi |
+| Sửa nằm trong approved task boundary | Viết lại cần Plan mới và Human review mới |
+
+Viết lại là thay đổi scope: cần `/sdd-update` cho `PLAN.md`, review lại, rồi mới thực thi. Không viết lại âm thầm trong một task được duyệt để sửa.
+
+## 13. Self-heal chỉ để thu thập evidence
 
 ```bash
 ./scripts/self-heal.sh --feature=<slug> --task=<task-id> \

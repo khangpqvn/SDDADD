@@ -107,6 +107,17 @@ Worker phải đối chiếu packet với Execution Record trước consumption.
 
 Trước execution, lưu canonical recommendation với Intent/DoD, profile evidence, approach, file boundary, exact command, state-change category, checkpoint, risk và sync-back. Sau execution, refresh recommendation cùng Action Record, Execution Record và delivery/post-code review evidence. Agent không self-approve, complete ngoài evidence, commit hoặc push.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Preflight và thực thi task đã approved; đây là public execution entry point duy nhất.
+- **Không dùng:** Không truyền grant/consumer, ownership hoặc execution override; không dùng skill khác để thay execution.
+- **Input:** Bắt buộc `--feature` và đúng một `--task` hoặc `--all`; tùy chọn `--retry`, `--resume`, `--strict-checkpoint`; reject flags ở Parameters.
+- **Điều kiện trước:** Canonical governance, reviews, Feature Lock, TASKS review `APPROVED`, binding, exact command, checkpoint và contract owner phải resolve.
+- **Evidence:** `TASKS.md` `Execution Record`, task grant/consumer, Shadow Plan, Action Record, command result và post-code/sync evidence.
+- **Dừng khi:** Thiếu hoặc drift evidence, grant mismatch/consumed, worker unavailable, scope expansion, validation fail hoặc required checkpoint chưa `APPROVED`.
+- **Human quyết định:** Human reviewer duyệt checkpoint/material scope; Agent không cấp lại grant, self-approve, commit hoặc push.
+- **Lệnh tiếp theo:** Chỉ dùng `/add-execute --feature=<feature-slug> --task=<T00X>` hoặc Follow-up đã persist sau khi preflight pass; retry/resume phải đúng điều kiện riêng.
+- **Ví dụ:** `/add-execute --feature=feat-orders --task=T003 --strict-checkpoint` cho một task có state change.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Tóm tắt selected task/snapshot, resolved execution mode/runtime evidence, Execution Record, grant/consumer consumption, Shadow Plan, changed boundary, Action Record, exact command/result, validation, post-code review và residual blocker. `continue` chỉ dùng `/add-execute --feature=<feature-slug> --all` cho feature snapshot mới khi prior selection completed và all preconditions được revalidated; retry/resume chỉ dùng command public với named task sau conditions tương ứng. Required checkpoint/review hoặc post-code evidence thiếu là `Human decision required`; Spec/profile/contract/command gap, worker unavailable cho orchestrated route, validation fail hoặc consumed/mismatched grant là `BLOCKED`. Không expose/reuse authority token, không tự retry, complete, commit hoặc push.

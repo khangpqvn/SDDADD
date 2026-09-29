@@ -6,14 +6,14 @@ user-invocable: true
 
 # SDD Initializer (`/sdd-init`)
 
-Dùng cho greenfield hoặc bootstrap SDD+ADD trong repository hiện có.
+Dùng cho greenfield hoặc bootstrap SDD+ADD trong repository chưa có canonical governance. Nếu repository đã có canonical `# Project Ownership` và `# Agent Execution` header trong `.sdd/shared_context.md`, skill này không phải default: giữ nguyên canonical route và dùng `/sdd-adopt` cho repository có sẵn hoặc `/sdd-template-update --check` cho template đã adopt.
 
 ## Parameters
 
 - `--project-name=<name>`: Optional.
 - `--stack=<tech-stack>`: Optional; only explicit known bindings.
 - `--project-ownership=solo|team`: Optional Human governance setting; default `team`.
-- `--agent-execution=direct|orchestrated`: Optional execution setting; default `orchestrated`.
+- `--agent-execution=direct|orchestrated`: Optional execution setting; default `direct`. Use `orchestrated` only when the runtime worker capability is observed.
 - `--team-size=solo|team`: Deprecated composite alias for one transition release. `solo` maps to `solo/direct`; `team` maps to `team/orchestrated`. Emit a migration warning.
 
 `solo` means one Human project owner; `team` means multiple Human collaborators. `direct` executes in the current Agent session; `orchestrated` allows `/add-execute` to coordinate one or more workers only after runtime capability is observed. The axes are independent.
@@ -50,6 +50,17 @@ Reject `--team-size` when combined with `--project-ownership` or `--agent-execut
 ## AI Recommendation and Human Final Review
 
 Use `.claude/skills/_shared/ai-review-protocol.md`. Recommendation includes bootstrap scope, profile evidence/unknowns, methodology defaults, selected ownership/execution settings, migration warning if applicable, missing decisions and next command. Human Final Review remains `PENDING` until a human records a durable decision.
+
+## Hướng dẫn sử dụng
+- **Khi dùng:** Khởi tạo SDD+ADD cho repository mới hoặc repository chưa có canonical shared-context governance.
+- **Không dùng:** Không dùng để reset existing canonical state, overwrite user-owned profile, or infer stack/commands.
+- **Input:** Optional project/stack and independent ownership/execution flags; reject conflicting `--team-size` and canonical flags as described above.
+- **Điều kiện trước:** Repository target and template scope are writable; if canonical headers already exist, preserve them and route changes through adoption/update.
+- **Evidence:** Generated governance/profile, core-only baseline or explicit bindings, `.sdd/reviews/init.md`, and migration warning when legacy input applies.
+- **Dừng khi:** Existing canonical route conflicts, missing/conflicting stack evidence, unsafe overwrite, or bootstrap review remains unapproved.
+- **Human quyết định:** Human approves bootstrap scope, profile unknowns and ownership/execution settings; Agent does not self-approve or push.
+- **Lệnh tiếp theo:** After init review `APPROVED`, `/sdd-context --feature=<feature-slug>`; existing state instead continues via its canonical route.
+- **Ví dụ:** `/sdd-init --project-name=orders --project-ownership=solo` only when canonical headers are absent.
 
 ## Completion output
 

@@ -46,6 +46,9 @@ $TemplateDir = (Resolve-Path $TemplatePath).Path
 $Timestamp   = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
 $StagingDir  = Join-Path $TargetDir ".sdd\updates"
 
+# Starter default is direct; updates preserve the project's persisted route.
+# Never copy shared_context.md or architecture-profile.md from the template.
+
 # Đọc template version.
 $TemplateVer  = "unknown"
 $TemplateVerFile = Join-Path $TemplateDir ".sdd\template-version.md"

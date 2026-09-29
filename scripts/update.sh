@@ -55,6 +55,9 @@ TEMPLATE_DIR="$(cd "$TEMPLATE_PATH" && pwd)"
 TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 STAGING_DIR="$TARGET_DIR/.sdd/updates"
 
+# Starter default is direct; updates preserve the project's persisted route.
+# Never copy shared_context.md or architecture-profile.md from the template.
+
 # Đọc template version từ template nguồn.
 TEMPLATE_VER="unknown"
 if [ -f "$TEMPLATE_DIR/.sdd/template-version.md" ]; then

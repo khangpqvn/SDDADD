@@ -53,6 +53,17 @@ Next trace/sync step: <command or N/A>
 
 Nếu sync chỉ cập nhật registry không thay đổi contract, ghi Action Record và recommendation theo protocol nếu artifact scope thay đổi. Nếu shared contract đã thay đổi, checkpoint phải tồn tại trước action; Action Record sau sync tham chiếu checkpoint đó và nêu changed producer/version/status/owner/consumer/compatibility, drift evidence, unresolved decision và residual integration risk. Agent không tự kết luận registry hoặc contract đã `APPROVED`.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Đồng bộ registry or an already-approved shared contract after feature evidence changes.
+- **Không dùng:** Không dùng để tự rewrite contract, infer adapter syntax, or write without pre-existing checkpoint and owner authority.
+- **Input:** Optional `--feature`, `--reason` required for known change; reject unapproved binding and non-owner contract writes.
+- **Điều kiện trước:** Profile, feature evidence, shared context and ownership/frozen contract record are readable; contract checkpoint is `APPROVED` before write.
+- **Evidence:** `SDD SYNC` report, registry diff, producer/version/owner/consumers/compatibility, Action Record and trace decision.
+- **Dừng khi:** Missing owner/checkpoint/binding, contract drift, unresolved compatibility, or recommendation would be created only after an unsafe write.
+- **Human quyết định:** Contract owner/Lead approves material contract change; Agent only performs approved bounded sync.
+- **Lệnh tiếp theo:** `/sdd-trace --feature=<feature-slug> --diff` when requirement/contract evidence changed; otherwise use observed `Next trace/sync step`.
+- **Ví dụ:** `/sdd-sync --feature=feat-orders --reason="Record approved contract v2"` after checkpoint evidence exists.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Giữ `SDD SYNC` report hiện có và tóm tắt registry-only hay shared-contract mutation, owner/checkpoint, compatibility, evidence và unresolved decision. Registry-only sync có thể `continue` theo `Next trace/sync step` đã observed; shared-contract write cần checkpoint/review là `Human decision required`. Missing binding, owner, checkpoint hoặc contract drift là `BLOCKED`; không rewrite contract hoặc suy đoán adapter syntax.

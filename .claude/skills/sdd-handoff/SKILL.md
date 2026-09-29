@@ -29,6 +29,17 @@ Dùng trước khi kết thúc phiên có feature chưa hoàn thành. Skill tổ
 
 Trước khi kết thúc phiên, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm task tiếp theo, active contract version, approved scope, pending checkpoint, evidence gap, blocker, exact next decision/command và resume command. Lưu tại `.sdd/reviews/handoff-<slug>.md` với `PENDING HUMAN REVIEW`; chỉ cập nhật `TASKS.md` bằng `## Current Handoff State` và record không chứa thêm `Human Final Review` block. Human reviewer có thẩm quyền xác nhận resume scope trước material state change hoặc strict-checkpoint task; Agent không tự đánh dấu handoff hoàn tất hoặc approve hành động tiếp theo.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Persist an interrupted feature state for a later session without authorizing new execution.
+- **Không dùng:** Không dùng để cấp grant, approve scope, reassign ownership, or absorb unrelated cleanup.
+- **Input:** Optional `--feature`; reject invented task/worker IDs, authority tokens and resume claims.
+- **Điều kiện trước:** Existing TASKS, records, profile and handoff state are readable; update only `Current Handoff State` plus handoff review.
+- **Evidence:** `.sdd/reviews/handoff-<slug>.md`, TASKS markers, Action/Execution Record, exact command result and blocker.
+- **Dừng khi:** Scope expansion, contract drift, missing evidence, stale ownership or required checkpoint cannot be represented safely.
+- **Human quyết định:** Human confirms resume scope/checkpoint; handoff recommendation never grants execution or replaces `/sdd-review`.
+- **Lệnh tiếp theo:** In a new verified session, `/sdd-resume --feature=<feature-slug>`; then only an eligible `/add-execute` route.
+- **Ví dụ:** `/sdd-handoff --feature=feat-orders` records a blocked T003 without changing its owner.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu feature/task marker, active contract/profile/review/checkpoint/grant state, Action/Execution Record, exact command/result và blocker đã persist. `continue` chỉ sau khi Human đã mở đúng repository trong một phiên Claude Code mới bằng launcher chuẩn không bỏ qua permission: `/sdd-resume --feature=<feature-slug>`, rồi chỉ dùng eligible `/add-execute --feature=<feature-slug> --task=<task-id> --resume` hoặc `/add-execute --feature=<feature-slug> --all` sau revalidation. Material checkpoint pending, drift hoặc incomplete evidence là `Human decision required` hoặc `BLOCKED`; không dùng script hoặc flag bỏ qua permission, không reassign ownership hay reuse grant cũ.

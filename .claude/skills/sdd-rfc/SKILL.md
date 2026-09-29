@@ -30,6 +30,17 @@ Dùng khi cần đề xuất thay đổi/bổ sung quy tắc trong `CONSTITUTION
 
 Sau khi soạn hoặc đánh giá RFC, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm motivation, alternative, security/architecture impact, migration risk và disposition đề xuất. Lưu trong RFC hoặc `.sdd/reviews/rfc-<number>.md` với `PENDING HUMAN REVIEW`. Chỉ Tech Lead/Human Director được ủy quyền có thể approve RFC và thay đổi Constitution; Agent không tự approve.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Propose or authorizedly approve a Constitution Layer 1/2 or major architecture change.
+- **Không dùng:** Không dùng để approve feature artifacts, patch source directly, or substitute `/sdd-review` for RFC approval.
+- **Input:** `--title` creates a proposal; `--approve=<RFC-XXX>` is restricted to authorized Tech Lead/Human Director; reject missing migration/risk evidence.
+- **Điều kiện trước:** Constitution and existing RFC sequence are readable; approval authority must be explicit and persisted by project governance.
+- **Evidence:** RFC file with motivation/change/risk/migration, recommendation block, status and Constitution version impact.
+- **Dừng khi:** Missing authority, conflicting rule, incomplete migration/risk, invalid RFC ID or attempted direct Constitution write.
+- **Human quyết định:** Authorized Tech Lead/Human Director approves RFC; Agent never self-approves or treats template authorization as ongoing authority.
+- **Lệnh tiếp theo:** `/sdd-rfc --approve=<rfc-number>` only when authorized; then follow the RFC's persisted sync action.
+- **Ví dụ:** `/sdd-rfc --title=soft-delete-policy` creates `PROPOSED` RFC without changing `CONSTITUTION.md`.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Nêu RFC ID/status, Constitution/migration impact, evidence và review target. RFC `PROPOSED` là `Human decision required`; chỉ Tech Lead/Human Director được ủy quyền mới có thể chạy `/sdd-rfc --approve=<rfc-number>`. Thiếu authority, motivation/risk/migration hoặc conflicting rule là `BLOCKED`; không dùng `/sdd-review` để thay route approve RFC.

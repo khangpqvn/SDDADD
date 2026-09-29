@@ -29,8 +29,10 @@ Script adopt không được overwrite file hiện hữu nếu chưa có explici
 Dùng:
 
 ```text
-/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --reason="<lý do>"
+/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --bump=<patch|minor|major> --reason="<lý do>"
 ```
+
+`--bump` bắt buộc khi `--artifact=spec`; với `context`, `plan` và `tasks` thì không cần.
 
 Sau đó:
 

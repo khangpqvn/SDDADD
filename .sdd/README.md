@@ -31,4 +31,4 @@ Context/Spec có thể core-only. Plan/Tasks cần binding/command liên quan t�
 
 ## Cập nhật artifact
 
-Dùng `/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --reason="..."` để cập nhật artifact đã approved. Update material invalidate review bị ảnh hưởng, tạo recommendation mới và cần Human review trước downstream work.
+Dùng `/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --bump=<patch|minor|major> --reason="..."` để cập nhật artifact đã approved. `--bump` bắt buộc khi `--artifact=spec`. Update material invalidate review bị ảnh hưởng, tạo recommendation mới và cần Human review trước downstream work.

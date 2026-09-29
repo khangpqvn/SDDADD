@@ -8,7 +8,12 @@ user-invocable: true
 
 **Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`), file paths, and CLI commands are language-invariant.
 
-Dùng khi cập nhật `CLAUDE.md`, là bộ nhớ kiến trúc cho người đọc và phải phản chiếu Architecture Profile đã approved.
+Dùng khi cập nhật `CLAUDE.md`, là bộ nhớ kiến trúc cho người đọc và phải phản chiếu Architecture Profile đã approved. Skill này không thay thế feature pipeline hoặc `/add-execute`, không cấp execution grant và không mở rộng quyền Agent.
+
+## Khi nào dùng / không dùng
+
+- **Dùng khi:** project memory cần phản ánh binding hoặc guidance đã được approve.
+- **Không dùng khi:** cần sửa feature behavior, source code, Spec/Plan/Tasks hoặc cần né Human review.
 
 ## Tham số
 
@@ -39,6 +44,17 @@ Dùng khi cập nhật `CLAUDE.md`, là bộ nhớ kiến trúc cho người đ�
 ## AI Recommendation và Human Final Review
 
 Trước khi sửa `CLAUDE.md`, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm architecture evidence, memory change đề xuất, alternative, drift risk và affected skill. Lưu tại `.sdd/reviews/claude-edit.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền phải `APPROVED` trước edit; `Tech Lead` có thể review architecture khi repository giao thẩm quyền. Sau edit refresh recommendation và không tự approve project memory mới.
+
+## Hướng dẫn sử dụng
+- **Khi dùng:** Đề xuất cập nhật project memory phản ánh binding hoặc durable guidance đã approved.
+- **Không dùng:** Không dùng để chọn stack, sửa feature/source, thay Constitution, hoặc bỏ qua review.
+- **Input:** Optional `--section` and `--reason`; reject placeholders and unapproved technology claims.
+- **Điều kiện trước:** Profile, governance, constraints and repository evidence readable; recommendation exists before edit.
+- **Evidence:** `.sdd/reviews/claude-edit.md`, profile evidence, bounded memory diff, drift check and refreshed recommendation.
+- **Dừng khi:** Profile missing/conflict, binding unapproved, section not present without approved scope, or Human review absent.
+- **Human quyết định:** Authorized Human approves memory boundary; Agent reflects only approved profile facts and does not self-approve.
+- **Lệnh tiếp theo:** `/sdd-review --target=.sdd/reviews/claude-edit.md --status=APPROVED ...`, then use its persisted Follow-up.
+- **Ví dụ:** `/sdd-claude-edit --section=architecture-dna --reason="Reflect approved Clean Architecture boundary"`.
 
 ## Completion output
 

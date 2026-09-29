@@ -8,7 +8,12 @@ user-invocable: true
 
 **Output language:** Mirror the invoking prompt. Canonical tokens, paths and commands remain language-invariant.
 
-Dùng khi cập nhật `AGENTS.md`: vai trò, scope, tool permission, security hoặc escalation của AI Agent.
+Dùng khi cập nhật `AGENTS.md`: vai trò, scope, tool permission, security hoặc escalation của AI Agent. Skill này chỉ quản lý governance sau review; không thay thế feature pipeline hoặc `/add-execute`, không cấp execution grant và không được dùng để nới quyền qua shortcut.
+
+## Khi nào dùng / không dùng
+
+- **Dùng khi:** thay đổi có chủ đích đối với Agent Constitution, permission, security hoặc escalation.
+- **Không dùng khi:** sửa source/feature behavior, thay đổi Constitution Layer 1/2 (dùng `/sdd-rfc`), hoặc cần bỏ qua review/checkpoint.
 
 ## Parameters
 
@@ -42,6 +47,17 @@ Agent roles, worker count, Lead→worker escalation and ownership boundaries dep
 ## AI Recommendation and Human Final Review
 
 Before editing `AGENTS.md`, create the canonical recommendation at `.sdd/reviews/agents-edit.md` with permission impact, security risk, execution/ownership effect, alternative and affected skills. A Human review must be `APPROVED` before editing. A solo owner may persist their own Human Final Review; in team ownership an authorized Human collaborator persists it. Agent never self-approves permissions.
+
+## Hướng dẫn sử dụng
+- **Khi dùng:** Đề xuất bounded governance change trong một section của `AGENTS.md`.
+- **Không dùng:** Không dùng cho source/feature behavior, Constitution Layer 1/2, hoặc để nới quyền execution shortcut.
+- **Input:** `--reason` bắt buộc; tùy chọn `--section`; reject requests that expand permissions without evidence or review.
+- **Điều kiện trước:** `AGENTS.md`, governance, profile and constraints readable; recommendation must be `PENDING HUMAN REVIEW` before edit.
+- **Evidence:** `.sdd/reviews/agents-edit.md`, changed section, permission/security impact, and refreshed recommendation.
+- **Dừng khi:** Missing approval, unsafe permission expansion, conflicting profile, or request crosses Constitution/RFC boundary.
+- **Human quyết định:** Authorized Human reviews and approves permission impact via `/sdd-review`; Agent only applies approved bounded edit.
+- **Lệnh tiếp theo:** `/sdd-review --target=.sdd/reviews/agents-edit.md --status=APPROVED ...`, then the persisted Follow-up.
+- **Ví dụ:** `/sdd-agents-edit --section=tool-permissions --reason="Document observed read-only audit boundary"`.
 
 ## Completion output
 

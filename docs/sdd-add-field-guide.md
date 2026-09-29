@@ -52,7 +52,7 @@ Rủi ro cao = sai thì mất dữ liệu, mất tiền, rò rỉ thông tin, ho
 | Repository có code nhưng chưa adopt | `scripts/adopt.*` rồi `/sdd-adopt` | Profile có evidence rõ, mâu thuẫn đã được Human xử lý. |
 | Feature mới | `/sdd-context` → review → `/sdd-spec` → review/lock → `/sdd-plan` → `/sdd-tasks` | Artifact gate đúng thứ tự đã đạt. |
 | Describe-back mâu thuẫn | Sửa Context, disposition question, review lại | Context `APPROVED`. |
-| Requirement/contract đổi | `/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --reason="..."` | Downstream artifact được refresh/review. |
+| Requirement/contract đổi | `/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --bump=<patch|minor|major> --reason="..."` | Downstream artifact được refresh/review. `--bump` bắt buộc khi `--artifact=spec`. |
 | Task lớn hơn khoảng bốn giờ | Tách task hoặc ghi `approved-exception` | Exception có lý do, risk và Human evidence. |
 | Chạy một task | `/add-execute --feature=<slug> --task=<T001>` | Task eligible, dependency, boundary, profile, command, checkpoint và contract đều hợp lệ. |
 | Chạy snapshot feature | `/add-execute --feature=<slug> --all` | Toàn snapshot được preflight; dừng tại blocker/failure/drift. |

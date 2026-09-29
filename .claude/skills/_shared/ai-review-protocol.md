@@ -215,12 +215,17 @@ Quy tắc:
 
 ## Skill integration contract
 
-Mỗi skill phải nêu:
+Mỗi skill phải nêu rõ các mục sau trong `SKILL.md` để người dùng có thể đọc và copy lệnh mà không đoán. Dùng phần `## Hướng dẫn sử dụng` với các trường tóm tắt có tên; tham chiếu phần tham số/quy trình chi tiết ngay trong skill thay vì lặp lại toàn bộ. Tên trường có thể dùng tiếng Việt tương đương:
 
-- khi nào sinh hoặc refresh recommendation;
-- nơi lưu block;
-- quyết định Human cần đưa ra;
-- status bắt buộc trước hành động tiếp theo;
-- Agent phải dừng thay vì self-approve;
-- Human ghi decision qua `/sdd-review` khi target được hỗ trợ;
+- `When to use`: trigger và mục tiêu của skill;
+- `When not to use`: route đúng thay thế, đặc biệt khi skill không cấp execution authority;
+- `Inputs`: required, optional và rejected flags/inputs;
+- `Preconditions`: artifact, review, Profile binding, command, checkpoint hoặc runtime evidence phải tồn tại;
+- `Procedure`: các bước observable, theo đúng thứ tự;
+- `Persisted evidence`: path/record được tạo hoặc cập nhật;
+- `Blockers and stop conditions`: điều kiện fail-closed và remediation an toàn;
+- `Human decision`: decision boundary, reviewer authority và `/sdd-review` khi target được hỗ trợ;
+- `Next eligible command`: một exact command hợp lệ hoặc ghi rõ `Human decision required`/`BLOCKED`, không dùng command suy đoán;
 - `## Completion output` ở cuối skill, tham chiếu `Completion output contract` và route `continue`, `Human decision required`, `BLOCKED` theo state cục bộ.
+
+Thiếu một mục là documentation defect cần sửa trước khi phát hành template. Mục này chuẩn hóa cách mô tả; nó không biến Markdown hoặc policy YAML thành host enforcement. `/add-execute` vẫn là public execution entry point duy nhất và mọi route ghi source/contract/governance phải nói rõ boundary của mình, review trước edit và rằng nó không cấp grant ngoài contract.

@@ -25,7 +25,9 @@ Không truyền thủ công `--agent-execution`, `--project-ownership`, `--team-
 | `direct` | Preflight hợp lệ | Agent hiện tại thực thi; vẫn cần Shadow Plan, Execution/Action Record, Profile, checkpoint, exact command và validation. |
 | `orchestrated` | Preflight hợp lệ và runtime Claude Code `Agent` capability đã observed | `/add-execute` tạo immutable worker packet; worker chỉ sửa boundary được giao; coordinator validate integration. |
 
-Runtime worker unavailable với route `orchestrated` là `BLOCKED`; không fallback sang `direct`. Policy YAML, Markdown record hoặc consumer reference không tự chứng minh host enforcement; khi chưa quan sát được atomic host claim, ghi `UNVERIFIED`.
+Runtime worker unavailable với `orchestrated` là `BLOCKED`; không fallback sang `direct`. Policy YAML, Markdown record hoặc consumer reference không tự chứng minh host enforcement; khi chưa quan sát được atomic host claim, ghi `UNVERIFIED`.
+
+Route đã persist trong `.sdd/shared_context.md` không bị đổi ngầm bởi command nào. Chỉ Human sửa shared context qua review mới đổi route; xem [Bắt đầu nhanh](./sdd-add-quickstart.md) cho mặc định của starter.
 
 ## 3. Preconditions và selection
 

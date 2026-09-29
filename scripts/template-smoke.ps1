@@ -105,14 +105,15 @@ $TokenChecks = @(
     @(".claude/skills/sdd-tasks/SKILL.md", 'Only `/add-execute` may issue'),
     @(".claude/skills/sdd-resume/SKILL.md", "--task=<task-id> --retry"),
     @(".claude/skills/sdd-handoff/SKILL.md", "Action/Execution Record"),
-    @(".sdd/shared_context.md", "Agent Execution: orchestrated"),
+    @(".sdd/shared_context.md", "# Agent Execution: direct"),
     @(".sdd/mcp-config.yaml", "execution_packet:"),
     @(".sdd/mcp-config.yaml", "claude_code_execution:"),
     @(".sdd/constraints/safety.md", "Execution retry"),
     @("AGENTS.md", "# Version: 2.0.0"),
     @("AGENTS.md", 'Retire `/sdd-dispatch`'),
     @(".sdd/template-version.md", "template-version: 2.0.0"),
-    @("docs/sdd-add-quickstart.md", "/add-execute --feature=feat-user-register --all"),
+    @("docs/sdd-add-quickstart.md", "/add-execute --feature=<slug> --all"),
+    @("docs/multi-agent-orchestration-guide.md", "Runtime worker unavailable với `orchestrated` là `BLOCKED`"),
     @("scripts/adopt.sh", "retire_legacy_dispatch_skill"),
     @("scripts/adopt.ps1", "Retire-LegacyDispatchSkill"),
     @("scripts/update.sh", "retire_legacy_dispatch_skill"),
@@ -150,8 +151,23 @@ foreach ($Skill in $Skills) {
         $Relative = $Skill.FullName.Substring($Root.Length).TrimStart('\','/')
         Fail "invalid completion output: $Relative"
     }
+    foreach ($Label in @('Khi dùng', 'Không dùng', 'Input', 'Điều kiện trước', 'Evidence', 'Dừng khi', 'Human quyết định', 'Lệnh tiếp theo', 'Ví dụ')) {
+        if (-not $Content.Contains("**$Label:**")) { Fail "missing skill guidance: $Relative :: $Label" }
+    }
 }
 if ($Skills.Count -eq 26) { Pass "skill inventory: 26" } else { Fail "skill inventory: expected 26, found $($Skills.Count)" }
+
+Require-Token ".claude/skills/sdd-init/SKILL.md" 'default `direct`'
+Require-Token ".claude/skills/sdd-adopt/SKILL.md" 'default `direct`'
+Require-Token ".sdd/shared_context.md" '# Agent Execution: direct'
+Require-Token "scripts/start-claude.sh" 'ARGS=()'
+Require-AbsentToken "scripts/start-claude.sh" 'ARGS=("--dangerously-skip-permissions")'
+Require-Token "scripts/start-claude.ps1" '$argsList = @()'
+Require-AbsentToken "scripts/start-claude.ps1" '$argsList = @("--dangerously-skip-permissions")'
+Require-Token "scripts/adopt.sh" 'Persisted governance is not reset'
+Require-Token "scripts/adopt.ps1" 'Persisted governance is not reset'
+Require-AbsentToken "README.md" 'Ã'
+Require-AbsentToken "docs/sdd-add-quickstart.md" 'Ã'
 
 Get-ChildItem -Path $Root -Recurse -File -Filter "*.md" | Where-Object {
     $_.FullName -notlike "$Root\.git\*" -and $_.FullName -notlike "$Root\.claude\worktrees\*"

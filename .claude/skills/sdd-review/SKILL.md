@@ -70,6 +70,17 @@ Nếu validation fail, không sửa file và báo `HUMAN REVIEW: BLOCKED` kèm �
 
 `/sdd-review` chỉ ghi nhận quyết định do người gọi cung cấp. Nó không xác minh quyền reviewer trong tổ chức.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Persist a decision supplied by an authorized Human into one existing review block.
+- **Không dùng:** Không dùng để invent a decision, edit recommendation/source, approve self-authored work, or replace RFC approval.
+- **Input:** Exactly one target selector, status, non-placeholder decision/reviewer/follow-up; optional timezone-aware `--reviewed-at`; reject forbidden paths.
+- **Điều kiện trước:** Target has one canonical recommendation and one `Human Final Review`; reviewer authority is supplied by Human/repository governance.
+- **Evidence:** Updated five review fields, prior/new status, reviewer/timestamp, Spec lock result and persisted Follow-up.
+- **Dừng khi:** Target invalid/multiple blocks, missing fields, stale approval without new recommendation, failed DoD or missing post-code evidence.
+- **Human quyết định:** The invoking authorized Human owns the decision; `/sdd-review` records but does not verify organizational membership.
+- **Lệnh tiếp theo:** Use the exact persisted Follow-up; for approved feature artifacts, `/sdd-plan`, `/sdd-tasks` or `/add-execute` only when its gate says eligible.
+- **Ví dụ:** `/sdd-review --feature=feat-orders --artifact=plan --status=APPROVED --decision="Plan matches locked scope" --reviewer="Human owner" --follow-up="/sdd-tasks --feature=feat-orders"`.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md), giữ nguyên `HUMAN REVIEW: RECORDED | BLOCKED` report. Tóm tắt target, previous/new status, reviewer/timestamp, Spec lock và persisted Follow-up. `APPROVED` chỉ có thể `continue` theo Follow-up đã persist; `REVISE`/`REJECTED` là `Human decision required` hoặc `BLOCKED` theo Follow-up, không fabricated execution command. Validation failure là `BLOCKED`; không sửa recommendation/source/artifact ngoài năm review field.

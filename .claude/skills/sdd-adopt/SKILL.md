@@ -6,7 +6,7 @@ user-invocable: true
 
 # SDD Brownfield Adoption (`/sdd-adopt`)
 
-Dùng để adopt SDD+ADD vào repository có source hoặc tạo Reverse Spec cho module legacy.
+Dùng để adopt SDD+ADD vào repository có source hoặc tạo Reverse Spec cho module legacy. Đây là default khi repository đã có source hoặc đã có canonical shared-context governance. Trên repository đã adopt template, `/sdd-template-update` là canonical route cho template drift; `/sdd-adopt` không reset canonical header hay approved profile đã tồn tại.
 
 ## Parameters
 
@@ -14,7 +14,7 @@ Dùng để adopt SDD+ADD vào repository có source hoặc tạo Reverse Spec c
 - `--reverse-feature=<feature-slug>`: Optional.
 - `--path=<module-path>`: Optional; used with `--reverse-feature`.
 - `--project-ownership=solo|team`: Optional Human governance setting; default `team`.
-- `--agent-execution=direct|orchestrated`: Optional execution setting; default `orchestrated`.
+- `--agent-execution=direct|orchestrated`: Optional execution setting; default `direct`. Use `orchestrated` only when the runtime worker capability is observed.
 - `--team-size=solo|team`: Deprecated composite alias for one transition release: `solo` maps to `solo/direct`; `team` maps to `team/orchestrated`. Emit a migration warning.
 
 `solo` is one Human project owner and may use orchestrated workers. `team` is multiple Human collaborators and may use direct execution. Do not infer either from the other. Reject `--team-size` when combined with `--project-ownership` or `--agent-execution`; when canonical shared-context headers already exist, reject `--team-size` because the alias is valid only while both headers are absent. Canonical flags select only their own axis.
@@ -51,6 +51,17 @@ Only the named contract owner changes frozen shared contracts. Direct execution 
 ## AI Recommendation and Human Final Review
 
 Create `.sdd/reviews/adopt-<slug>.md` with canonical protocol block. Include discovered evidence, unresolved/conflicting binding, governance impact, selected ownership/execution settings, migration impact, recommendation and required Human decision. Agent does not self-approve or treat reverse-engineered behavior as approved business intent.
+
+## Hướng dẫn sử dụng
+- **Khi dùng:** Bootstrap governance in an existing repository or reverse-spec a named legacy module without treating behavior as approved intent.
+- **Không dùng:** Không dùng để overwrite approved Constitution, silently rewrite existing canonical governance, or execute feature code.
+- **Input:** Optional explicit `--stack`, `--reverse-feature` with `--path`, and canonical ownership/execution flags; reject `--team-size` when canonical headers exist or with canonical flags.
+- **Điều kiện trước:** Repository root and evidence are readable; existing canonical shared-context headers take precedence and are preserved.
+- **Evidence:** Adoption survey, Architecture Profile conflicts, generated/reconciled governance, reverse Spec `DRAFT`, and `.sdd/reviews/adopt-<slug>.md`.
+- **Dừng khi:** Evidence conflicts, missing binding for planning, unsafe overwrite boundary, or reverse path/feature is invalid.
+- **Human quyết định:** Human approves adoption scope, migration, bindings and reverse-spec intent; Agent never self-approves or pushes.
+- **Lệnh tiếp theo:** After persisted adoption review, use its exact Follow-up; normally `/sdd-context --feature=<feature-slug>` for new feature work.
+- **Ví dụ:** `/sdd-adopt --reverse-feature=legacy-orders --path=src/orders` records current behavior as `DRAFT` only.
 
 ## Completion output
 

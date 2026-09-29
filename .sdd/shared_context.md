@@ -4,7 +4,7 @@
 # Last-Updated: 2026-09-16
 # Lead Agent: Orchestrator (@main-agent)
 # Project Ownership: team
-# Agent Execution: orchestrated
+# Agent Execution: direct
 
 > `Project Ownership` là nguồn canonical cho human governance và delivery: `solo` có một Human project owner; `team` có nhiều Human collaborator và là mặc định. `Agent Execution` là nguồn canonical cho cách thực thi: `direct` chạy task trong session hiện tại; `orchestrated` cho phép `/add-execute` điều phối một hoặc nhiều worker sau khi runtime capability được quan sát. Hai trục độc lập; không suy số Human từ số Agent hoặc ngược lại.
 >

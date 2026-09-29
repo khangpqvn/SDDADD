@@ -64,6 +64,17 @@ An independent implementation task should generally fit about four hours. Split 
 
 Record the canonical recommendation with task order, dependencies, boundaries, sizing, verification, checkpoints, review routes, contract/sync-back, execution readiness and delivery risk. Keep review `PENDING` until a human persists `APPROVED`; agents never approve task plans.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Decompose an approved Plan into bounded, atomic, verifiable task records.
+- **Không dùng:** Không dùng để dispatch, issue grants, exceed Feature Lock, or substitute guessed commands.
+- **Input:** Bắt buộc `--feature`; reject missing profile/exact command/checkpoint/owner and unapproved sizing exceptions.
+- **Điều kiện trước:** PLAN approved, Spec locked, consistency map, shared context and profile evidence resolve.
+- **Evidence:** `TASKS.md` task records with ownership, dependencies, sizing, checkpoint, exact command, readiness and recommendation.
+- **Dừng khi:** Task cannot be atomic/verifiable, boundaries overlap, contract owner missing, or required review remains pending.
+- **Human quyết định:** Human approves task plan and exceptions; only `/add-execute` later issues matching grants.
+- **Lệnh tiếp theo:** `/sdd-review --feature=<feature-slug> --artifact=tasks --status=APPROVED ...`, then `/add-execute --feature=<feature-slug> --all`.
+- **Ví dụ:** `/sdd-tasks --feature=feat-orders` splits shared-contract integration into a sequential handoff task.
+
 ## Completion output
 
 Use the [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). A complete task plan with review `PENDING` is `Human decision required`; an authorized Human reviewer records the selected non-placeholder decision, reviewer identity and persisted Follow-up with `/sdd-review --feature=<feature-slug> --artifact=tasks --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. `continue` only after `TASKS.md` is `APPROVED`: `/add-execute --feature=<feature-slug> --all`. Missing profile binding, exact verification command, checkpoint, ownership or frozen-contract evidence is `BLOCKED`; report the failed precondition and do not invoke execution.

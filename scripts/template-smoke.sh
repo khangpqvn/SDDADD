@@ -41,6 +41,10 @@ require_valid_header() {
   local label="$4"
   local path="$ROOT/$rel"
   local header_count valid_count
+  if [[ ! -f "$path" ]]; then
+    fail "missing $label source: $rel"
+    return
+  fi
   header_count="$(grep -Ec "^# ${header}:.*\\r?$" "$path" || true)"
   valid_count="$(grep -Ec "^# ${header}: (${values})\\r?$" "$path" || true)"
   if [[ "$header_count" == "1" && "$valid_count" == "1" ]]; then
@@ -100,7 +104,7 @@ require_token ".sdd/constraints/safety.md" "Execution retry"
 require_token "AGENTS.md" "# Version: 2.0.0"
 require_token "AGENTS.md" 'Retire `/sdd-dispatch`'
 require_token ".sdd/template-version.md" "template-version: 2.0.0"
-require_token "docs/sdd-add-quickstart.md" "/add-execute --feature=feat-user-register --all"
+require_token "docs/sdd-add-quickstart.md" "/add-execute --feature=<slug> --all"
 require_token "docs/multi-agent-orchestration-guide.md" 'Runtime worker unavailable với `orchestrated` là `BLOCKED`'
 require_absent_token "docs/sdd-add-quickstart.md" "/sdd-dispatch --"
 require_absent_token "docs/sdd-add-field-guide.md" "/sdd-dispatch --"
@@ -128,9 +132,24 @@ while IFS= read -r -d '' skill; do
   else
     fail "invalid completion output: $rel"
   fi
+  for label in "Khi dùng" "Không dùng" "Input" "Điều kiện trước" "Evidence" "Dừng khi" "Human quyết định" "Lệnh tiếp theo" "Ví dụ"; do
+    grep -Fq -- "**$label:**" "$skill" || fail "missing skill guidance: $rel :: $label"
+  done
   skill_count=$((skill_count + 1))
 done < <(find "$ROOT/.claude/skills" -path "$ROOT/.claude/skills/_shared" -prune -o -name SKILL.md -print0)
 [[ "$skill_count" == "26" ]] && pass "skill inventory: 26" || fail "skill inventory: expected 26, found $skill_count"
+
+require_token ".claude/skills/sdd-init/SKILL.md" "default \`direct\`"
+require_token ".claude/skills/sdd-adopt/SKILL.md" "default \`direct\`"
+require_token ".sdd/shared_context.md" "# Agent Execution: direct"
+require_token "scripts/start-claude.sh" "ARGS=()"
+require_absent_token "scripts/start-claude.sh" 'ARGS=("--dangerously-skip-permissions")'
+require_token "scripts/start-claude.ps1" '$argsList = @()'
+require_absent_token "scripts/start-claude.ps1" '$argsList = @("--dangerously-skip-permissions")'
+require_token "scripts/adopt.sh" "Persisted governance is not reset"
+require_token "scripts/adopt.ps1" "Persisted governance is not reset"
+require_absent_token "README.md" "Ã"
+require_absent_token "docs/sdd-add-quickstart.md" "Ã"
 
 # Active Markdown must not present retired dispatch as an executable command.
 while IFS= read -r -d '' markdown; do

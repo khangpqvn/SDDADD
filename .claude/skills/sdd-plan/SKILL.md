@@ -90,6 +90,17 @@ Nếu sau khi đọc Spec kỹ AI không có câu hỏi nào, phải **chủ đ�
 
 Sau khi tạo/sửa `PLAN.md`, lưu canonical recommendation gồm locked scope, inherited depth, architecture option, `REQ-XXX` mapping, dependency direction, state-change/checkpoint, shared-contract impact, risk, mitigation, decision kỹ thuật mở, delivery validation/post-code review trigger và requirement bị ảnh hưởng. Human review giữ `PENDING`; task decomposition/execution cần `APPROVED`. Agent phải dừng, không self-approve.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Lập technical Plan từ locked Spec khi bindings and exact commands are resolved.
+- **Không dùng:** Không dùng để plan deferred scope, invent adapters/commands, or execute tasks.
+- **Input:** Bắt buộc `--feature`; reject unresolved HTTP/persistence/validation/test bindings and unapproved high-risk route.
+- **Điều kiện trước:** Context/Spec reviews approved, Feature Lock active, Architecture Profile evidence and exact command approved.
+- **Evidence:** `PLAN.md` mapping, data flow, consistency map, state-change/checkpoint, risks, questions and recommendation.
+- **Dừng khi:** Missing/conflicting binding, unresolved Human question, deferred scope leakage, or required review absent.
+- **Human quyết định:** Human approves architecture, risk and open assumptions; plan approval does not grant task execution.
+- **Lệnh tiếp theo:** `/sdd-review --feature=<feature-slug> --artifact=plan --status=APPROVED ...`, then `/sdd-tasks --feature=<feature-slug>`.
+- **Ví dụ:** `/sdd-plan --feature=feat-orders` stops rather than inventing a persistence adapter when DB binding is unresolved.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Plan hoàn chỉnh nhưng review `PENDING` chọn `Human decision required`; Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --feature=<feature-slug> --artifact=plan --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. `continue` chỉ sau Plan `APPROVED`: `/sdd-tasks --feature=<feature-slug>`. Missing binding/exact command, conflicting evidence hoặc unresolved Human question là `BLOCKED`; nêu profile evidence và không sinh task adapter-specific.

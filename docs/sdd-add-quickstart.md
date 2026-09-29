@@ -1,104 +1,229 @@
-# Báº¯t Ä‘áº§u nhanh SDD + ADD
+# Bắt đầu nhanh SDD + ADD
 
-TÃ i liá»‡u nÃ y hÆ°á»›ng dáº«n báº¡n hoÃ n thÃ nh **má»™t feature** tá»« Ã½ tÆ°á»Ÿng Ä‘áº¿n Git delivery. HÃ£y Ä‘i tuáº§n tá»± tá»«ng bÆ°á»›c; tuyá»‡t Ä‘á»‘i khÃ´ng nháº£y tá»« Ã½ tÆ°á»Ÿng sang viáº¿t code.
+Tài liệu này là đường đi chính để đưa một feature từ ý tưởng đến delivery có evidence. Không nhảy bước: mỗi pha chỉ mở route tiếp theo sau khi gate ngay trước đó đã được ghi bền vững.
 
-**Lá»™ trÃ¬nh:** `CONTEXT` → `SPEC` → `PLAN` → `TASKS` → `execute` → `validation` → `delivery`
+## Bản đồ một dòng
 
----
+```text
+bootstrap → CONTEXT → Human review → SPEC → lint/review/lock
+→ Architecture Profile → PLAN → Human review → TASKS → Human review
+→ /add-execute → validation/review → /git-validate → Human delivery
+```
 
-## BÆ°á»›c 0: Chuáº©n bá»‹ vÃ  Äá»‹nh danh
-TrÆ°á»›c khi báº¯t Ä‘áº§u, báº¡n cáº§n:
-1. **Feature Slug**: Má»™t tÃªn viáº¿t báº±ng kebab-case (vÃ­ dá»¥: `feat-user-register`). DÃ¹ng slug nÃ y xuyÃªn suá»‘t má»i command.
-2. **Outcome mong muá»‘n**: MÃ´ táº£ ngáº¯n gá»n káº¿t quáº£ cuá»‘i cÃ¹ng (vÃ­ dá»¥: "NgÆ°á»i dÃ¹ng Ä‘Äƒng nháº­p Ä‘Æ°á»£c báº±ng email").
-3. **Kiá»ƒm tra Governance**: Äáº£m báº£o `.sdd/shared_context.md` Ä‘Ã£ xÃ¡c Ä‘á»‹nh `Project Ownership` (solo/team) vÃ  `Agent Execution` (direct/orchestrated).
+- Repository mới: `/sdd-init`.
+- Repository đã có code: chạy `scripts/adopt.sh` hoặc `scripts/adopt.ps1`, sau đó `/sdd-adopt`.
+- Starter persist `Project Ownership: team` và `Agent Execution: direct` trong `.sdd/shared_context.md`, nên không phụ thuộc worker runtime. Route đã persist không bị đổi ngầm: chỉ đổi khi Human sửa shared context và review. `orchestrated` chỉ dùng khi đã được persist explicit và runtime capability đã được observed; unavailable là `BLOCKED`, không fallback.
+- `/add-execute` là public execution entry point duy nhất. Governance editor, audit và recovery route không cấp execution grant.
 
----
+## Bước 0 — Chọn bootstrap route
 
-## BÆ°á»›c 1: Thá»‘ng nháº¥t bÃ i toÃ¡n (`CONTEXT`)
-**Má»¥c tiÃªu:** XÃ¡c Ä‘á»‹nh "ChÃºng ta Ä‘ang lÃ m gÃ¬, cho ai, vÃ  ranh giá»›i á»Ÿ Ä‘Ã¢u?" Ä‘á»ƒ khÃ´ng lÃ m sai hÆ°á»›ng.
+### Repository mới hoặc chưa có governance
 
-- **Viá»‡c cáº§n lÃ m:**Cháº¡y `/sdd-context --feature=feat-user-register`
-- **Káº¿t quáº£ kiá»ƒm chá»©ng:** Tá»‡p `.sdd/features/feat-user-register/CONTEXT.md` Ä‘Æ°á»£c táº¡o.
-- **Äiá»ƒm máº¥u chá»‘t:**
-    - `Intent Packet` pháº£i rÃµ rÃ ng.
-    - Má»i cÃ¢u há»i mÆ¡ há»“ pháº£i Ä‘Æ°á»£c disposition (`resolved`, `approved assumption`, hoáº·c `blocking decision`).
-- **Gate:** Human Ä‘á»c vÃ  ghi `/sdd-review ... --artifact=context --status=APPROVED`.
-- **Tiáº¿p theo:** Sang BÆ°á»›c 2.
+```text
+/sdd-init --project-name="<name>"
+```
 
----
+**Input:** tên dự án và, nếu đã biết, stack explicit có evidence.
+**Output:** `AGENTS.md`, `CLAUDE.md`, `.sdd/architecture-profile.md`, `.sdd/shared_context.md`, `.sdd/reviews/init.md` và cấu trúc template.
+**Gate:** Human review `APPROVED` cho `.sdd/reviews/init.md`.
+**Dừng khi:** stack hoặc verification command mâu thuẫn/thiếu evidence. Không đoán framework, database hay test command.
+**Tiếp theo:** `/sdd-context --feature=<slug>` sau persisted `APPROVED`.
+**Không được:** chạy `/sdd-plan`, `/sdd-tasks` hoặc `/add-execute` ngay sau bootstrap.
 
-## BÆ°á»›c 2: Äá»‹nh nghÄ©a behavior (`SPEC`)
-**Má»¥c tiÃªu:** Chuyá»ƒn Ã½ tÆ°á»Ÿng thÃ nh yÃªu cáº§u ká»¹ thuáº­t cÃ³ thá»ƒ kiá»ƒm tra (khÃ´ng gáº¯n vá»›i framework cá»¥ thá»ƒ).
+### Repository đã có source
 
-- **Viá»‡c cáº§n lÃ m:**Cháº¡y `/sdd-spec --feature=feat-user-register`
-- **Káº¿t quáº£ kiá»ƒm chá»©ng:** Tá»‡p `.sdd/features/feat-user-register/SPEC.md` Ä‘Æ°á»£c táº¡o.
-- **Äiá»ƒm máº¥u chá»‘t:**
-    - DÃ¹ng EARS Ä‘á»ƒ viáº¿t `REQ-XXX`.
-    - Pháº£i cÃ³ Acceptance Criteria cho má»—i requirement.
-    - **Clarification-First**: Agent pháº£i liá»‡t kÃª gap/edge case → Human tráº£ lá»i → má»›i viáº¿t REQ.
-- **Gate:** Human ghi `/sdd-review ... --artifact=spec --status=APPROVED`. Spec lÃºc nÃ y Ä‘Æ°á»£c **LOCKED**.
-- **Tiáº¿p theo:** Kiá»ƒm tra Architecture Profile rá»“i sang BÆ°á»›c 3.
+```bash
+scripts/adopt.sh <target-repository>
+```
 
----
+Windows PowerShell:
 
-## BÆ°á»›c 3: Thiáº¿t káº¿ ká»¹ thuáº­t (`PLAN`)
-**Má»¥c tiÃªu:** XÃ¡c Ä‘á»‹nh "Sáº½ sá»­a file nÃ o, dÃ¹ng lá»‡nh gÃ¬ Ä‘á»ƒ verify, rá»§i ro á»Ÿ Ä‘Ã¢u?".
+```powershell
+.\scripts\adopt.ps1 -TargetPath <target-repository>
+```
 
-- **âš ï¸ Äiá»u kiá»‡n tiÃªn quyáº¿t:** Má»Ÿ `.sdd/architecture-profile.md`. Náº¿u feature cáº§n DB/API/Library mÃ  Profile chÆ°a cÃ³ binding `APPROVED`, báº¡n pháº£i cáº­p nháº­t Profile vÃ  xin duyá»‡t trÆ°á»›c.
-- **Viá»‡c cáº§n lÃ m:**Cháº¡y `/sdd-plan --feature=feat-user-register`
-- **Káº¿t quáº£ kiá»ƒm chá»©ng:** Tá»‡p `.sdd/features/feat-user-register/PLAN.md` Ä‘Æ°á»£c táº¡o.
-- **Äiá»ƒm máº¥u chá»‘t:**
-    - Map má»—i `REQ-XXX` vÃ o component/file cá»¥ thá»ƒ.
-    - Sá»­ dá»¥ng **Exact approved command** tá»« Profile (khÃ´ng dÃ¹ng lá»‡nh Ä‘oÃ¡n).
-- **Gate:** Human ghi `/sdd-review ... --artifact=plan --status=APPROVED`.
-- **Tiáº¿p theo:** Sang BÆ°á»›c 4.
+Sau đó, trong repository đích:
 
----
+```text
+/sdd-adopt
+```
 
-## BÆ°á»›c 4: Chia nhá» cÃ´ng viá»‡c (`TASKS`)
-**Má»¥c tiÃªu:** Biáº¿n báº£n thiáº¿t káº¿ thÃ nh danh sÃ¡ch viá»‡c cáº§n lÃ m (Atomic tasks).
+**Input:** manifest, lockfile, runtime, CI, test/build config và source layout thật.
+**Output:** `.sdd/reviews/adopt-<slug>.md` và Architecture Profile có evidence/conflict.
+**Gate:** Human review adoption và Profile trước feature work.
+**Dừng khi:** evidence conflict hoặc binding chưa rõ.
+**Tiếp theo:** `/sdd-context --feature=<slug>` chỉ khi Follow-up đã persist.
+**Không được:** dùng reverse-spec như business approval hoặc overwrite source ngoài adoption scope.
 
-- **Viá»‡c cáº§n lÃ m:**Cháº¡y `/sdd-tasks --feature=feat-user-register`
-- **Káº¿t quáº£ kiá»ƒm chá»©ng:** Tá»‡p `.sdd/features/feat-user-register/TASKS.md` Ä‘Æ°á»£c táº¡o.
-- **Äiá»ƒm máº¥u chá»‘t:**
-    - Má»—i task cÃ³: Boundary (file Ä‘Æ°á»£c sá»­a), Dependency, vÃ  Exact command Ä‘á»ƒ verify.
-    - Task lá»›n (> 4h) pháº£i Ä‘Æ°á»£c tÃ¡ch nhá» hoáº·c cÃ³ `approved-exception`.
-- **Gate:** Human ghi `/sdd-review ... --artifact=tasks --status=APPROVED`.
-- **Tiáº¿p theo:** Sang BÆ°á»›c 5 (Thá»±c thi).
+## Bước 1 — Chốt ngữ cảnh (`CONTEXT`)
 
----
+```text
+/sdd-context --feature=<slug>
+```
 
-## BÆ°á»›c 5: Thá»±c thi vÃ  XÃ¡c minh (`EXECUTE`)
-**Má»¥c tiÃªu:** Viáº¿t code vÃ  chá»©ng minh code cháº¡y Ä‘Ãºng.
+**Mục tiêu:** chốt WHAT, WHY, Definition of Done, boundary, exclusions, glossary và decision owner; chưa chọn HOW.
+**Output:** `.sdd/features/<slug>/CONTEXT.md`.
+**Gate:** `Human Final Review.Status: APPROVED` với decision, reviewer và timestamp.
+**Dừng khi:** Describe-back mâu thuẫn, material question chưa disposition, hoặc Agent tự thêm technology.
+**Tiếp theo:** `/sdd-spec --feature=<slug>`.
+**Không được:** tự approve hoặc viết Spec khi Context còn `PENDING`.
 
-- **Viá»‡c cáº§n lÃ m:**
-    - Cháº¡y má»™t task: `/add-execute --feature=feat-user-register --task=T001`
-    - Cháº¡y toÃ n bá»™ feature: `/add-execute --feature=feat-user-register --all`
-- **Luá»“ng hoáº¡t Ä‘á»™ng:**
-    1. Agent táº¡o **Shadow Plan** → Consumer Grant → Thá»±c thi → Ghi **Action Record**.
-    2. Cháº¡y exact approved command Ä‘á»ƒ verify.
-- **Äiá»ƒm máº¥u chá»‘t:**
-    - KhÃ´ng tá»± Ã½ sá»­a file ngoÃ i boundary.
-    - KhÃ´ng tá»± Ã½ Ä‘á»•i command verify.
-    - Má»i material state change (Ä‘á»•i DB schema, v.v.) cáº§n **Human Checkpoint** trÆ°á»›c khi lÃ m.
-- **Tiáº¿p theo:** Sang BÆ°á»›c 6.
+Human ghi review bằng lệnh có giá trị thật:
 
----
+```text
+/sdd-review --feature=<slug> --artifact=context --status=APPROVED --decision="<decision>" --reviewer="<authorized human>" --follow-up="/sdd-spec --feature=<slug>"
+```
 
-## BÆ°á»›c 6: Kiá»ƒm tra cuá»‘i vÃ  Delivery (`GIT`)
-**Má»¥c tiÃªu:** Äáº£m báº£o khÃ´ng cÃ³ regression vÃ  chuyá»ƒn giao vÃ o Git.
+## Bước 2 — Viết behavior (`SPEC`)
 
-- **Viá»‡c cáº§n lÃ m:**
-    1. Cháº¡y `/sdd-audit` vÃ  `/sdd-trace` Ä‘á»ƒ kiá»ƒm tra Ä‘á»™ phá»§ requirement.
-    2. Táº¡o **Post-code review report** (náº¿u cÃ³ thay Ä‘á»•i source/contract).
-    3. Cháº¡y `/git-validate --scope=commit --feature=feat-user-register`.
-- **Káº¿t quáº£ cuá»‘i cÃ¹ng:** Khi nháº­n Ä‘Æ°á»£c `GIT VALIDATION: READY`, Human yÃªu cáº§u Agent commit.
-- **Delivery:** Human tá»± thá»±c hiá»‡n `git push`.
+```text
+/sdd-spec --feature=<slug>
+/sdd-lint --feature=<slug>
+```
 
----
+**Input:** Context đã `APPROVED`.
+**Output:** `.sdd/features/<slug>/SPEC.md` với EARS, acceptance, error contract, Out of Scope, Feature Lock và recommendation.
+**Gate:** Clarification-First hoàn tất, lint không còn blocker, Human `APPROVED`; Spec chuyển `APPROVED & LOCKED`.
+**Dừng khi:** business rule, NFR hoặc edge case cần Human quyết định; không dùng assumption chưa ghi.
+**Tiếp theo:** `/sdd-plan --feature=<slug>` sau review/lock.
+**Không được:** thêm framework/ORM/command vào Spec, sửa code để né Spec gap, hoặc gọi Plan trước khi lock.
 
-## ðŸ›‘ Khi nÃ o pháº£i Dá»ªNG?
-- Thiáº¿u review `APPROVED` cho báº¥t ká»³ artifact nÃ o.
-- Spec bá»‹ mÃ¢u thuáº«n hoáº·c thiáº¿u rule → Quay láº¡i BÆ°á»›c 2.
-- Architecture Profile thiáº¿u binding/command → Cáº­p nháº­t Profile.
-- Test fail → PhÃ¢n tÃ­ch defect, khÃ´ng vÃ¡ code tÃ¹y tiá»‡n.
+```text
+/sdd-review --feature=<slug> --artifact=spec --status=APPROVED --decision="<decision>" --reviewer="<authorized human>" --follow-up="/sdd-plan --feature=<slug>"
+```
+
+## Bước 3 — Xác nhận Architecture Profile
+
+Đọc `.sdd/architecture-profile.md` trước khi lập Plan.
+
+```text
+/sdd-review --target=.sdd/architecture-profile.md --status=APPROVED --decision="<approved bindings and exact commands>" --reviewer="<authorized human>" --follow-up="/sdd-plan --feature=<slug>"
+```
+
+**Gate:** mọi binding cần cho feature và exact verification command phải có `APPROVED` evidence. Starter core-only profile có thể giữ HTTP/DB/test/build ở `BLOCKED` nếu feature không cần chúng.
+**Dừng khi:** feature cần binding hoặc command chưa chọn. Cập nhật Profile và review lại; không đoán `npm test`, framework, DB hoặc ORM.
+**Tiếp theo:** `/sdd-plan --feature=<slug>`.
+**Không được:** dùng `N/A` để che một command cần thiết cho source behavior.
+
+## Bước 4 — Lập thiết kế (`PLAN`)
+
+```text
+/sdd-plan --feature=<slug>
+```
+
+**Input:** Spec `APPROVED & LOCKED`, Profile evidence và constraints.
+**Output:** `.sdd/features/<slug>/PLAN.md` với mapping `REQ-XXX`, component/path, data flow, state-change, contract, risk và exact command.
+**Gate:** Human `APPROVED`.
+**Dừng khi:** unresolved technical question, missing binding/command hoặc Plan đưa deferred scope vào implementation.
+**Tiếp theo:** `/sdd-tasks --feature=<slug>`.
+**Không được:** tự chọn adapter, đổi depth, hoặc lập task từ Plan chưa review.
+
+```text
+/sdd-review --feature=<slug> --artifact=plan --status=APPROVED --decision="<decision>" --reviewer="<authorized human>" --follow-up="/sdd-tasks --feature=<slug>"
+```
+
+## Bước 5 — Chia task (`TASKS`)
+
+```text
+/sdd-tasks --feature=<slug>
+```
+
+**Input:** Plan đã `APPROVED`.
+**Output:** `.sdd/features/<slug>/TASKS.md`, mỗi task có `REQ-XXX`, boundary, owner, dependency, checkpoint, exact command, sizing và post-code route.
+**Gate:** Human `APPROVED` cho Tasks.
+**Dừng khi:** task thiếu boundary/command/owner, vượt Feature Lock, hoặc cần exception chưa được Human approve.
+**Tiếp theo:** `/add-execute --feature=<slug> --task=<T001>` hoặc `--all`.
+**Không được:** sửa code trực tiếp từ TASKS chưa approved hoặc tự cấp execution grant.
+
+```text
+/sdd-review --feature=<slug> --artifact=tasks --status=APPROVED --decision="<decision>" --reviewer="<authorized human>" --follow-up="/add-execute --feature=<slug> --all"
+```
+
+## Bước 6 — Thực thi qua một entry point
+
+Chạy một task:
+
+```text
+/add-execute --feature=<slug> --task=<T001>
+```
+
+Chạy snapshot eligible:
+
+```text
+/add-execute --feature=<slug> --all
+```
+
+`/add-execute` tự resolve `direct|orchestrated` từ `.sdd/shared_context.md`, preflight toàn bộ selection, tạo Execution Record/grant, consume grant trước action, yêu cầu Shadow Plan/checkpoint, sửa đúng boundary và ghi Action Record. Route `orchestrated` mà runtime worker không available là `BLOCKED`; không fallback sang `direct`.
+
+**Dừng khi:** review, dependency, contract, Profile, command, checkpoint, grant, runtime hoặc scope evidence không hợp lệ.
+**Tiếp theo:** exact approved command trong Task, rồi validation route được trigger.
+**Không được:** truyền `--agent-execution`, `--project-ownership`, `--dispatch-*`, reuse grant consumed, dùng command đoán hoặc gọi skill editor để né `/add-execute`.
+
+## Bước 7 — Validation và delivery
+
+Sau mỗi execution, theo trigger của Task:
+
+```text
+<exact approved command>
+/sdd-lint --feature=<slug>                 # khi Spec thay đổi
+/sdd-audit --feature=<slug>                # khi source/governance/contract thay đổi
+/sdd-trace --feature=<slug> --diff         # khi requirement/code/test liên quan
+/sdd-sync --feature=<slug> --reason="<reason>"  # khi registry/shared contract đổi
+/git-validate --scope=commit --feature=<slug>
+```
+
+**Gate:** Action Record đủ, post-code review `APPROVED` khi trigger áp dụng, và `GIT VALIDATION: READY`.
+**Dừng khi:** command fail, report thiếu, residual blocker hoặc review pending. Phân loại implementation defect, Spec gap hay Profile gap trước khi sửa.
+**Tiếp theo:** Human yêu cầu `/git-commit`; sau commit Human tự delivery remote.
+**Không được:** đổi exact command để tạo PASS, commit trước `READY`, hoặc Agent `git push`.
+
+## Route phụ có điều kiện
+
+### Requirement/Plan/Task đã approved nhưng phải đổi
+
+```text
+/sdd-update --feature=<slug> --artifact=<context|spec|plan|tasks> --bump=<patch|minor|major> --reason="<reason>"
+```
+
+`--bump` bắt buộc khi `--artifact=spec`; với `context`, `plan` và `tasks` thì không cần. Chọn bump theo mức tương thích ngược trong [contract của skill](../.claude/skills/sdd-update/SKILL.md).
+
+Update phải tạo Change Impact Record, invalidate approval bị ảnh hưởng và dừng downstream cho tới review mới. Không chạy lại `/sdd-context` hoặc sửa code để né update.
+
+### Session bị ngắt
+
+```text
+/sdd-handoff --feature=<slug>
+# phiên sau
+/sdd-resume --feature=<slug>
+```
+
+Handoff/resume chỉ lưu và khôi phục context. Chúng không cấp grant, không approve và không reuse grant cũ. Chỉ gọi `/add-execute ... --resume` sau revalidation.
+
+### Thay đổi Constitution hoặc hard architecture rule
+
+```text
+/sdd-rfc --title=<short-title>
+```
+
+Chỉ Tech Lead/Human Director có thẩm quyền approve RFC. Không sửa `CONSTITUTION.md` trực tiếp.
+
+### Cập nhật governance/project memory
+
+Dùng `/sdd-agents-edit` hoặc `/sdd-claude-edit` theo review contract riêng. Các route này không thay thế feature pipeline và không cấp execution authority.
+
+## Khi bị block
+
+| Blocker | Hành động đúng | Shortcut bị cấm |
+| :--- | :--- | :--- |
+| Thiếu review | Dùng `/sdd-review` với decision thật | Duyệt bằng chat hoặc tự đổi status |
+| Thiếu Profile/command | Bổ sung evidence, review Profile | Đoán package/command |
+| Spec gap | `/sdd-update` rồi review/lock | Patch code trước |
+| Contract/boundary drift | Dừng, để owner/Lead resolve, trace/sync | Tiếp tục absorb scope |
+| Thiếu checkpoint | Persist Human checkpoint `APPROVED` | Làm material change trước |
+| Grant consumed/mismatch | Revalidate qua `/add-execute` | Reset/reuse token |
+| Orchestrated runtime unavailable | Resolve runtime hoặc đổi persisted route explicit | Fallback direct ngầm |
+| Validation fail | Giữ exact result, phân loại nguyên nhân | Đổi command để tạo PASS |
+
+## Khi không dùng full SDD
+
+R&D/throwaway/prototype có thể ghi hypothesis và điều kiện dừng. Khi code được giữ lại hoặc có behavior/contract material, phải quay lại `CONTEXT → SPEC → PLAN → TASKS` trước khi mở rộng hoặc delivery.

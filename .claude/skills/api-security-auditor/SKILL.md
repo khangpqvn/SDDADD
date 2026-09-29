@@ -59,6 +59,17 @@ REMEDIATION:
 
 Nếu finding đổi business behavior, cập nhật `SPEC.md` trước code. Governance change cần RFC. Binding gap phải lưu `PENDING HUMAN REVIEW`; không remediation framework-specific.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Đọc-only audit API boundary hoặc toàn feature theo OWASP và profile evidence.
+- **Không dùng:** Không dùng để tự sửa source, chọn package/framework, chạy scan chưa approved hoặc cấp execution authority.
+- **Input:** `--file` hoặc `--feature`; tùy chọn `--owasp`; reject secret values, guessed bindings và write request.
+- **Điều kiện trước:** Target tồn tại; Architecture Profile, Spec và governance đã đọc; binding adapter-specific phải `APPROVED` để kết luận tương ứng.
+- **Evidence:** `API SECURITY AUDIT REPORT`, path/line finding, profile version, exact approved command/result hoặc `N/A` reason, recommendation pending.
+- **Dừng khi:** Binding thiếu/conflict, target ngoài boundary, unresolved critical/high finding hoặc behavior change chưa có Spec decision.
+- **Human quyết định:** Human phân loại finding và duyệt behavior/profile change; remediation chỉ thành action qua `/add-execute` task đã approved.
+- **Lệnh tiếp theo:** `/sdd-update --feature=<slug> --artifact=spec --bump=<patch|minor|major> --reason="..."` khi finding đổi behavior; nếu không, theo Follow-up đã persist.
+- **Ví dụ:** `/api-security-auditor --file=src/interface/http/orders.ts --owasp=A01` chỉ tạo proposal audit, không sửa file.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract) sau `API SECURITY AUDIT REPORT`. Nêu audit scope/profile, severity/finding evidence, recommendation/report path, exact verification result và residual risk. Kết quả không có finding/blocker mới chọn `continue` với action không-command: giữ audit evidence và chỉ theo persisted feature/delivery Follow-up hiện có; không tự suy ra route mới. Business behavior change là `Human decision required` để update/review Spec; governance change route qua RFC; `CONFIGURATION GAP` hoặc unresolved `CRITICAL`/`HIGH` là `BLOCKED`. Không generate framework/package/scan command chưa approved và không tự apply remediation.

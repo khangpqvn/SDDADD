@@ -1,9 +1,15 @@
 param (
     [switch]$Continue,
+    [switch]$DangerouslySkipPermissions,
     [string]$Prompt = ""
 )
 
-$argsList = @("--dangerously-skip-permissions")
+$argsList = @()
+
+if ($DangerouslySkipPermissions) {
+    $argsList += "--dangerously-skip-permissions"
+    Write-Warning "Đang khởi động Claude Code với quyền bị bỏ qua theo lựa chọn explicit."
+}
 
 if ($Continue) {
     $argsList += "-c"
@@ -13,5 +19,7 @@ if ($Prompt) {
     $argsList += $Prompt
 }
 
-Write-Host "Khởi động Claude Code ở chế độ bỏ qua quyền..." -ForegroundColor Green
+if (-not $DangerouslySkipPermissions) {
+    Write-Host "Khởi động Claude Code với permission mode mặc định." -ForegroundColor Green
+}
 claude @argsList

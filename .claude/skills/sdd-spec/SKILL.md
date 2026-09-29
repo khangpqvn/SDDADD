@@ -126,6 +126,17 @@ Sau `APPROVED & LOCKED`, behavior hoặc contract chỉ thay đổi qua `/sdd-up
 
 Sau khi tạo/sửa `SPEC.md`, lưu canonical recommendation gồm Methodology Profile, requirement gap, EARS risk, adversarial findings/disposition, high-risk review route, edge case, Out of Scope, Feature Lock và SemVer impact. Giữ `Human Final Review.Status: PENDING`; `/sdd-plan` bị block đến khi Human reviewer có thẩm quyền ghi `APPROVED`. Agent không được đặt `APPROVED & LOCKED` thay con người.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Draft/rebuild a Spec from an approved Context using the inherited depth and EARS; nền tảng của mọi task `@ears`.
+- **Không dùng:** Không dùng để sửa Spec `APPROVED & LOCKED` (dùng `/sdd-update --artifact=spec`), hoặc ghi framework/ORM schema/command chưa approved.
+- **Input:** Bắt buộc `--feature`; reject missing Clarification-First disposition, guessed bindings và non-EARS requirement.
+- **Điều kiện trước:** `CONTEXT.md` có persisted `APPROVED`, Describe-back khớp evidence, Methodology Profile depth đã chọn, high-risk review route được Human chấp nhận.
+- **Evidence:** `SPEC.md` SemVer + `Status: DRAFT`, tám thành phần, EARS/Unwanted pairs, Feature Lock, adversarial disposition và recommendation `PENDING HUMAN REVIEW`.
+- **Dừng khi:** Material question chưa disposition, high-risk route chưa có evidence, depth bị tự đổi, hoặc Agent thêm rule bằng assumption chưa ghi nhận.
+- **Human quyết định:** Human lock Spec và quyết định gap NFR/edge case; Agent không tự đặt `APPROVED & LOCKED`.
+- **Lệnh tiếp theo:** `/sdd-review --feature=<feature-slug> --artifact=spec --status=<APPROVED|REVISE|REJECTED> ...`; `continue` chỉ sau `APPROVED & LOCKED`: `/sdd-plan --feature=<feature-slug>`.
+- **Ví dụ:** `/sdd-spec --feature=feat-orders` với `FORMAL` depth vì đụng schema, dừng nếu DB binding chưa resolve.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). Sau DoD pass nhưng Spec chưa lock, chọn `Human decision required`; Human reviewer có thẩm quyền ghi decision, reviewer identity và Follow-up không phải placeholder bằng `/sdd-review --feature=<feature-slug> --artifact=spec --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"`. `continue` chỉ sau `APPROVED & LOCKED`: `/sdd-plan --feature=<feature-slug>`. Clarification, EARS, high-risk route hoặc binding evidence còn thiếu là `BLOCKED`; nêu gap/disposition, không sinh Plan hoặc command adapter-specific.

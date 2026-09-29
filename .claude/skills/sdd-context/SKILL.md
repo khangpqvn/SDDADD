@@ -58,6 +58,17 @@ Tuân thủ [Architecture Profile Protocol](../_shared/architecture-profile-prot
 
 Sau khi tạo/sửa `CONTEXT.md`, lưu canonical recommendation trong artifact, gồm Intent Packet, Describe-back record, business question, assumption, stakeholder, constraint, exclusion, Methodology Profile và alternative. Giữ `Human Final Review.Status: PENDING`. Chỉ chuyển sang `/sdd-spec` sau `APPROVED` có decision, reviewer và timestamp. Agent phải dừng, không self-approve.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Khởi tạo Context lần đầu để chốt intent, boundaries, glossary và question disposition.
+- **Không dùng:** Không dùng để update approved Context, chọn framework, hoặc thiết kế implementation.
+- **Input:** Bắt buộc `--feature=<feature-slug>`; reject technology-specific requirements and unresolved material questions.
+- **Điều kiện trước:** Governance, profile, constraints and repository evidence readable; existing Context updates route through `/sdd-update`.
+- **Evidence:** `CONTEXT.md` Intent Packet, Methodology Profile, Describe-back record and recommendation `PENDING HUMAN REVIEW`.
+- **Dừng khi:** Intent/solution mixed, describe-back contradiction, material question lacks disposition, or profile evidence conflicts.
+- **Human quyết định:** Human approves Context before Spec and decides blocking assumptions via `/sdd-review`.
+- **Lệnh tiếp theo:** `/sdd-review --feature=<feature-slug> --artifact=context --status=APPROVED ...`; then `/sdd-spec --feature=<feature-slug>` only after persisted approval.
+- **Ví dụ:** `/sdd-context --feature=feat-order-checkout` for a new business outcome, not a framework design.
+
 ## Completion output
 
 Dùng [Completion output contract](../_shared/ai-review-protocol.md#completion-output-contract). `continue` chỉ sau `CONTEXT.md` có persisted `APPROVED`: `/sdd-spec --feature=<feature-slug>`. Với recommendation/review còn `PENDING`, chọn `Human decision required`; Human reviewer dùng `/sdd-review --feature=<feature-slug> --artifact=context --status=<APPROVED|REVISE|REJECTED> --decision="<human decision>" --reviewer="<authorized human reviewer>" --follow-up="<exact next command or required action>"` sau khi chọn các giá trị thật, không dùng placeholder. Không gọi `/sdd-spec` trước persisted `APPROVED`. Intent/Describe-back/profile evidence mâu thuẫn là `BLOCKED`; nêu evidence và yêu cầu Human disposition, không tự chọn technology hoặc assumption.

@@ -44,6 +44,17 @@ Broken consistency block delivery của phần affected. Không tự sửa artif
 
 Sau report traceability/impact, tạo canonical recommendation từ `.claude/skills/_shared/ai-review-protocol.md`, gồm coverage gap, stale artifact, missing execution/sync evidence, contract drift, severity, remediation option và residual risk. Lưu trong feature artifact hoặc `.sdd/reviews/trace-<slug>.md` với `PENDING HUMAN REVIEW`. Human reviewer có thẩm quyền quyết định disposition hoặc yêu cầu remediation; broken trace hoặc consistency chưa xử lý vẫn bị block. Agent không tự đánh dấu coverage `APPROVED`.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Read-only trace REQ coverage and impact across Spec, Plan, Tasks, code, tests and contracts.
+- **Không dùng:** Không dùng để sửa artifact/code, mark coverage approved, complete tasks or grant execution.
+- **Input:** Bắt buộc `--feature`; optional `--req` and `--diff`; reject guessed test evidence and write requests.
+- **Điều kiện trước:** Feature artifacts and source/test paths are readable; changed Spec should have version/review context for impact analysis.
+- **Evidence:** RTM, stale/orphan/drift findings, Action/Execution/sync evidence and pending trace recommendation.
+- **Dừng khi:** Missing artifacts, broken trace, `MISSING TEST`, `IMPL OUTDATED`, `STALE`, `DRIFT` or unresolved contract decision.
+- **Human quyết định:** Human disposes gaps; remediation writes occur only through approved `/add-execute` task and review route.
+- **Lệnh tiếp theo:** `/sdd-review --target=<trace report> --status=<APPROVED|REVISE|REJECTED> ...`; use `/sdd-update` when impact changes an artifact.
+- **Ví dụ:** `/sdd-trace --feature=feat-orders --req=REQ-002 --diff` reports impact without editing code.
+
 ## Completion output
 
 

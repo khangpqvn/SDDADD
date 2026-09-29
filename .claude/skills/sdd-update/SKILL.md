@@ -8,7 +8,7 @@ user-invocable: true
 
 **Output language:** All output mirrors the language of the invoking prompt. Vietnamese prompt → Vietnamese output; English prompt → English output. Canonical tokens (`PENDING HUMAN REVIEW`, `APPROVED`, `APPROVED & LOCKED`, `DRAFT`), EARS keywords, `REQ-XXX` identifiers, SemVer, file paths, and CLI commands are language-invariant.
 
-Dùng khi cần sửa artifact SDD đã approved mà không sinh lại từ đầu.
+Dùng khi cần sửa artifact SDD đã approved mà không sinh lại từ đầu. Skill này luôn invalidate review/downstream readiness bị ảnh hưởng; không cấp execution grant và không cho phép tiếp tục code trước review mới.
 
 ## Khi nào dùng skill này
 
@@ -130,6 +130,17 @@ Sau khi cập nhật artifact, tạo canonical recommendation từ `.claude/skil
 /sdd-update --feature=feat-user-register --artifact=plan --reason="Add Redis session risk and mitigation after security review"
 /sdd-update --feature=feat-user-register --artifact=tasks --reason="Add T009 for concurrent registration dedup check"
 ```
+
+## Hướng dẫn sử dụng
+- **Khi dùng:** Cập nhật một approved Context/Spec/Plan/Tasks artifact with explicit impact and review reset.
+- **Không dùng:** Không dùng để che behavior change, resume execution, issue grants, or bypass Clarification-First.
+- **Input:** `--feature`, `--artifact`, `--reason`; `--bump` required for Spec; reject technology guesses and missing reason.
+- **Điều kiện trước:** Existing artifact, downstream artifacts, profile and governance are readable; changed scope is recorded before edit.
+- **Evidence:** `Change Impact Record`, invalidated downstream state, new recommendation `PENDING HUMAN REVIEW` and review target.
+- **Dừng khi:** Unresolved clarification, breaking change without migration/rollback, profile gap, or downstream impact cannot be bounded.
+- **Human quyết định:** Human approves revised artifact; Agent does not resume code or execution until fresh review.
+- **Lệnh tiếp theo:** `/sdd-review --feature=<feature-slug> --artifact=<context|spec|plan|tasks> --status=APPROVED ...`, then use the persisted Follow-up.
+- **Ví dụ:** `/sdd-update --feature=feat-orders --artifact=spec --bump=patch --reason="Clarify duplicate order error"`.
 
 ## Completion output
 

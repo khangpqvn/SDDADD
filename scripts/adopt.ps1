@@ -28,6 +28,13 @@ function Copy-FileSafely {
         New-Item -ItemType Directory -Path $DestParent -Force | Out-Null
     }
 
+    # Persisted governance is not reset by a template default, even with -Force.
+    $Protected = @('CONSTITUTION.md', '.sdd/architecture-profile.md', '.sdd/shared_context.md')
+    if ((Test-Path -Path $Dest) -and ($DestRel.Replace('\', '/') -in $Protected)) {
+        Write-Host "  [=] Giữ governance hiện có; thay đổi cần review: $DestRel" -ForegroundColor Yellow
+        return
+    }
+
     if ((Test-Path -Path $Dest) -and (-not $script:Force)) {
         Write-Host "  [=] Tệp đã tồn tại, giữ nguyên: $DestRel" -ForegroundColor Yellow
         return

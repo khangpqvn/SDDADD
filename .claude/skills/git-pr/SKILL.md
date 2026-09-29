@@ -62,6 +62,17 @@ Read `# Project Ownership: team|solo` and `# Agent Execution: direct|orchestrate
 ✓ remote verification: pending Human push | HEAD == origin/<head>
 ```
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Chuẩn bị remote delivery: solo chỉ kiểm tra sẵn sàng, team tạo PR sau Human confirmation.
+- **Không dùng:** Không dùng để push, merge, force-push, close PR, resolve conflict hoặc bypass checks.
+- **Input:** `--base`, `--head`, tùy chọn feature/draft/issue/ownership; reject ambiguous remote target and unpushed team head.
+- **Điều kiện trước:** Ownership resolve, branch/worktree/remote hợp lệ, local commit đã có; team cần Human-confirmed title/body và `git-validate --scope=pr --strict` `READY`.
+- **Evidence:** Branch/remote state, validation report, `HEAD` comparison or pending Human push, PR URL when created.
+- **Dừng khi:** Detached/dirty/protected state, missing remote diff, auth/API failure, conflict, failed check hoặc missing Human confirmation.
+- **Human quyết định:** Human owns push; team Human confirms outward-facing PR content before `gh pr create`.
+- **Lệnh tiếp theo:** Solo `git push -u origin <head>`; team chỉ `gh pr create` after persisted confirmation and `READY`.
+- **Ví dụ:** `/git-pr --base=main --head=feat/orders --feature=feat-orders --draft` trong team flow sau Human push.
+
 ## Completion output
 
 Use the [Completion output contract](../_shared/ai-review-protocol.md). Summarize ownership, branch/remote state, validation evidence, PR/remote verification state and unresolved delivery condition. Solo `READY` may only `continue` with the displayed Human `git push -u origin <head>` command. Team PR creation is `Human decision required` until outward-facing title/body is confirmed; auth/API/conflict/protected branch/required-check failure is `BLOCKED`. Never auto-push, force-push, merge, close or resolve conflicts.

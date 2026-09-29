@@ -75,6 +75,16 @@ copy_file() {
 
   mkdir -p "$dest_parent"
 
+  # Persisted governance is not reset by a template default, even with --force.
+  if [ -f "$dest" ]; then
+    case "$dest_rel" in
+      CONSTITUTION.md|.sdd/architecture-profile.md|.sdd/shared_context.md)
+        echo -e "  ${YELLOW}[=] Giữ governance hiện có; thay đổi cần review: $dest_rel${NC}"
+        return
+        ;;
+    esac
+  fi
+
   if [ -f "$dest" ] && [ "$FORCE" -eq 0 ]; then
     echo -e "  ${YELLOW}[=] Tệp đã tồn tại, giữ nguyên: $dest_rel${NC}"
     return

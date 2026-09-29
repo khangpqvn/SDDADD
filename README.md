@@ -7,6 +7,63 @@ Template khởi tạo dự án theo **Spec-Driven Development (SDD)** và **Agen
 Nếu bạn là người mới hoặc muốn triển khai feature đầu tiên, đi theo lộ trình:
 **[Bắt đầu nhanh: làm feature đầu tiên](./docs/sdd-add-quickstart.md)**
 
+## Catalog 26 skills
+
+Mỗi command có contract chuẩn trong [`.claude/skills/`](./.claude/skills/); bảng dưới đây chỉ là bản đồ chọn route, không thay thế contract. Input bắt buộc được giữ ngắn; đọc contract trước khi chạy.
+
+### Bootstrap và lifecycle
+
+| Skill | Input chính | Route liên quan |
+| :--- | :--- | :--- |
+| [`/sdd-init`](./.claude/skills/sdd-init/SKILL.md) | `--project-name`, tùy chọn `--stack`, ownership/execution | [Quickstart](./docs/sdd-add-quickstart.md) |
+| [`/sdd-adopt`](./.claude/skills/sdd-adopt/SKILL.md) | tùy chọn `--stack`, `--reverse-feature`, `--path` | [Quickstart](./docs/sdd-add-quickstart.md) |
+| [`/sdd-context`](./.claude/skills/sdd-context/SKILL.md) | `--feature` | [Quickstart](./docs/sdd-add-quickstart.md#bước-1--chốt-ngữ-cảnh-context) |
+| [`/sdd-spec`](./.claude/skills/sdd-spec/SKILL.md) | `--feature` | [Quickstart](./docs/sdd-add-quickstart.md#bước-2--viết-behavior-spec) |
+| [`/sdd-lint`](./.claude/skills/sdd-lint/SKILL.md) | `--feature` | [Quickstart](./docs/sdd-add-quickstart.md#bước-2--viết-behavior-spec) |
+| [`/sdd-plan`](./.claude/skills/sdd-plan/SKILL.md) | `--feature` | [Quickstart](./docs/sdd-add-quickstart.md#bước-4--lập-thiết-kế-plan) |
+| [`/sdd-tasks`](./.claude/skills/sdd-tasks/SKILL.md) | `--feature` | [Quickstart](./docs/sdd-add-quickstart.md#bước-5--chia-task-tasks) |
+| [`/sdd-review`](./.claude/skills/sdd-review/SKILL.md) | target hoặc `--feature` + `--artifact`, status, decision, reviewer, follow-up | [Hướng dẫn vận hành](./docs/sdd-add-guide.md) |
+| [`/sdd-update`](./.claude/skills/sdd-update/SKILL.md) | `--feature`, `--artifact`, `--reason`; Spec thêm `--bump` | [Quickstart](./docs/sdd-add-quickstart.md#route-phụ-có-điều-kiện) |
+| [`/sdd-trace`](./.claude/skills/sdd-trace/SKILL.md) | `--feature`, tùy chọn `--req`, `--diff` | [Tra cứu nhanh](./docs/sdd-add-field-guide.md) |
+| [`/sdd-sync`](./.claude/skills/sdd-sync/SKILL.md) | tùy chọn `--feature`, `--reason` | [Tra cứu nhanh](./docs/sdd-add-field-guide.md) |
+| [`/sdd-template-update`](./.claude/skills/sdd-template-update/SKILL.md) | `--check` hoặc `--review`, tùy chọn `--template` | [Sổ đăng ký](./.sdd/template-version.md) |
+
+### Execution và recovery
+
+| Skill | Input chính | Route liên quan |
+| :--- | :--- | :--- |
+| [`/add-execute`](./.claude/skills/add-execute/SKILL.md) | `--feature` và một `--task` hoặc `--all`; tùy chọn `--retry`/`--resume` | [Hướng dẫn execution](./docs/multi-agent-orchestration-guide.md) |
+| [`/sdd-layer-edit`](./.claude/skills/sdd-layer-edit/SKILL.md) | `--feature`, `--action`, `--target` | [Hướng dẫn vận hành](./docs/sdd-add-guide.md) |
+| [`/sdd-handoff`](./.claude/skills/sdd-handoff/SKILL.md) | tùy chọn `--feature` | [Sổ tay tình huống](./docs/sdd-add-scenario-playbook.md) |
+| [`/sdd-resume`](./.claude/skills/sdd-resume/SKILL.md) | tùy chọn `--feature` | [Sổ tay tình huống](./docs/sdd-add-scenario-playbook.md) |
+
+### Governance
+
+| Skill | Input chính | Route liên quan |
+| :--- | :--- | :--- |
+| [`/sdd-agents-edit`](./.claude/skills/sdd-agents-edit/SKILL.md) | tùy chọn `--section`, bắt buộc `--reason` | [`AGENTS.md`](./AGENTS.md) |
+| [`/sdd-claude-edit`](./.claude/skills/sdd-claude-edit/SKILL.md) | tùy chọn `--section`, `--reason` | [`CLAUDE.md`](./CLAUDE.md) |
+| [`/sdd-rfc`](./.claude/skills/sdd-rfc/SKILL.md) | `--title` hoặc `--approve` | [`CONSTITUTION.md`](./CONSTITUTION.md) |
+
+### Validation và delivery
+
+| Skill | Input chính | Route liên quan |
+| :--- | :--- | :--- |
+| [`/sdd-audit`](./.claude/skills/sdd-audit/SKILL.md) | tùy chọn `--feature` | [Tra cứu nhanh](./docs/sdd-add-field-guide.md) |
+| [`/git-validate`](./.claude/skills/git-validate/SKILL.md) | `--scope`; tùy chọn `--feature`, `--strict` | [Quickstart](./docs/sdd-add-quickstart.md#bước-7--validation-và-delivery) |
+| [`/git-commit`](./.claude/skills/git-commit/SKILL.md) | tùy chọn message/type/scope/files | [Quickstart](./docs/sdd-add-quickstart.md#bước-7--validation-và-delivery) |
+| [`/git-pr`](./.claude/skills/git-pr/SKILL.md) | tùy chọn `--base`, `--head`, `--feature`, `--draft` | [Sổ tay tình huống](./docs/sdd-add-scenario-playbook.md#8-delivery) |
+
+### Technical audit
+
+| Skill | Input chính | Route liên quan |
+| :--- | :--- | :--- |
+| [`/api-security-auditor`](./.claude/skills/api-security-auditor/SKILL.md) | `--file` hoặc `--feature`; tùy chọn `--owasp` | [Hướng dẫn vận hành](./docs/sdd-add-guide.md) |
+| [`/error-handler-pattern`](./.claude/skills/error-handler-pattern/SKILL.md) | `--file` hoặc `--feature`; `--mode=audit\|scaffold` | [Hướng dẫn vận hành](./docs/sdd-add-guide.md) |
+| [`/sql-performance-tuner`](./.claude/skills/sql-performance-tuner/SKILL.md) | `--file` hoặc `--query`; `--mode=audit\|fix\|index` | [Hồ sơ kiến trúc](./docs/architecture-profile-guide.md) |
+
+Mọi route execution vẫn chịu gate trong artifact và skill contract. Không dùng catalog để bypass Human review, Architecture Profile hoặc exact command.
+
 ## Hệ thống tài liệu
 
 Chọn tài liệu theo nhu cầu hiện tại, không cần đọc hết:
@@ -64,12 +121,15 @@ Khi có mâu thuẫn, tin vào các tệp này thay vì prose trong docs:
 2. **Không suy đoán kỹ thuật.** Chỉ dùng binding và command đã `APPROVED` trong Architecture Profile.
 3. **Human quyết định.** Agent đề xuất và thực thi trong scope đã duyệt; chỉ Human ghi `APPROVED` và `git push`.
 
+Các nguyên tắc này là quy ước governance, không phải enforcement: chúng không ràng buộc được một writer cố ý bỏ qua. Chỉ host-enforcement quan sát được mới được coi là đang áp dụng; nếu chưa có runtime evidence thì ghi `UNVERIFIED`.
+
 ## Giới hạn cần biết trước khi tin Agent
 
 Agent mạnh trong phạm vi context được cung cấp, nhưng có điểm mù thật: context đầy thì bỏ quên chỉ dẫn, có thể lặp vòng sửa lỗi không hội tụ, và có thể bịa API của library ít phổ biến. Vì vậy template yêu cầu Shadow Plan, exact approved command, Action Record và Human checkpoint. Cách nhận biết và xử lý nằm trong [Hướng dẫn vận hành](./docs/sdd-add-guide.md).
 
 ## Tiện ích template
 
+- `scripts/start-claude.sh` và `scripts/start-claude.ps1`: khởi chạy với permission mode mặc định. Bypass permission chỉ có khi truyền cờ explicit, bị khuyến cáo không dùng và không thuộc route chính của template.
 - `scripts/self-heal.sh`: chạy một exact approved command để thu thập evidence; không sửa source, không retry.
 - `scripts/template-smoke.sh` và `scripts/template-smoke.ps1`: static check file, token và link.
 - `scripts/adopt.sh` và `scripts/adopt.ps1`: đưa template vào repository có sẵn.

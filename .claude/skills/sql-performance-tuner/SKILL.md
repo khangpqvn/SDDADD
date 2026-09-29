@@ -12,7 +12,7 @@ Audit persistence performance cho TypeScript + Node.js + Clean Architecture. Ch�
 
 - `--file=<path>`: Persistence adapter cần audit, phải thuộc `src/infra/`.
 - `--query=<sql>`: Query cần phân tích; chỉ dùng dialect-specific analysis khi DB đã approved.
-- `--mode=audit|fix|index`: `audit` phân tích, `fix` tạo recommendation, `index` thiết kế index theo DB approved.
+- `--mode=audit|fix|index`: `audit` phân tích, `fix` tạo recommendation, `index` đề xuất thiết kế index theo DB approved. Cả ba mode đều là read-only proposal; không ghi SQL, migration hay schema.
 
 ## Architecture Profile gate
 
@@ -51,6 +51,17 @@ REMEDIATION:
 ```
 
 Nếu performance change đổi data contract, consistency, SLA hoặc schema behavior, cập nhật `SPEC.md`/`PLAN.md` trước code. Dùng `/sdd-review` cho profile/schema decision trước execution.
+
+## Hướng dẫn sử dụng
+- **Khi dùng:** Audit persistence performance trong `src/infra/` và tạo proposal fix/index theo binding đã approved.
+- **Không dùng:** `fix` và `index` vẫn là read-only proposal; không emit SQL/index/migration/ORM call khi DB binding chưa chọn, không ghi schema ngoài `/add-execute` boundary.
+- **Input:** `--file` phải thuộc `src/infra/`; optional `--query` và `--mode=audit|fix|index`; reject dialect-specific analysis without approved DB.
+- **Điều kiện trước:** DB, ORM/query layer, migration mechanism và exact command đã `APPROVED` có evidence; target file nằm trong `src/infra/`.
+- **Evidence:** `PERSISTENCE PERFORMANCE AUDIT REPORT`, query-plan/index evidence, exact verification result hoặc `N/A` reason, recommendation pending.
+- **Dừng khi:** `ARCH-01` layer violation, configuration gap, production index/schema change thiếu rollback + Human Final Review, hoặc data-contract impact chưa có Spec decision.
+- **Human quyết định:** Human duyệt schema/index/migration và profile decision; write chỉ xảy ra qua task `/add-execute` đã approved.
+- **Lệnh tiếp theo:** `/sdd-review --target=<audit report> --status=<APPROVED|REVISE|REJECTED> ...`; `/sdd-update --feature=<slug> --artifact=spec --bump=... --reason="..."` khi đổi data contract/SLA/schema behavior.
+- **Ví dụ:** `/sql-performance-tuner --file=src/infra/persistence/order-repository.ts --mode=audit` báo N+1 mà không viết query mới.
 
 ## Completion output
 

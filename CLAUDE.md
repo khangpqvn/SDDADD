@@ -13,7 +13,7 @@ Repository là Starter Template theo **SDD** (Spec-Driven Development) và **ADD
 
 - `.sdd/architecture-profile.md` là profile machine-readable canonical cho tech binding và exact verification command.
 - `.claude/skills/_shared/ai-review-protocol.md` là protocol canonical cho Human Final Review, Methodology Profile, Describe-back và Action Record.
-- `.sdd/shared_context.md` canonicalize hai trục độc lập: `Project Ownership` (Human governance/delivery) và `Agent Execution` (direct/orchestrated worker route). `team` là mặc định cho ownership; solo vẫn có thể orchestration nhiều Agent.
+- `.sdd/shared_context.md` canonicalize hai trục độc lập: `Project Ownership` (Human governance/delivery) và `Agent Execution` (direct/orchestrated worker route). Starter mới mặc định `team + direct`; repository đã có canonical route phải giữ route đó, không fallback ngầm. Solo vẫn có thể orchestration nhiều Agent khi runtime capability được observed.
 - `CLAUDE.md` phản ánh kiến trúc đã approved cho con người đọc; không tự chọn stack.
 - Thứ tự chọn binding: profile approved → repository evidence rõ ràng → input explicit → core-only baseline.
 

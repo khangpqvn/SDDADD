@@ -92,6 +92,17 @@ next step:
 
 `READY` requires no `FAIL`, non-empty diff, valid reasons for every `N/A`, required post-code review `APPROVED`, and no unresolved warnings for team PR validation.
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Chạy validation gate trước commit hoặc remote delivery, không thay đổi worktree.
+- **Không dùng:** Không dùng để auto-fix, commit, push, merge, reset, stash hoặc claim unrun checks as `PASS`.
+- **Input:** Bắt buộc `--scope=commit|pr`; tùy chọn feature/base/head/strict/ownership; reject write/destructive inputs.
+- **Điều kiện trước:** Repository guidance/profile accessible; diff source matches scope (staged for commit, remote/local comparison for PR).
+- **Evidence:** `GIT VALIDATION` report with each PASS/FAIL/N/A reason, exact commands/results, post-code review and blockers.
+- **Dừng khi:** Empty diff, governance/profile conflict, secret, missing review, failed lint/audit/trace/sync/test or unresolved team warning.
+- **Human quyết định:** Human resolves blockers and authorizes delivery route; validator never changes files or grants approval.
+- **Lệnh tiếp theo:** `git commit` only after commit `READY`; otherwise run the exact remediation named in `next step`.
+- **Ví dụ:** `/git-validate --scope=commit --feature=feat-orders` before a local commit.
+
 ## Completion output
 
 Use the [Completion output contract](../_shared/ai-review-protocol.md), preserving the existing `GIT VALIDATION` report. Summarize scope/diff source, every `PASS`/`FAIL`/`N/A`, post-code review, exact command results, warnings and blockers. `READY` may only `continue` to the existing Human-confirmed delivery route; `BLOCKED` names the observed remediation from the report and does not auto-fix. Do not commit, push, merge, reset, checkout, stash, amend or discard changes.

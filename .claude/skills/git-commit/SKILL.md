@@ -86,6 +86,17 @@ Solo ownership bỏ PR overhead; Agent Execution không ảnh hưởng Git deliv
 ✓ delivery: Human must run git push after reviewing remote target
 ```
 
+## Hướng dẫn sử dụng
+- **Khi dùng:** Tạo local commit sau khi staged scope đã được Human xác nhận và validator trả `READY`.
+- **Không dùng:** Không dùng để push, merge, reset, amend hoặc stage secret/ngoài scope; không tự chọn message khi cần xác nhận.
+- **Input:** `--message` (hoặc yêu cầu xác nhận), tùy chọn type/scope/feature/files/ownership; reject credential paths and destructive flags without confirmation.
+- **Điều kiện trước:** Governance hợp lệ, intended paths đã xác nhận, staged diff non-empty, `/git-validate --scope=commit` trả `READY` và user xác nhận message.
+- **Evidence:** Staged diff, validator report, commit hash/subject/branch và displayed Human delivery command.
+- **Dừng khi:** Secret/forbidden file, validation/hook fail, dirty or protected state, missing confirmation hoặc empty diff.
+- **Human quyết định:** Human xác nhận scope/message và tự thực hiện remote delivery; Agent không push.
+- **Lệnh tiếp theo:** Sau commit chỉ hiển thị `git push -u origin <head>` để Human chạy; validation fail thì dùng remediation trong report.
+- **Ví dụ:** `/git-commit --files=.claude/skills/sdd-context/SKILL.md --message="docs(sdd): clarify context usage"` sau `READY`.
+
 ## Completion output
 
 Use the [Completion output contract](../_shared/ai-review-protocol.md). Summarize staged scope, validation evidence, commit hash/branch when created and the Human-owned delivery route. No staged changes remains `NO-OP` with no further command; a missing user confirmation, secret/forbidden path, validation failure or hook failure is `BLOCKED`, reported without resetting, amending or retrying blindly. `continue` after commit is only the displayed Human `git push -u origin <head>` command; the Agent never runs it.
